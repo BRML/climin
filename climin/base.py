@@ -9,10 +9,14 @@ def repeat_or_iter(obj):
 
 class Minimizer(object):
 
-    def __init__(self, wrt, args=None, verbose=False):
+    def __init__(self, wrt, args=None, stop=1, verbose=False):
         self.wrt = wrt 
-        self.verbose = verbose
+
         if args is None:
             self.args = itertools.repeat(([], {}))
         else:
             self.args = args
+
+        self.stop = stop
+        self.verbose = verbose
+
