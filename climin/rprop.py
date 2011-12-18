@@ -10,6 +10,7 @@ from base import Minimizer, repeat_or_iter
 class Rprop(Minimizer):
 
     def __init__(self, wrt, fandprime, stepshrink, stepgrow, minstep, maxstep,
+                 changes_max=0.1,
                  args=None, stop=1, verbose=False):
         super(Rprop, self).__init__(wrt, args=args, stop=stop, verbose=verbose)
 
@@ -18,10 +19,11 @@ class Rprop(Minimizer):
         self.stepgrow = stepgrow
         self.minstep = minstep
         self.maxstep = maxstep
+        self.changes_max = changes_max
 
     def __iter__(self):
         grad_m1 = scipy.zeros(self.wrt.shape)
-        changes = scipy.random.random(self.wrt.shape) * 0.1
+        changes = scipy.random.random(self.wrt.shape) * self.changes_max
 
         for i, (args, kwargs) in enumerate(self.args):
             loss, grad = self.fandprime(*args, **kwargs)
