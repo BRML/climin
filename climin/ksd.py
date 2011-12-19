@@ -33,12 +33,21 @@ class KrylovSubspaceDescent(Minimizer):
         self.krylov_args = krylov_args
 
     def _calc_krylov_basis(self, grad, step):
-        self.krylov_basis[0] = step
-        self.krylov_basis[1] = grad
         args, kwargs = self.hessian_args.next()
-        for i in range(1, self.krylov_coefficients.shape[0] - 1):
-            self.krylov_basis[i + 1] = self.f_Hp(
-                self.krylov_basis[i], *args, **kwargs)
+
+        inv_diag_fisher = 1 / grad**2
+        self.krylov_basis[0] = step
+
+        v = inv_diag_fisher * grad
+        self.krylov_basis[1] =  v / scipy.sqrt(scipy.dot(v.T, v))
+        for i in range(2, self.krylov_basis.shape[0]):
+            w = self.f_Hp(self.krylov_basis[i - 1], *args, **kwargs)
+            u = w * inv_diag_fisher
+            for j in range(1, i):
+                v_j = self.krylov_basis[j]
+                u -= scipy.dot(scipy.dot(u.T, v_j), v_j)
+            self.krylov_basis[i] = u / scipy.sqrt(scipy.dot(u.T, u))
+
     def _f_krylov(self, x, *args, **kwargs):
         old = self.krylov_coefficients.copy()
         self.krylov_coefficients[:] = x
