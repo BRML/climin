@@ -11,15 +11,15 @@ from climin import Rprop
 # Hyper parameters.
 
 n_inpt = 1
-n_hidden = 10
+n_hidden = 20
 n_output = 1
-n_krylov_bases = 5
+n_krylov_bases = 10
 
 
 # Expressions.
 
-#exprs, P = rnn(n_inpt, n_hidden, n_output)
-exprs, P = lstmrnn(n_inpt, n_hidden, n_output)
+exprs, P = rnn(n_inpt, n_hidden, n_output)
+#exprs, P = lstmrnn(n_inpt, n_hidden, n_output)
 target = T.tensor3('target')
 loss = ((exprs['output'] - target)**2).mean()
 lossgrad = T.grad(loss, P.flat)
@@ -63,7 +63,7 @@ Hargs = (([X, Z], {}) for _ in itertools.repeat(()))
 print '#pars:', P.data.size
 
 
-if False:
+if True:
   f_Hp = theano.function([p, inpt, target], Hp)
   f_krylovandprime = theano.function([inpt, target], [krylov_loss, krylov_grad])
   opt = KrylovSubspaceDescent(
@@ -77,13 +77,25 @@ else:
               args=args)
 opt = iter(opt)
 prevloss = float('inf')
+losses = []
+steps = []
 for i, info in enumerate(opt):
   loss = info['loss']
-  if i > 50 and prevloss - loss < 1E-5:
+  if i > 50 and prevloss - loss < 1E-10 or loss < 0.003:
     break
   print 'loss', loss
   print 'max step', abs(info['step']).max()
   prevloss = loss
+
+  losses.append(info['loss'])
+  step = info['step']
+  steps.append(scipy.sqrt(scipy.dot(step.T, step)))
+
+
+pylab.plot(steps)
+pylab.plot(losses)
+pylab.show()
+
 
 pylab.plot(f_predict(X)[:, 0, 0])
 pylab.plot(Z[:, 0, 0])
