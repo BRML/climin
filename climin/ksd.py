@@ -39,6 +39,19 @@ class KrylovSubspaceDescent(Minimizer):
         for i in range(1, self.krylov_coefficients.shape[0] - 1):
             self.krylov_basis[i + 1] = self.f_Hp(
                 self.krylov_basis[i], *args, **kwargs)
+    def _f_krylov(self, x, *args, **kwargs):
+        old = self.krylov_coefficients.copy()
+        self.krylov_coefficients[:] = x
+        loss, _ = self.f_krylovandprime(*args, **kwargs)
+        self.krylov_coefficients[:] = old
+        return loss
+
+    def _fprime_krylov(self, x, *args, **kwargs):
+        old = self.krylov_coefficients.copy()
+        self.krylov_coefficients[:] = x
+        _, grad = self.f_krylovandprime(*args, **kwargs)
+        self.krylov_coefficients[:] = old
+        return grad
 
     def __iter__(self):
         step = scipy.ones(self.wrt.shape)
@@ -50,22 +63,11 @@ class KrylovSubspaceDescent(Minimizer):
 
             # Minimize subobjective.
             subargs, subkwargs = self.krylov_args.next()
-            def f(x):
-              old = self.krylov_coefficients.copy()
-              self.krylov_coefficients[:] = x
-              loss, _ = self.f_krylovandprime(*subargs, **subkwargs)
-              self.krylov_coefficients[:] = old
-              return loss
-            def fprime(x):
-              old = self.krylov_coefficients.copy()
-              self.krylov_coefficients[:] = x
-              _, grad = self.f_krylovandprime(*subargs, **subkwargs)
-              #print grad
-              self.krylov_coefficients[:] = old
-              return grad
+            f = lambda x: self._f_krylov(x, *subargs, **subkwargs)
+            fprime = lambda x: self._fprime_krylov(x, *subargs, **subkwargs)
 
             step_coeffs, f, d = scipy.optimize.fmin_l_bfgs_b(
-                f, self.krylov_coefficients, fprime, maxfun=50,
+                f, self.krylov_coefficients, fprime, maxfun=100,
                 pgtol=1E-12, factr=10.)
             ##step_coeffs = scipy.optimize.fmin_cg(
             ##    f, self.krylov_coefficients, fprime, maxiter=30)
