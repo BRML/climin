@@ -78,33 +78,9 @@ class KrylovSubspaceDescent(Minimizer):
             step_coeffs, f, d = scipy.optimize.fmin_l_bfgs_b(
                 f, self.krylov_coefficients, fprime, maxfun=100,
                 pgtol=1E-12, factr=10.)
-            ##step_coeffs = scipy.optimize.fmin_cg(
-            ##    f, self.krylov_coefficients, fprime, maxiter=30)
             self.krylov_coefficients[:] = step_coeffs
-
-            #opt = Rprop(
-            #    self.krylov_coefficients, self.f_krylovandprime,
-            #    stepshrink=0.2, stepgrow=1.1,
-            #    maxstep=0.1, minstep=1e-10,
-            #    changes_max=0.000001,
-            #    args=((subargs, subkwargs) for _ in itertools.repeat(())))
-            #opt = GradientDescent(
-            #    self.krylov_coefficients, self.f_krylovandprime,
-            #    steprate=0.001, momentum=0.9,
-            #    args=((subargs, subkwargs) for _ in itertools.repeat(())))
-            #for i, info in enumerate(opt):
-            #    if self.verbose:
-            #      #print info['loss']
-            #      # print self.krylov_coefficients
-            #      pass
-            #    if i == 10:
-            #      break
 
             # Take search step.
             step[:] = scipy.dot(self.krylov_coefficients, self.krylov_basis)
-            #step = scipy.clip(step, -5, 5)
-            #print self.krylov_coefficients
-            #print step.shape, self.wrt.shape
-            #print self.wrt.sum(), (self.wrt**2).sum()
             self.wrt += step
             yield dict(loss=loss, step=step)
