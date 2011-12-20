@@ -9,8 +9,8 @@ from base import Minimizer, repeat_or_iter
 
 class Rprop(Minimizer):
 
-    def __init__(self, wrt, fandprime, stepshrink, stepgrow, minstep, maxstep,
-                 changes_max=0.1,
+    def __init__(self, wrt, fandprime, stepshrink=0.5, stepgrow=1.2,
+                 minstep=1E-6, maxstep=1, changes_max=0.1,
                  args=None, stop=1, verbose=False):
         super(Rprop, self).__init__(wrt, args=args, stop=stop, verbose=verbose)
 
