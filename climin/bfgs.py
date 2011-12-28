@@ -11,13 +11,13 @@ from base import Minimizer, repeat_or_iter
 
 class Bfgs(Minimizer):
 
-    def __init__(self, wrt, f, fprime, initial_hessian=None,
+    def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
                  args=None, stop=1, verbose=False):
         super(Bfgs, self).__init__(wrt, args=args, stop=stop, verbose=verbose)
 
         self.f = f
         self.fprime = fprime
-        self.hessian = initial_hessian
+        self.inv_hessian = initial_inv_hessian
 
     def __iter__(self):
 
@@ -37,16 +37,25 @@ class Bfgs(Minimizer):
 
         args, kwargs = self.args.next()
         grad = self.fprime(*args, **kwargs)
-        if self.hessian is None:
-            self.hessian = scipy.diag(grad**2)
+
+        if self.inv_hessian is None:
+            self.inv_hessian = scipy.eye(grad.shape[0])
+
         for i, (args, kwargs) in enumerate(self.args):
             if i > 0 and i % self.stop == 0:
                 loss = self.f(*args, **kwargs)
                 yield dict(loss=loss, step=step, grad=grad, 
                            direction=direction, steplength=steplength,
-                           inv_hessian=inv_hessian)
-            inv_hessian = scipy.linalg.inv(self.hessian)
-            direction = scipy.dot(inv_hessian, -grad)
+                           inv_hessian=self.inv_hessian)
+
+            # If the gradient is exactly zero, we stop. Otherwise, the
+            # updates will lead to NaN errors because the direction will
+            # be zero.
+            if (grad == 0.0).all():
+                break
+
+            direction = scipy.dot(self.inv_hessian, -grad)
+
             # TODO does not support kwargs, should raise exception
             steplength = scipy.optimize.line_search(
                 f, fprime, self.wrt, direction, grad, args=args)[0]
@@ -54,16 +63,21 @@ class Bfgs(Minimizer):
             self.wrt += step
             grad_m1 = grad
             grad = self.fprime(*args, **kwargs)
+
+            # Update for inverse Hessian approximation.
+            # We will do some abbreviations here to keep the code short.
             grad_diff = grad - grad_m1
+            s = step
+            y = grad_diff
+            B = self.inv_hessian
 
-            # Update for Hessian approximation.
-            outer_grad_diff = scipy.outer(grad_diff, grad_diff)
-            inner_grad_diff_step = scipy.inner(grad_diff, step)
+            sTy = scipy.inner(s, y)
+            yTBy = scipy.inner(y, scipy.dot(B, y))
+            ssT = scipy.outer(s, s)
 
-            hessian_times_step = scipy.dot(self.hessian, step)
-            hessian_times_step_outer = scipy.outer(
-                hessian_times_step, hessian_times_step)
-            step_dot_hessian = scipy.dot(step.T, hessian_times_step)
+            ysT = scipy.outer(y, s)
+            BysT = scipy.dot(B, ysT)
+            syB = scipy.dot(ysT, B)
 
-            self.hessian += outer_grad_diff / inner_grad_diff_step
-            self.hessian -= hessian_times_step_outer / step_dot_hessian
+            self.inv_hessian += (sTy + yTBy) * ssT / sTy**2
+            self.inv_hessian -= (BysT + syB) / sTy
