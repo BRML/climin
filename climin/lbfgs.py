@@ -9,6 +9,13 @@ import scipy.optimize
 from base import Minimizer
 
 
+# Things left to do:
+#
+# - update initial diagonal inverse hessian as in minfunc
+# - figure out what the corrections are
+# - damped update
+
+
 class Lbfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
