@@ -7,37 +7,41 @@ import scipy.linalg
 import scipy.optimize
 
 from base import Minimizer
-
-# TODO:
-#
-# - use own line search
+from linesearch import ScipyLineSearch, ExponentialDistant
 
 
 class Bfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
+                 line_search=None,
                  args=None, stop=1, verbose=False):
         super(Bfgs, self).__init__(wrt, args=args, stop=stop, verbose=verbose)
 
         self.f = f
         self.fprime = fprime
         self.inv_hessian = initial_inv_hessian
+        
+        if line_search is not None:
+            self.line_search = line_search
+        else:
+            self.line_search = ScipyLineSearch(
+                wrt, self.f_with_x, self.fprime_with_x)
+
+    def f_with_x(self, x, *args, **kwargs):
+        old = self.wrt.copy()
+        self.wrt[:] = x
+        res = self.f(*args, **kwargs)
+        self.wrt[:] = old
+        return res
+
+    def fprime_with_x(self, x, *args, **kwargs):
+        old = self.wrt.copy()
+        self.wrt[:] = x
+        res = self.fprime(*args, **kwargs)
+        self.wrt[:] = old
+        return res
 
     def __iter__(self):
-
-        def f(x, *args, **kwargs):
-            old = self.wrt.copy()
-            self.wrt[:] = x
-            res = self.f(*args, **kwargs)
-            self.wrt[:] = old
-            return res
-
-        def fprime(x, *args, **kwargs):
-            old = self.wrt.copy()
-            self.wrt[:] = x
-            res = self.fprime(*args, **kwargs)
-            self.wrt[:] = old
-            return res
 
         args, kwargs = self.args.next()
         grad = self.fprime(*args, **kwargs)
@@ -59,11 +63,12 @@ class Bfgs(Minimizer):
                 break
 
             direction = scipy.dot(self.inv_hessian, -grad)
+            direction /= abs(direction).max()
+            steplength = self.line_search.search(direction, args, kwargs)
 
-            # TODO does not support kwargs, should raise exception
-            steplength = scipy.optimize.line_search(
-                f, fprime, self.wrt, direction, grad, args=args)[0]
             step = steplength * direction
+            if (step == 0.0).all():
+                break
             self.wrt += step
             grad_m1 = grad
             grad = self.fprime(*args, **kwargs)
