@@ -70,7 +70,7 @@ class Lbfgs(Minimizer):
         # TODO: find a good name for this variable (surprise!)
         beta = scipy.empty(n_current_factors)
 
-        for i in idxs:
+        for i in idxs[::-1]:
             beta[i] = rho[i] * scipy.inner(grad_diffs[i], z)
             z += steps[i] * (alpha[i] - beta[i])
 
