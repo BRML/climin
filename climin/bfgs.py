@@ -6,7 +6,7 @@ import scipy
 import scipy.linalg
 import scipy.optimize
 
-from base import Minimizer, repeat_or_iter
+from base import Minimizer
 
 
 class Bfgs(Minimizer):
