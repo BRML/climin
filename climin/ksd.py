@@ -85,6 +85,8 @@ class KrylovSubspaceDescent(Minimizer):
             Cinv = scipy.linalg.inv(C)
             V[:] = scipy.dot(Cinv, V)
 
+        self.krylov_hessian = H
+
     def _f_krylov(self, x, *args, **kwargs):
         old = self.krylov_coefficients.copy()
         self.krylov_coefficients[:] = x
