@@ -27,7 +27,7 @@ class Lbfgs(Minimizer):
         self.f = f
         self.fprime = fprime
         self.initial_hessian_diag = initial_hessian_diag
-        self.n_factors = 10
+        self.n_factors = n_factors
         if line_search is not None:
             self.line_search = line_search
         else:
