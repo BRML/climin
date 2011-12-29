@@ -8,6 +8,10 @@ import scipy.optimize
 
 from base import Minimizer
 
+# TODO:
+#
+# - use own line search
+
 
 class Bfgs(Minimizer):
 

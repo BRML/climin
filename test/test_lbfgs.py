@@ -17,10 +17,13 @@ def test_lbfgs_rosen():
 
     opt = Lbfgs(wrt, f, fprime)
     for i, info in enumerate(opt):
-        if i > 2000:
+        if (abs(wrt - [1, 1]) < 0.01).all():
+            success = True
             break
-    print wrt
-    assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
+        if i > 5000:
+            success = False
+            break
+    assert success, 'did not find solution'
 
 
 def test_lbfgs_quadratic():

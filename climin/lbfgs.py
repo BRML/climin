@@ -7,6 +7,7 @@ import scipy.linalg
 import scipy.optimize
 
 from base import Minimizer
+from linesearch import exponential_distant
 
 
 # Things left to do:
@@ -19,7 +20,7 @@ from base import Minimizer
 class Lbfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
-                 n_factors=10,
+                 n_factors=10, line_search=None,
                  args=None, stop=1, verbose=False):
         super(Lbfgs, self).__init__(wrt, args=args, stop=stop, verbose=verbose)
 
@@ -27,6 +28,10 @@ class Lbfgs(Minimizer):
         self.fprime = fprime
         self.initial_hessian_diag = initial_hessian_diag
         self.n_factors = 10
+        if line_search is not None:
+            self.line_search = line_search
+        else:
+            self.line_search = exponential_distant
 
     def f_with_x(self, x, *args, **kwargs):
         old = self.wrt.copy()
@@ -110,10 +115,8 @@ class Lbfgs(Minimizer):
                 direction = -self.inv_hessian_dot_gradient(
                     grad_diffs, steps, grad, idxs)
 
-            # TODO: Does not work with kwargs, raise Exception if non empty
-            steplength = scipy.optimize.line_search(
-                self.f_with_x, self.fprime_with_x, self.wrt, direction, grad, 
-                args=args)[0]
+            steplength = self.line_search(
+                self.f_with_x, self.wrt, direction, args=args, kwargs=kwargs)
             step = steplength * direction
             self.wrt += step
             grad = self.fprime(*args, **kwargs)
