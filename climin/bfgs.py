@@ -42,7 +42,6 @@ class Bfgs(Minimizer):
         return res
 
     def __iter__(self):
-
         args, kwargs = self.args.next()
         grad = self.fprime(*args, **kwargs)
 
