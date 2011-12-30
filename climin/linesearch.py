@@ -189,3 +189,93 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
                 minPos = x
                 fmin = fx
     return minPos, fmin
+
+
+def mixedExtrap(x0, f0, g0, x1, f1, g1,
+        minStep, maxStep):
+    """
+    From minFunc, without switches doPlot and debug.
+    """
+    alpha_c, _ = polyinterp(points=np.array([[x0, f0, g0],[x1, f1, g1]]), 
+            xminBound=minStep, xmaxBound=maxStep)
+    #
+    alpha_s, _ = polyinterp(points=np.array([[x0, f0, g0],[x1, 1j, g1]]), 
+            xminBound=minStep, xmaxBound=maxStep)
+    if alpha_c > minStep and abs(alpha_c - x1) < abs(alpha_s - x1):
+        # Cubic Extrapolation
+        t = alpha_c;
+    else:
+        # Secant Extrapolation
+        t = alpha_s
+    return t
+
+
+#def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
+#        oldLOval,oldLOFval,oldLOGval):
+#    """
+#    From minFunc, without switches for doPlot and debug
+#    """
+#    # This needs a check!!
+#    #
+#    # In particular this next line!
+#    nonTpos = 1 - Tpos
+#
+#    # And these three lines ....
+#    gtdT = np.dot(bracketGval(:,Tpos), d)
+#    gtdNonT = np.dot(bracketGval(:,nonTpos), d)
+#    oldLOgtd = np.dot(oldLOGval, d)
+#    #
+#    if bracketFval(Tpos) > oldLOFval:
+#        # A comment here would be nice ...
+#        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+#        #
+#        alpha_q, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+#                [bracket(Tpos), bracketFval(Tpos), 1j]]))
+#        if abs(alpha_c - oldLOval) < abs(alpha_q - oldLOval):
+#            # Cubic Interpolation
+#            t = alpha_c
+#        else:
+#            # Mixed Quad/Cubic Interpolation
+#            t = (alpha_q + alpha_c)/2.
+#    elif np.dot(gtdT, oldLOgtd) < 0:
+#        # A comment here would be nice ...
+#        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+#        #
+#        alpha_s, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+#                [bracket(Tpos), 1j, gtdT]]))
+#        if abs(alpha_c - bracket(Tpos)) >= abs(alpha_s - bracket(Tpos))
+#            # Cubic Interpolation
+#            t = alpha_c
+#        else:
+#            # Quad Interpolation
+#            t = alpha_s
+#    elif abs(gtdT) <= abs(oldLOgtd):
+#        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+#                [bracket(Tpos), bracketFval(Tpos), gtdT]]),\
+#                np.min(bracket), np.max(bracket))
+#        #
+#        alpha_s, _ = polyinterp(np.array([[oldLOval, 1j, oldLOgtd],\
+#                [bracket(Tpos), bracketFval(Tpos), gtdT]]),\
+#                np.min(bracket), np.max(bracket))
+#        #
+#        if (alpha_c > min(bracket)) and (alpha_c < max(bracket)):
+#            if abs(alpha_c - bracket(Tpos)) < abs(alpha_s - bracket(Tpos)):
+#                # Bounded Cubic Extrapolation
+#                t = alpha_c
+#            else:
+#                # Bounded Secant Extrapolation
+#                t = alpha_s
+#        else:
+#            # Bounded Secant Extrapolation
+#            t = alpha_s
+#
+#        if bracket(Tpos) > oldLOval:
+#            t = min(bracket(Tpos) + 0.66*(bracket(nonTpos) - bracket(Tpos)), t)
+#        else:
+#            t = max(bracket(Tpos) + 0.66*(bracket(nonTpos) - bracket(Tpos)), t)
+#    else:
+#        t = polyinterp(np.array([[bracket(nonTpos), bracketFval(nonTpos), gtdNonT],\
+#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+#    return t
