@@ -72,7 +72,7 @@ class StrongWolfeBackTrack(BackTrack):
             step = s * direction
             if abs(step.max()) < self.tolerance:
                 # If the step is too short, just return 0.
-                return 0
+                return 0.0
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
             dir_dot_grad0 = scipy.inner(direction, self.fprime(self.wrt))
