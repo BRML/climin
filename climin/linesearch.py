@@ -210,6 +210,97 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
     return t
 
 
+#def isLegal(v):
+#    """
+#    Do exactly that.
+#    """
+#    return not np.any(np.iscomplex(v)) and not np.any(np.isnan(v)) and not np.any(np.isinf(v))
+#
+#
+#def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
+#    """
+#    Backtracking linesearch satisfying Armijo condition.
+#    
+#    From minFunc. Missing: doPlot, saveHessianComp, varargin
+#    -> varargin are passed to funObj as parameters, need to
+#    be put in here!!!! Hessian at initial guess is _not_ returned
+#
+#    Check again with minFunc!!!
+#
+#    x: starting location
+#    t: initial step size
+#    d: descent direction
+#    f: function value at starting location
+#    fr: reference function value (usually funObj(x))
+#    gtd: directional derivative at starting location
+#    c1: sufficient decrease parameter
+#    debug: display debugging information
+#    LS: type of interpolation
+#    tolX: minimum allowable step length
+#    funObj: objective function
+#    varargin: parameters of objective function
+#
+#    Outputs:
+#    t: step length
+#    f_new: function value at x+t*d
+#    g_new: gradient value at x+t*d
+#    funEvals: number function evaluations performed by line search
+#    """
+#    
+#    # Evaluate objective and gradient at initial step
+#    # Hessian part missing here!
+#    f_new, g_new = funObj(x + t*d)
+#    funEvals = 1
+#
+#    while f_new > fr + c1*t*gtd || isLegal(f_new):
+#        # A comment here will be nice!
+#        temp = t
+#        # this could be nicer, if idea how to work out 'LS'
+#        if LS == 0 or not isLegal(f_new):
+#            # Backtrack with fixed backtracing rate
+#            t = 0.5 * t
+#        elif LS == 2 and isLegal(g_new):
+#            # Backtrack with cubic interpolation with derivative
+#            t, _ = polyinterp(np.array([[0, f, gtd], [t, f_new, np.dot(g_new, d)]]))
+#        elif funEvals < 2 or not isLegal(f_prev):
+#            # Backtracking with quadratic interpolation
+#            # (no derivatives at new point available)
+#            t, _ = polyinterp(np.array([[0, f, gtd], [t, f_new, 1j]]))
+#        else:
+#            # Backtracking with cubin interpolation
+#            # (no derviatives at new point available)
+#            t, _ = polyinterp(np.array([[0, f, gtd],\
+#                    [t, f_new, 1j], [t_prev, f_prev, 1j]]))
+#        #
+#        # Adjust if change in t is too small ...
+#        if t < temp*10**-3:
+#            t = temp * 0.6
+#        # or too large
+#        elif t > temp*0.6:
+#            t = temp * 0.6
+#        #
+#        f_prev = f_new
+#        t_prev = temp
+#        # Missing part: call return Hessian
+#        f_new, g_new = funObj(x + t*d)
+#        #
+#        funEvals += 1
+#
+#        # Check if step size has become too small
+#        if np.sum(np.abs(t*d)) <= tolX:
+#            # Backtracking line search failed -> maybe some print out?
+#            t = 0
+#            f_new = f
+#            g_new = g
+#            break
+#    #
+#
+#    # Missing: evaluate at new point
+#    #
+#    x_new = x + t*d
+#    # Hessian is missing here!
+#    return t, x_new, f_new, g_new, funEvals
+
 #def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
 #        oldLOval,oldLOFval,oldLOGval):
 #    """
