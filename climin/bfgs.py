@@ -60,15 +60,20 @@ class Bfgs(Minimizer):
             # updates will lead to NaN errors because the direction will
             # be zero.
             if (grad == 0.0).all():
+                if self.verbose:
+                    print 'gradient is 0'
                 break
 
             direction = scipy.dot(self.inv_hessian, -grad)
             direction /= abs(direction).max()
             steplength = self.line_search.search(direction, args, kwargs)
 
-            step = steplength * direction
-            if (step == 0.0).all():
+            if steplength == 0:
+                if self.verbose:
+                    print 'steplength is 0'
                 break
+
+            step = steplength * direction
             self.wrt += step
             grad_m1 = grad
             grad = self.fprime(*args, **kwargs)
