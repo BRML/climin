@@ -4,6 +4,8 @@
 import itertools
 
 import scipy.optimize
+import numpy as np
+import scipy as sp
 
 
 class LineSearch(object):
@@ -98,3 +100,92 @@ class ScipyLineSearch(LineSearch):
         gfk = self.fprime(self.wrt, *args)
         return scipy.optimize.line_search(
             self.f, self.fprime, self.wrt, direction, gfk, args=args)[0]
+
+
+def polyinterp(points, xminBound=None, xmaxBound=None):
+    """
+    Minimum of interpolating polynomial based
+    on function and derivative values.
+
+    Note: doPlot from minFunc missing!!!
+    """
+    nPoints = points.shape[0]
+    order = np.sum(np.isreal(points[:, 1:3])) - 1
+
+    # Code for most common case:
+    # - cubic interpolation of 2 points
+    #   w/ function and derivative values for both
+    # - no xminBound/xmaxBound
+
+    if (nPoints == 2) and (order == 3) and xminBound is None and xmaxBound is None:
+        # Solution in this case (where x2 is the farthest point):
+        #    d1 = g1 + g2 - 3*(f1-f2)/(x1-x2);
+        #    d2 = sqrt(d1^2 - g1*g2);
+        #    minPos = x2 - (x2 - x1)*((g2 + d2 - d1)/(g2 - g1 + 2*d2));
+        #    t_new = min(max(minPos,x1),x2);
+        minVal = np.min(points[:, 0])
+        minPos = np.argmin(points[:, 0])
+        notMinPos = 1 - minPos  
+        d1 = points[minPos, 2] + points[notMinPos,2] - \
+                3*(points[minPos, 1] - points[notMinPos, 1])/ \
+                (points[minPos, 0] - points[notMinPos, 0])
+        d2 = sp.sqrt(d1**2 - points[minPos, 2] * points[notMinPos, 2])
+        if np.isreal(d2):
+            t = points[notMinPos, 0] -\
+                    ( points[notMinPos, 0] - points[minPos, 0] ) * \
+                    (\
+                      (points[notMinPos, 2] + d2 - d1)/ \
+                      (points[notMinPos, 2] - points[minPos, 2] + 2*d2)\
+                    )
+            minPos = np.minimum(np.maximum(t, points[minPos,0]), points[notMinPos, 0])
+            
+        else:
+            minPos = np.mean(points[:,0])
+        # fmin is not returned here
+        return minPos, None 
+    #
+    #
+    xmin = np.min(points[:, 0])
+    xmax = np.max(points[:, 0])
+    # Compute Bouns of Interpolation Area
+    if xminBound is None:
+        xminBound = xmin
+    if xmaxBound is None:
+        xmaxBound = xmax
+    #
+    #
+    # Collect constraints for parameter estimation 
+    A = np.zeros((2*nPoints, order+1))
+    b = np.zeros((2*nPoints, 1))
+    # Constraints based on available function values
+    for i, p in enumerate(points[:, 1]):
+        if np.isreal(p):
+            A[i] = [points[i, 0]**(order - j) for j in xrange(order+1)]
+            b[i] = p
+    # Constraints based on available derivatives
+    for i, p in enumerate(points[:, 2]):
+        if np.isreal(p):
+            A[nPoints + i] = [(order-j+1)*points[i, 0]**(order-j) for j in xrange(1, order+1)] + [0]
+            b[nPoints + i] = points[i, 2]
+    #
+    # Find interpolating polynomial
+    params = np.linalg.lstsq(A, b)[0].flatten()
+
+    # Compute critical points
+    dParams =  [(order-j)*params[j] for j in xrange(order)]
+
+    cp = [xminBound, xmaxBound] + list(points[:, 0])
+    if not np.any(np.isinf(dParams)):
+        cp += list(np.roots(dParams))
+
+    # Test critical points
+    fmin = np.inf
+    # Default to bisection if no critical points are valid
+    minPos = (xminBound + xmaxBound)/2.
+    for x in cp:
+        if np.isreal(x) and x >= xminBound and x <= xmaxBound:
+            fx = np.polyval(params, x)
+            if np.isreal(fx) and fx <= fmin:
+                minPos = x
+                fmin = fx
+    return minPos, fmin
