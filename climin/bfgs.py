@@ -7,7 +7,7 @@ import scipy.linalg
 import scipy.optimize
 
 from base import Minimizer
-from linesearch import ScipyLineSearch, ExponentialDistant
+from linesearch import StrongWolfeBackTrack
 
 
 class Bfgs(Minimizer):
@@ -24,8 +24,8 @@ class Bfgs(Minimizer):
         if line_search is not None:
             self.line_search = line_search
         else:
-            self.line_search = ScipyLineSearch(
-                wrt, self.f_with_x, self.fprime_with_x)
+            self.line_search = StrongWolfeBackTrack(self.wrt,
+                self.f_with_x, self.fprime_with_x)
 
     def f_with_x(self, x, *args, **kwargs):
         old = self.wrt.copy()
