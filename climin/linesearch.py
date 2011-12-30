@@ -81,7 +81,7 @@ class StrongWolfeBackTrack(BackTrack):
                 grad = self.fprime(candidate, *args, **kwargs)
                 dir_dot_grad = scipy.inner(direction, grad)
                 # Wolfe 2
-                if abs(dir_dot_grad) >= self.c2 * abs(dir_dot_grad0):
+                if abs(dir_dot_grad) <= self.c2 * abs(dir_dot_grad0):
                     return s
 
 
