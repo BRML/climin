@@ -45,7 +45,7 @@ class BackTrack(LineSearch):
             step = s * direction
             if abs(step.max()) < self.tolerance:
                 # If the step is too short, just return 0.
-                return 0
+                return 0.0
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
             if loss0 - loss > 0:
