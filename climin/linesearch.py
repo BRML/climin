@@ -302,7 +302,7 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #    return t, x_new, f_new, g_new, funEvals
 
 #def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
-#        oldLOval,oldLOFval,oldLOGval):
+#        oldLOval, oldLOFval, oldLOGval):
 #    """
 #    From minFunc, without switches for doPlot and debug
 #    """
@@ -312,8 +312,8 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #    nonTpos = 1 - Tpos
 #
 #    # And these three lines ....
-#    gtdT = np.dot(bracketGval(:,Tpos), d)
-#    gtdNonT = np.dot(bracketGval(:,nonTpos), d)
+#    gtdT = np.dot(bracketGval[:,Tpos], d)
+#    gtdNonT = np.dot(bracketGval[:,nonTpos], d)
 #    oldLOgtd = np.dot(oldLOGval, d)
 #    #
 #    if bracketFval(Tpos) > oldLOFval:
@@ -363,9 +363,9 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #            t = alpha_s
 #
 #        if bracket(Tpos) > oldLOval:
-#            t = min(bracket(Tpos) + 0.66*(bracket(nonTpos) - bracket(Tpos)), t)
+#            t = min(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
 #        else:
-#            t = max(bracket(Tpos) + 0.66*(bracket(nonTpos) - bracket(Tpos)), t)
+#            t = max(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
 #    else:
 #        t = polyinterp(np.array([[bracket(nonTpos), bracketFval(nonTpos), gtdNonT],\
 #                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
