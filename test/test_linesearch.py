@@ -23,3 +23,14 @@ def test_polyinterp():
             [1, 5569.21178006813, -111.62733563021]])
     t, fm = linesearch.polyinterp(points, xminBound=1.01, xmaxBound = 10)
     assert t==10, 'polyinterp failed.'
+
+
+def test_WolfeLineSearch_x2():
+    f = lambda x: x[0]**2
+    fprime = lambda x: 2 * np.asarray(x)
+    for d in (-1, 0.1, 1, 10):
+        wrt = np.array([-2.])
+        d = np.array([d])
+        ls = linesearch.WolfeLineSearch(wrt, f, fprime) 
+        t = ls.search(d)
+        assert abs(f(wrt + t * d) == 0) < 0.01
