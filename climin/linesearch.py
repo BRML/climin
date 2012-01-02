@@ -273,11 +273,11 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #                    [t, f_new, 1j], [t_prev, f_prev, 1j]]))
 #        #
 #        # Adjust if change in t is too small ...
-#        if t < temp*10**-3:
-#            t = temp * 0.6
+#        if t < 1e-3 * temp:
+#            t = 1e-3 * temp
 #        # or too large
-#        elif t > temp*0.6:
-#            t = temp * 0.6
+#        elif t > 0.6 * temp:
+#            t = 0.6 * temp
 #        #
 #        f_prev = f_new
 #        t_prev = temp
@@ -319,10 +319,10 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #    if bracketFval(Tpos) > oldLOFval:
 #        # A comment here would be nice ...
 #        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+#                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
 #        #
 #        alpha_q, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), 1j]]))
+#                [bracket[Tpos], bracketFval[Tpos], 1j]]))
 #        if abs(alpha_c - oldLOval) < abs(alpha_q - oldLOval):
 #            # Cubic Interpolation
 #            t = alpha_c
@@ -332,11 +332,11 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #    elif np.dot(gtdT, oldLOgtd) < 0:
 #        # A comment here would be nice ...
 #        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+#                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
 #        #
 #        alpha_s, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), 1j, gtdT]]))
-#        if abs(alpha_c - bracket(Tpos)) >= abs(alpha_s - bracket(Tpos))
+#                [bracket[Tpos], 1j, gtdT]]))
+#        if abs(alpha_c - bracket[Tpos]) >= abs(alpha_s - bracket[Tpos]):
 #            # Cubic Interpolation
 #            t = alpha_c
 #        else:
@@ -344,15 +344,15 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #            t = alpha_s
 #    elif abs(gtdT) <= abs(oldLOgtd):
 #        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]),\
+#                [bracket[Tpos], bracketFval[Tpos], gtdT]]),\
 #                np.min(bracket), np.max(bracket))
 #        #
 #        alpha_s, _ = polyinterp(np.array([[oldLOval, 1j, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]),\
+#                [bracket[Tpos], bracketFval[Tpos], gtdT]]),\
 #                np.min(bracket), np.max(bracket))
 #        #
 #        if (alpha_c > min(bracket)) and (alpha_c < max(bracket)):
-#            if abs(alpha_c - bracket(Tpos)) < abs(alpha_s - bracket(Tpos)):
+#            if abs(alpha_c - bracket[Tpos]) < abs(alpha_s - bracket[Tpos]):
 #                # Bounded Cubic Extrapolation
 #                t = alpha_c
 #            else:
@@ -462,7 +462,7 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
 #                # Cubic Extrapolation
 #                t = polyinterp(np.array([[temp, f_prev, gtd_prev],\
 #                        [t, f_new, gtd_new]]), minStep, maxStep)
-#            else
+#            else:
 #                t = mixedExtrap(temp, f_prev, gtd_prev, t, f_new, gtd_new,
 #                        minStep, maxStep)
 #            #
