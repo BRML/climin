@@ -1,7 +1,8 @@
 import scipy
 from scipy.optimize import rosen, rosen_der
 
-from climin import Bfgs 
+from climin import Bfgs
+from climin.linesearch import WolfeLineSearch
 
 
 quadratic = lambda x: (x**2).sum()
@@ -16,8 +17,9 @@ def test_bfgs_rosen():
     fprime = lambda: rosen_der(wrt)
 
     opt = Bfgs(wrt, f, fprime)
+    opt.line_search = WolfeLineSearch(wrt, rosen, rosen_der)
     for i, info in enumerate(opt):
-        if i > 1000:
+        if i > 5000:
             break
     print wrt
     assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
@@ -25,12 +27,14 @@ def test_bfgs_rosen():
 
 def test_bfgs_quadratic():
     dim = 2
-    wrt = scipy.random.standard_normal((dim,)) * 10 + 5
+    wrt = scipy.array([1., 1.])
     f = lambda: quadratic(wrt)
     fprime = lambda: quadraticprime(wrt)
 
     opt = Bfgs(wrt, f, fprime)
+    opt.line_search = WolfeLineSearch(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
+        print wrt
         if i > 100:
             break
     print wrt
