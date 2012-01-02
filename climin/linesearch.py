@@ -73,11 +73,12 @@ class StrongWolfeBackTrack(BackTrack):
         for s in self.schedule:
             step = s * direction
             if abs(step.max()) < self.tolerance:
-                # If the step is too short, just return 0.
-                return 0.0
+                # If the step is too short, stop trying.
+                break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
-            dir_dot_grad0 = scipy.inner(direction, self.fprime(self.wrt))
+            grad0 = self.fprime(self.wrt, *args, **kwargs)
+            dir_dot_grad0 = scipy.inner(direction, grad0)
             # Wolfe 1
             if loss <= loss0 + self.c1 * s * dir_dot_grad0:
                 grad = self.fprime(candidate, *args, **kwargs)
@@ -85,6 +86,8 @@ class StrongWolfeBackTrack(BackTrack):
                 # Wolfe 2
                 if abs(dir_dot_grad) <= self.c2 * abs(dir_dot_grad0):
                     return s
+
+        return 0.0
 
 
 class ScipyLineSearch(LineSearch):
