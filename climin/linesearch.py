@@ -105,6 +105,33 @@ class ScipyLineSearch(LineSearch):
             self.f, self.fprime, self.wrt, direction, gfk, args=args)[0]
 
 
+class WolfeLineSearch(LineSearch):
+
+    def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=30,
+                 min_step_length=1E-10):
+        super(WolfeLineSearch, self).__init__(wrt)
+        self.f = f
+        self.fprime = fprime
+        self.c1 = c1
+        self.c2= c2
+        self.maxiter = 30
+        self.min_step_length = min_step_length
+
+    def search(self, direction, args=None, kwargs=None):
+        args = args if args is not None else ()
+        kwargs = kwargs if kwargs is not None else {}
+        loss0 = self.f(self.wrt)
+        grad0 = self.fprime(self.wrt)
+        direct_deriv0 = scipy.inner(grad0, direction)
+        f = lambda x: (self.f(x, *args, **kwargs),
+                       self.fprime(x, *args, **kwargs))
+        step, fstep, fprimestep, n_evals  = wolfe_line_search(
+            self.wrt, 1., direction, loss0, grad0, direct_deriv0,
+            self.c1, self.c2, 4, self.maxiter, self.min_step_length,
+            f)
+        return step
+
+
 def polyinterp(points, xminBound=None, xmaxBound=None):
     """
     Minimum of interpolating polynomial based
@@ -128,11 +155,17 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         #    t_new = min(max(minPos,x1),x2);
         minVal = np.min(points[:, 0])
         minPos = np.argmin(points[:, 0])
-        notMinPos = 1 - minPos  
-        d1 = points[minPos, 2] + points[notMinPos,2] - \
-                3*(points[minPos, 1] - points[notMinPos, 1])/ \
-                (points[minPos, 0] - points[notMinPos, 0])
-        d2 = sp.sqrt(d1**2 - points[minPos, 2] * points[notMinPos, 2])
+        notMinPos = 1 - minPos
+
+        x1 = points[minPos, 0]
+        x2 = points[notMinPos, 0]
+        g1 = points[minPos, 2]
+        g2 = points[notMinPos, 2]
+        f1 = points[minPos, 1]
+        f2 = points[notMinPos, 1]
+
+        d1 = g1 + g2 - 3 * (f1 - f2) / (x1 - x2)
+        d2 = sp.sqrt(d1**2 - g1 * g2)
         if np.isreal(d2):
             t = points[notMinPos, 0] -\
                     ( points[notMinPos, 0] - points[minPos, 0] ) * \
@@ -213,72 +246,391 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
     return t
 
 
-#def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
-#        oldLOval,oldLOFval,oldLOGval):
-#    """
-#    From minFunc, without switches for doPlot and debug
-#    """
-#    # This needs a check!!
-#    #
-#    # In particular this next line!
-#    nonTpos = 1 - Tpos
-#
-#    # And these three lines ....
-#    gtdT = np.dot(bracketGval(:,Tpos), d)
-#    gtdNonT = np.dot(bracketGval(:,nonTpos), d)
-#    oldLOgtd = np.dot(oldLOGval, d)
-#    #
-#    if bracketFval(Tpos) > oldLOFval:
-#        # A comment here would be nice ...
-#        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
-#        #
-#        alpha_q, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), 1j]]))
-#        if abs(alpha_c - oldLOval) < abs(alpha_q - oldLOval):
-#            # Cubic Interpolation
-#            t = alpha_c
-#        else:
-#            # Mixed Quad/Cubic Interpolation
-#            t = (alpha_q + alpha_c)/2.
-#    elif np.dot(gtdT, oldLOgtd) < 0:
-#        # A comment here would be nice ...
-#        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
-#        #
-#        alpha_s, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), 1j, gtdT]]))
-#        if abs(alpha_c - bracket(Tpos)) >= abs(alpha_s - bracket(Tpos))
-#            # Cubic Interpolation
-#            t = alpha_c
-#        else:
-#            # Quad Interpolation
-#            t = alpha_s
-#    elif abs(gtdT) <= abs(oldLOgtd):
-#        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]),\
-#                np.min(bracket), np.max(bracket))
-#        #
-#        alpha_s, _ = polyinterp(np.array([[oldLOval, 1j, oldLOgtd],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]),\
-#                np.min(bracket), np.max(bracket))
-#        #
-#        if (alpha_c > min(bracket)) and (alpha_c < max(bracket)):
-#            if abs(alpha_c - bracket(Tpos)) < abs(alpha_s - bracket(Tpos)):
-#                # Bounded Cubic Extrapolation
-#                t = alpha_c
-#            else:
-#                # Bounded Secant Extrapolation
-#                t = alpha_s
-#        else:
-#            # Bounded Secant Extrapolation
-#            t = alpha_s
-#
-#        if bracket(Tpos) > oldLOval:
-#            t = min(bracket(Tpos) + 0.66*(bracket(nonTpos) - bracket(Tpos)), t)
-#        else:
-#            t = max(bracket(Tpos) + 0.66*(bracket(nonTpos) - bracket(Tpos)), t)
-#    else:
-#        t = polyinterp(np.array([[bracket(nonTpos), bracketFval(nonTpos), gtdNonT],\
-#                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
-#    return t
+def isLegal(v):
+    """
+    Do exactly that.
+    """
+    return not np.any(np.iscomplex(v)) and not np.any(np.isnan(v)) and not np.any(np.isinf(v))
+
+
+def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
+    """
+    Backtracking linesearch satisfying Armijo condition.
+    
+    From minFunc. Missing: doPlot, saveHessianComp, varargin
+    -> varargin are passed to funObj as parameters, need to
+    be put in here!!!! Hessian at initial guess is _not_ returned
+
+    Check again with minFunc!!!
+
+    x: starting location
+    t: initial step size
+    d: descent direction
+    f: function value at starting location
+    fr: reference function value (usually funObj(x))
+    gtd: directional derivative at starting location
+    c1: sufficient decrease parameter
+    debug: display debugging information
+    LS: type of interpolation
+    tolX: minimum allowable step length
+    funObj: objective function
+    varargin: parameters of objective function
+
+    Outputs:
+    t: step length
+    f_new: function value at x+t*d
+    g_new: gradient value at x+t*d
+    funEvals: number function evaluations performed by line search
+    """
+    
+    # Evaluate objective and gradient at initial step
+    # Hessian part missing here!
+    f_new, g_new = funObj(x + t*d)
+    funEvals = 1
+
+    while f_new > fr + c1*t*gtd or isLegal(f_new):
+        # A comment here will be nice!
+        temp = t
+        # this could be nicer, if idea how to work out 'LS'
+        if LS == 0 or not isLegal(f_new):
+            # Backtrack with fixed backtracing rate
+            t = 0.5 * t
+        elif LS == 2 and isLegal(g_new):
+            # Backtrack with cubic interpolation with derivative
+            t, _ = polyinterp(np.array([[0, f, gtd], [t, f_new, np.dot(g_new, d)]]))
+        elif funEvals < 2 or not isLegal(f_prev):
+            # Backtracking with quadratic interpolation
+            # (no derivatives at new point available)
+            t, _ = polyinterp(np.array([[0, f, gtd], [t, f_new, 1j]]))
+        else:
+            # Backtracking with cubin interpolation
+            # (no derviatives at new point available)
+            t, _ = polyinterp(np.array([[0, f, gtd],\
+                    [t, f_new, 1j], [t_prev, f_prev, 1j]]))
+        #
+        # Adjust if change in t is too small ...
+        if t < 1e-3 * temp:
+            t = 1e-3 * temp
+        # or too large
+        elif t > 0.6 * temp:
+            t = 0.6 * temp
+        #
+        f_prev = f_new
+        t_prev = temp
+        # Missing part: call return Hessian
+        f_new, g_new = funObj(x + t*d)
+        #
+        funEvals += 1
+
+        # Check if step size has become too small
+        if np.sum(np.abs(t*d)) <= tolX:
+            # Backtracking line search failed -> maybe some print out?
+            t = 0
+            f_new = f
+            g_new = g
+            break
+    #
+
+    # Missing: evaluate at new point
+    #
+    x_new = x + t*d
+    # Hessian is missing here!
+    return t, x_new, f_new, g_new, funEvals
+
+def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
+        oldLOval, oldLOFval, oldLOGval):
+    """
+    From minFunc, without switches for doPlot and debug
+    """
+    # This needs a check!!
+    #
+    # In particular this next line!
+    nonTpos = 1 - Tpos
+
+    # And these three lines ....
+    gtdT = np.dot(bracketGval[Tpos], d)
+    gtdNonT = np.dot(bracketGval[nonTpos], d)
+    oldLOgtd = np.dot(oldLOGval, d)
+    #
+    if bracketFval(Tpos) > oldLOFval:
+        # A comment here would be nice ...
+        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
+        #
+        alpha_q, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+                [bracket[Tpos], bracketFval[Tpos], 1j]]))
+        if abs(alpha_c - oldLOval) < abs(alpha_q - oldLOval):
+            # Cubic Interpolation
+            t = alpha_c
+        else:
+            # Mixed Quad/Cubic Interpolation
+            t = (alpha_q + alpha_c)/2.
+    elif np.dot(gtdT, oldLOgtd) < 0:
+        # A comment here would be nice ...
+        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
+        #
+        alpha_s, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+                [bracket[Tpos], 1j, gtdT]]))
+        if abs(alpha_c - bracket[Tpos]) >= abs(alpha_s - bracket[Tpos]):
+            # Cubic Interpolation
+            t = alpha_c
+        else:
+            # Quad Interpolation
+            t = alpha_s
+    elif abs(gtdT) <= abs(oldLOgtd):
+        alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
+                [bracket[Tpos], bracketFval[Tpos], gtdT]]),\
+                np.min(bracket), np.max(bracket))
+        #
+        alpha_s, _ = polyinterp(np.array([[oldLOval, 1j, oldLOgtd],\
+                [bracket[Tpos], bracketFval[Tpos], gtdT]]),\
+                np.min(bracket), np.max(bracket))
+        #
+        if (alpha_c > min(bracket)) and (alpha_c < max(bracket)):
+            if abs(alpha_c - bracket[Tpos]) < abs(alpha_s - bracket[Tpos]):
+                # Bounded Cubic Extrapolation
+                t = alpha_c
+            else:
+                # Bounded Secant Extrapolation
+                t = alpha_s
+        else:
+            # Bounded Secant Extrapolation
+            t = alpha_s
+
+        if bracket(Tpos) > oldLOval:
+            t = min(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
+        else:
+            t = max(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
+    else:
+        t, _ = polyinterp(np.array([[bracket(nonTpos), bracketFval(nonTpos), gtdNonT],\
+                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+    return t
+
+
+def wolfe_line_search(x, t, d, f, g, gtd,
+        c1, c2, LS, maxLS, tolX, funObj):
+        """
+        Bracketing Line Search to Satisfy Wolfe Conditions
+
+        From minFunc. Missing!!! debug, doPlot, saveHessian, varargin
+         Inputs:
+           x: starting location
+           t: initial step size
+           d: descent direction
+           f: function value at starting location
+           g: gradient at starting location
+           gtd: directional derivative at starting location
+           c1: sufficient decrease parameter
+           c2: curvature parameter
+           debug: display debugging information
+           LS: type of interpolation
+           maxLS: maximum number of iterations
+           tolX: minimum allowable step length
+           doPlot: do a graphical display of interpolation
+           funObj: objective function
+           varargin: parameters of objective function
+
+         Outputs:
+           t: step length
+           f_new: function value at x+t*d
+           g_new: gradient value at x+t*d
+           funEvals: number function evaluations performed by line search
+           NOT:
+           H: Hessian at initial guess (only computed if requested
+        """
+        #Evaluate the Objective and Gradient at the Initial Step
+        f_new, g_new = funObj(x+t*d)
+        funEvals = 1
+
+        gtd_new = np.dot(g_new, d)
+
+        # Bracket an intervail containing a point
+        # satisfying the wolfe criteria
+        LSiter = 0
+        t_prev = 0
+        f_prev = f
+        g_prev = g
+        gtd_prev = gtd
+        done = 0
+
+        while LSiter < maxLS:
+            # Bracketing phase
+            if not isLegal(f_new) or not isLegal(g_new):
+                t = (t + t_prev)/2.
+                # missing: if 0 in minFunc!!
+                #
+                # Extrapolated into illegal region, switching
+                # to Armijo line search
+                # no Hessian is computed!!
+                t, x_new, f_new, g_new, _fevals = \
+                        armijobacktrack(x, t, d, f, f, g, gtd,\
+                        c1, np.max(0, np.min(LS-2, 2)), tolX, funObj)
+                funEvals += _fevals
+            #
+            if (f_new > f + c1*t*gtd) or (LSiter > 1 and f_new >= f_prev):
+                bracket = [t_prev, t]
+                bracketFval = [f_prev, f_new]
+                # check here: two gradients next to each other, in columns
+                bracketGval = np.array([g_prev, g_new])
+                break
+            elif abs(gtd_new) <= -c2*gtd:
+                bracket = np.array([t])
+                bracketFval = np.array([f_new])
+                bracketGval = np.array([g_new])
+                done = 1
+                break
+            elif gtd_new >= 0:
+                bracket = [t_prev, t]
+                bracketFval = [f_prev, f_new]
+                # check here (again), see above
+                bracketGval = np.array([g_prev, g_new])
+                break
+            temp = t_prev
+            t_prev = t
+            minStep = t + 0.01*(t-temp)
+            maxStep = t*10
+            #
+            if LS == 3:
+                # Extending Braket
+                t = maxStep
+            elif LS == 4:
+                # Cubic Extrapolation
+                t, _ = polyinterp(np.array([[temp, f_prev, gtd_prev],\
+                        [t, f_new, gtd_new]]), minStep, maxStep)
+            else:
+                t = mixedExtrap(temp, f_prev, gtd_prev, t, f_new, gtd_new,
+                        minStep, maxStep)
+            #
+            f_prev = f_new
+            g_prev = g_new
+            gtd_prev = gtd_new
+            #
+            # no saveHessian stuff!!!
+            f_new, g_new = funObj(x + t*d)
+            funEvals += 1
+            gtd_new = np.inner(g_new, d)
+            LSiter += 1
+        # while ....
+        #
+        if LSiter == maxLS:
+            bracket = [0, t]
+            bracketFval = [f, f_new]
+            # check here, same again!
+            bracketGval = np.array([g, g_new])
+
+        # Zoom Phase:
+        # We now either have point satisfying the criteria
+        # or a bracket surrounding a point satisfying the criteria.
+        # Refine the bracket until we find a point satifying the criteria.
+        #
+        insufProgress = False
+        # Next line needs a check!!!!!
+        Tpos = 1 
+        LOposRemoved = False
+        while not done and LSiter < maxLS:
+            # Find high and low points in the bracket
+            # check here, axees needed??
+            f_LO = np.min(bracketFval)
+            LOpos = np.argmin(bracketFval)
+            HIpos = 1 - LOpos
+            # 
+            # Compute new trial value
+            if LS == 3 or not isLegal(bracketFval) or not isLegal(bracketGval):
+                # Bisecting
+                t = np.mean(bracket)
+            elif LS == 4:
+                # Grad cubic interpolation
+                t, _ = polyinterp(np.array([[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],\
+                        [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
+            else:
+                # Mixed case
+                # Is this correct ???????
+                nonTpos = 1 - Tpos
+                if not LOposRemoved:
+                    oldLOval = bracket(nonTpos)
+                    oldLOFval = bracketFval(nonTpos)
+                    oldLOGval = bracketGval[ nonTpos]
+                t = mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
+                        oldLOval, oldLOFval, oldLOGval)
+            #
+            # Test that we are making sufficient progress
+            bracket_min = min(bracket)
+            bracket_max = max(bracket)
+
+            if min(bracket_max - t, t - bracket_min) / (bracket_max - bracket_min) < 0.1:
+                # Interpolation close to boundary
+                if insufProgress or (t >= np.max(bracket)) or (t <= np.min(bracket)):
+                    # Evaluating at 0.1 away from boundary
+                    if np.abs(t - np.max(bracket)) < np.abs(t - np.min(bracket)):
+                        t = np.max(bracket) - 0.1 * (np.max(bracket) - np.min(bracket))
+                    else:
+                        t = np.min(bracket) + 0.1 * (np.max(bracket) - np.min(bracket))
+                    insufProgress = False
+                #
+                else:
+                    insufProgress = True
+            #
+            else:
+                insufProgress = False
+
+            # Evaluate new point
+            # no Hessian!
+            f_new, g_new = funObj(x + t*d)
+            funEvals += 1
+            gtd_new = np.dot(g_new, d)
+            LSiter += 1
+
+            if f_new > f + c1 * t * gtd or f_new >= f_LO:
+                # Armijo condition not satisfied or
+                # not lower than lowest point
+                bracket[HIpos] = t
+                bracketFval[HIpos] = f_new
+                bracketGval[HIpos] = g_new
+                Tpos = HIpos
+            else:
+                if np.abs(gtd_new) <= -c2*gtd:
+                    # Wolfe conditions satisfied
+                    done = True
+                elif np.dot(gtd_new, bracket[HIpos] - bracket[LOpos]) >= 0:
+                    # old HI becomes new LO
+                    bracket[HIpos] = bracket[LOpos]
+                    bracketFval[HIpos] = bracketFval[LOpos]
+                    bracketGval[HIpos] = bracketGval[LOpos]
+                    if LS == 5:
+                        # LO Pos is being removed
+                        LOposRemoved = True
+                        oldLOval = bracket[LOpos]
+                        oldLOFval = bracketFval[LOpos]
+                        oldLOGval = bracketGval[LOpos]
+                    #
+
+                # New point becomes new LO
+                bracket[LOpos] = t
+                bracketFval[LOpos] = f_new
+                bracketGval[LOpos] = g_new
+                Tpos = LOpos
+
+
+            if not done and np.abs(bracket[0] - bracket[1])*gtd_new < tolX:
+                # Line search can not make further progress
+                break
+        # while ...
+
+        # a comment here maybe nice
+        if LSiter == maxLS:
+            # could give info:
+            # Line Search exceeded maximum line search iterations
+            # TODO: what to do here?
+            pass
+        #
+        # check if axes necessary?
+        f_LO = np.min(bracketFval)
+        LOpos = np.argmin(bracketFval)
+        t = bracket[LOpos]
+        f_new = bracketFval[LOpos]
+        g_new = bracketGval[LOpos]
+
+        #
+        # missing Hessain evaluation
+        return t, f_new, g_new, funEvals
