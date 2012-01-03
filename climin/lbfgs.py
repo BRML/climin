@@ -82,6 +82,7 @@ class Lbfgs(Minimizer):
         factor_shape = self.n_factors, self.wrt.shape[0]
         grad_diffs = scipy.zeros(factor_shape)
         steps = scipy.zeros(factor_shape)
+        hessian_diag = self.initial_hessian_diag
 
         # We need to keep track in which order the different statistics
         # from different runs are saved. 
@@ -119,8 +120,15 @@ class Lbfgs(Minimizer):
             steplength = self.line_search.search(direction, args, kwargs)
             step = steplength * direction
             self.wrt += step
-            grad = self.fprime(*args, **kwargs)
             grad_m1 = grad
+            grad = self.fprime(*args, **kwargs)
+
+            grad_diff = grad - grad_m1
+
+            sTgd = scipy.inner(step, grad_diff)
+            if sTgd < 1E-10:
+                print 'skipping update,', sTgd
+                continue
 
             # Determine index for the current update. 
             if not idxs:
@@ -134,5 +142,6 @@ class Lbfgs(Minimizer):
                 this_idx = idxs.pop(0)
 
             idxs.append(this_idx)
-            grad_diffs[this_idx] = grad - grad_m1
+            grad_diffs[this_idx] = grad_diff
             steps[this_idx] = step
+            hessian_diag = sTgd / scipy.inner(grad_diff, grad_diff)
