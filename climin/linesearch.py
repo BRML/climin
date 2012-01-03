@@ -107,7 +107,7 @@ class ScipyLineSearch(LineSearch):
 
 class WolfeLineSearch(LineSearch):
 
-    def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=30,
+    def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=25,
                  min_step_length=1E-10):
         super(WolfeLineSearch, self).__init__(wrt)
         self.f = f
@@ -120,8 +120,8 @@ class WolfeLineSearch(LineSearch):
     def search(self, direction, args=None, kwargs=None):
         args = args if args is not None else ()
         kwargs = kwargs if kwargs is not None else {}
-        loss0 = self.f(self.wrt)
-        grad0 = self.fprime(self.wrt)
+        loss0 = self.f(self.wrt, *args, **kwargs)
+        grad0 = self.fprime(self.wrt, *args, **kwargs)
         direct_deriv0 = scipy.inner(grad0, direction)
         f = lambda x: (self.f(x, *args, **kwargs),
                        self.fprime(x, *args, **kwargs))
@@ -174,11 +174,11 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
                       (points[notMinPos, 2] - points[minPos, 2] + 2*d2)\
                     )
             minPos = np.minimum(np.maximum(t, points[minPos,0]), points[notMinPos, 0])
-            
+
         else:
             minPos = np.mean(points[:,0])
         # fmin is not returned here
-        return minPos, None 
+        return minPos, None
     #
     #
     xmin = np.min(points[:, 0])
@@ -282,7 +282,7 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
     g_new: gradient value at x+t*d
     funEvals: number function evaluations performed by line search
     """
-    
+
     # Evaluate objective and gradient at initial step
     # Hessian part missing here!
     f_new, g_new = funObj(x + t*d)
@@ -314,7 +314,7 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         # or too large
         elif t > 0.6 * temp:
             t = 0.6 * temp
-        #
+
         f_prev = f_new
         t_prev = temp
         # Missing part: call return Hessian
@@ -610,7 +610,6 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 bracketFval[LOpos] = f_new
                 bracketGval[LOpos] = g_new
                 Tpos = LOpos
-
 
             if not done and np.abs(bracket[0] - bracket[1])*gtd_new < tolX:
                 # Line search can not make further progress
