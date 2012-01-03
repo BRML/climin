@@ -452,7 +452,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         f_prev = f
         g_prev = g
         gtd_prev = gtd
-        done = 0
+        done = False
 
         while LSiter < maxLS:
             # Bracketing phase
@@ -465,7 +465,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 # no Hessian is computed!!
                 t, x_new, f_new, g_new, _fevals = \
                         armijobacktrack(x, t, d, f, f, g, gtd,\
-                        c1, np.max(0, np.min(LS-2, 2)), tolX, funObj)
+                        c1, max(0, min(LS-2, 2)), tolX, funObj)
                 funEvals += _fevals
             #
             if (f_new > f + c1*t*gtd) or (LSiter > 1 and f_new >= f_prev):
@@ -478,7 +478,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 bracket = np.array([t])
                 bracketFval = np.array([f_new])
                 bracketGval = np.array([g_new])
-                done = 1
+                done = True
                 break
             elif gtd_new >= 0:
                 bracket = [t_prev, t]
