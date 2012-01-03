@@ -7,7 +7,7 @@ import scipy.linalg
 import scipy.optimize
 
 from base import Minimizer
-from linesearch import ScipyLineSearch
+from linesearch import WolfeLineSearch
 
 
 # Things left to do:
@@ -31,7 +31,7 @@ class Lbfgs(Minimizer):
         if line_search is not None:
             self.line_search = line_search
         else:
-            self.line_search = ScipyLineSearch(
+            self.line_search = WolfeLineSearch(
                 wrt, self.f_with_x, self.fprime_with_x)
 
     def f_with_x(self, x, *args, **kwargs):
