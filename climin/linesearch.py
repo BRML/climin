@@ -108,7 +108,7 @@ class ScipyLineSearch(LineSearch):
 class WolfeLineSearch(LineSearch):
 
     def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=25,
-                 min_step_length=1E-10):
+                 min_step_length=1E-9):
         super(WolfeLineSearch, self).__init__(wrt)
         self.f = f
         self.fprime = fprime
@@ -116,6 +116,9 @@ class WolfeLineSearch(LineSearch):
         self.c2= c2
         self.maxiter = 30
         self.min_step_length = min_step_length
+
+        # TODO: find better API for this
+        self.first_try = True
 
     def search(self, direction, args=None, kwargs=None):
         args = args if args is not None else ()
@@ -125,10 +128,20 @@ class WolfeLineSearch(LineSearch):
         direct_deriv0 = scipy.inner(grad0, direction)
         f = lambda x: (self.f(x, *args, **kwargs),
                        self.fprime(x, *args, **kwargs))
+
+        if self.first_try:
+            self.first_try = False
+            t = min(1, 1 / sum(abs(grad0)))
+        else:
+            t = 1
+
         step, fstep, fprimestep, n_evals  = wolfe_line_search(
-            self.wrt, 1., direction, loss0, grad0, direct_deriv0,
+            self.wrt, t, direction, loss0, grad0, direct_deriv0,
             self.c1, self.c2, 4, self.maxiter, self.min_step_length,
             f)
+
+        self.grad = fprimestep
+
         return step
 
 
@@ -256,7 +269,7 @@ def isLegal(v):
 def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
     """
     Backtracking linesearch satisfying Armijo condition.
-    
+
     From minFunc. Missing: doPlot, saveHessianComp, varargin
     -> varargin are passed to funObj as parameters, need to
     be put in here!!!! Hessian at initial guess is _not_ returned

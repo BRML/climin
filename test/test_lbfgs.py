@@ -20,7 +20,7 @@ def test_lbfgs_rosen():
         if (abs(wrt - [1, 1]) < 0.01).all():
             success = True
             break
-        if i > 5000:
+        if i >= 500:
             success = False
             break
     assert success, 'did not find solution'
@@ -36,5 +36,4 @@ def test_lbfgs_quadratic():
     for i, info in enumerate(opt):
         if i > 100:
             break
-    print wrt
     assert (abs(wrt) < 0.01).all(), 'did not find solution'

@@ -48,7 +48,8 @@ class Lbfgs(Minimizer):
         self.wrt[:] = old
         return res
 
-    def inv_hessian_dot_gradient(self, grad_diffs, steps, grad, idxs):
+    def inv_hessian_dot_gradient(self, grad_diffs, steps, grad, hessian_diag, 
+                                 idxs):
         grad = grad.copy()  # We will change this.
         n_current_factors = len(idxs)
 
@@ -57,20 +58,20 @@ class Lbfgs(Minimizer):
 
         # TODO: vectorize this function
         for i in idxs:
-            rho[i] = scipy.inner(grad_diffs[i], steps[i])
+            rho[i] = 1 / scipy.inner(grad_diffs[i], steps[i])
 
         # TODO: find a good name for this variable as well.
         alpha = scipy.empty(n_current_factors)
 
-        for i in idxs:
+        for i in idxs[::-1]:
             alpha[i] = rho[i] * scipy.inner(steps[i], grad)
             grad -= alpha[i] * grad_diffs[i]
-        z = self.initial_hessian_diag * grad
+        z = hessian_diag * grad
 
         # TODO: find a good name for this variable (surprise!)
         beta = scipy.empty(n_current_factors)
 
-        for i in idxs[::-1]:
+        for i in idxs:
             beta[i] = rho[i] * scipy.inner(grad_diffs[i], z)
             z += steps[i] * (alpha[i] - beta[i])
 
@@ -79,6 +80,7 @@ class Lbfgs(Minimizer):
     def __iter__(self):
         args, kwargs = self.args.next()
         grad = self.fprime(*args, **kwargs)
+        grad_m1 = scipy.zeros(grad.shape)
         factor_shape = self.n_factors, self.wrt.shape[0]
         grad_diffs = scipy.zeros(factor_shape)
         steps = scipy.zeros(factor_shape)
@@ -100,7 +102,7 @@ class Lbfgs(Minimizer):
         # current one.
         idxs = []
 
-        for i, (args, kwargs) in enumerate(self.args):
+        for i, (next_args, next_kwargs) in enumerate(self.args):
             if i > 0 and i % self.stop == 0:
                 loss = self.f(*args, **kwargs)
                 yield dict(loss=loss)
@@ -111,37 +113,37 @@ class Lbfgs(Minimizer):
             if (grad == 0.0).all():
                 break
 
-            if i == 1:
+            if i == 0:
                 direction = -grad
             else:
-                direction = -self.inv_hessian_dot_gradient(
-                    grad_diffs, steps, grad, idxs)
+                sTgd = scipy.inner(step, grad_diff)
+                if sTgd > 1E-10:
+                    # Determine index for the current update. 
+                    if not idxs:
+                        # First iteration.
+                        this_idx = 0
+                    elif len(idxs) < self.n_factors:
+                        # We are not "full" yet. Thus, append the next idxs.
+                        this_idx = idxs[-1] + 1
+                    else:
+                        # we are full and discard the first index.
+                        this_idx = idxs.pop(0)
+
+                    idxs.append(this_idx)
+                    grad_diffs[this_idx] = grad_diff
+                    steps[this_idx] = step
+                    hessian_diag = sTgd / scipy.inner(grad_diff, grad_diff)
+                else:
+                    print 'skipping update,', sTgd
+                direction = self.inv_hessian_dot_gradient(
+                    grad_diffs, steps, -grad, hessian_diag, idxs)
 
             steplength = self.line_search.search(direction, args, kwargs)
             step = steplength * direction
             self.wrt += step
-            grad_m1 = grad
-            grad = self.fprime(*args, **kwargs)
+
+            # Prepare everything for the next loop.
+            args, kwargs = next_args, next_kwargs
+            grad_m1[:], grad[:] = grad, self.line_search.grad
 
             grad_diff = grad - grad_m1
-
-            sTgd = scipy.inner(step, grad_diff)
-            if sTgd < 1E-10:
-                print 'skipping update,', sTgd
-                continue
-
-            # Determine index for the current update. 
-            if not idxs:
-                # First iteration.
-                this_idx = 0
-            elif len(idxs) < self.n_factors:
-                # We are not "full" yet. Thus, append the next idxs.
-                this_idx = idxs[-1] + 1
-            else:
-                # we are full and discard the first index.
-                this_idx = idxs.pop(0)
-
-            idxs.append(this_idx)
-            grad_diffs[this_idx] = grad_diff
-            steps[this_idx] = step
-            hessian_diag = sTgd / scipy.inner(grad_diff, grad_diff)
