@@ -8,3 +8,4 @@ def optimize_some(opt, n_iters):
     for i, j in enumerate(opt):
         if i >= n_iters - 1:
             break
+        return j
