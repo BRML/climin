@@ -17,7 +17,6 @@ def test_bfgs_rosen():
     fprime = lambda: rosen_der(wrt)
 
     opt = Bfgs(wrt, f, fprime)
-    opt.line_search = WolfeLineSearch(wrt, rosen, rosen_der)
     for i, info in enumerate(opt):
         if i > 5000:
             break
@@ -32,7 +31,6 @@ def test_bfgs_quadratic():
     fprime = lambda: quadraticprime(wrt)
 
     opt = Bfgs(wrt, f, fprime)
-    opt.line_search = WolfeLineSearch(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
         print wrt
         if i > 100:
