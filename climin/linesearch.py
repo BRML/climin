@@ -68,6 +68,8 @@ class StrongWolfeBackTrack(BackTrack):
         if loss0 is None:
             loss0 = self.f(self.wrt, *args, **kwargs)
 
+        self.grad = grad0 = self.fprime(self.wrt, *args, **kwargs)
+        dir_dot_grad0 = scipy.inner(direction, grad0)
         # Try out every point in the schedule until one satisfying strong Wolfe
         # conditions has been found.
         for s in self.schedule:
@@ -77,8 +79,6 @@ class StrongWolfeBackTrack(BackTrack):
                 break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
-            grad0 = self.fprime(self.wrt, *args, **kwargs)
-            dir_dot_grad0 = scipy.inner(direction, grad0)
             # Wolfe 1
             if loss <= loss0 + self.c1 * s * dir_dot_grad0:
                 grad = self.fprime(candidate, *args, **kwargs)
