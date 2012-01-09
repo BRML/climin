@@ -41,6 +41,12 @@ class KrylovSubspaceDescent(Minimizer):
         self.floor_hessian = floor_hessian
         self.floor_eps = 1E-4
 
+    def _inner_f(self, step, *args, **kwargs):
+        return self.f_krylov(self.wrt, step, *args, **kwargs)
+
+    def _inner_fprime(self, step, *args, **kwargs):
+        return self.f_krylovprime(self.wrt, step, *args, **kwargs)
+
     def _calc_krylov_basis(self, grad, step):
         args, kwargs = self.hessian_args.next()
 
@@ -100,16 +106,17 @@ class KrylovSubspaceDescent(Minimizer):
             subargs, subkwargs = self.krylov_args.next()
 
             subopt = Lbfgs(
-                self.krylov_coefficients, self.f_krylov, self.f_krylovprime,
+                self.krylov_coefficients, self._inner_f, self._inner_fprime,
                 n_factors=10,
                 args=itertools.repeat((subargs, subkwargs)))
 
             def log(info):
                 print 'inner loop loss', info['loss']
+
             info = optimize_while(subopt, 1E-4, log=log)
 
             # Take search step.
-            step[:] = scipy.dot(step_coeffs, self.krylov_basis)
+            step[:] = scipy.dot(self.krylov_coefficients, self.krylov_basis)
             self.wrt += step
             yield dict(
                 loss=loss, step=step, grad=grad,

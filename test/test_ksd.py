@@ -15,21 +15,23 @@ quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
 
 
 def test_ksd_rosen():
-    pars = T.shared(scipy.zeros(2))
-    wrt = pars.get_value(borrow=True, return_internal_type=True)
+    pars = T.dvector('pars')
+    wrt = scipy.zeros(2)
     x, y = pars[0], pars[1]
     rosen_expr = (1 - x)**2 + 100 * (y - x**2)**2
     rosen_grad = T.grad(rosen_expr, pars)
 
-    p = T.dvector()
+    p = T.dvector('point')
     Hp = T.grad(T.sum(rosen_grad *  p), pars)
 
-
-    i_basis, k_coeff, k_loss, k_grad = krylov_subspace(rosen_expr, pars, wrt, 2)
-    f_kl = theano.function([], k_loss)
-    f_kp = theano.function([], k_grad)
-    f_Hp = theano.function([p], Hp)
-    fandprime = theano.function([], [rosen_expr, rosen_grad])
+    k_coeff_var = T.dvector('coeffs var')
+    k_basis, k_coeff, k_loss, k_grad = krylov_subspace(rosen_expr, pars, wrt, 2)
+    k_coeff.name = 'coeffs'
+    k_basis.name = 'basis'
+    f_kl = theano.function([pars, k_coeff_var], k_loss, givens={k_coeff: k_coeff_var})
+    f_kp = theano.function([pars, k_coeff_var], k_grad, givens={k_coeff: k_coeff_var})
+    f_Hp = theano.function([pars, p], Hp)
+    fandprime = theano.function([pars], [rosen_expr, rosen_grad])
 
     args = hessian_args = krylov_args = itertools.repeat(((), {}))
 
