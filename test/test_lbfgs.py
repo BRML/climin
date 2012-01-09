@@ -12,10 +12,8 @@ quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
 def test_lbfgs_rosen():
     dim = 2
     wrt = scipy.zeros((dim,))
-    f = lambda: rosen(wrt)
-    fprime = lambda: rosen_der(wrt)
 
-    opt = Lbfgs(wrt, f, fprime)
+    opt = Lbfgs(wrt, rosen, rosen_der)
     for i, info in enumerate(opt):
         if (abs(wrt - [1, 1]) < 0.01).all():
             success = True
@@ -29,10 +27,8 @@ def test_lbfgs_rosen():
 def test_lbfgs_quadratic():
     dim = 2
     wrt = scipy.random.standard_normal((dim,)) * 10 + 5
-    f = lambda: quadratic(wrt)
-    fprime = lambda: quadraticprime(wrt)
 
-    opt = Lbfgs(wrt, f, fprime)
+    opt = Lbfgs(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
         if i > 100:
             break

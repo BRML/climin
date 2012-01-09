@@ -62,7 +62,7 @@ class KrylovSubspaceDescent(Minimizer):
         V[0] = V[0] / scipy.sqrt(scipy.inner(V[0], V[0]))
 
         for i in range(0, n_bases):
-            w = self.f_Hp(V[i], *args, **kwargs)
+            w = self.f_Hp(self.wrt, V[i], *args, **kwargs)
             if i < n_bases - 1:
                 u = w / diag_fisher
             elif i == n_bases - 1:
@@ -88,46 +88,28 @@ class KrylovSubspaceDescent(Minimizer):
 
         self.krylov_hessian = H
 
-    def _f_krylov(self, x, *args, **kwargs):
-        old = self.krylov_coefficients.copy()
-        self.krylov_coefficients[:] = x
-        loss = self.f_krylov(*args, **kwargs)
-        self.krylov_coefficients[:] = old
-        return loss
-
-    def _fprime_krylov(self, x, *args, **kwargs):
-        old = self.krylov_coefficients.copy()
-        self.krylov_coefficients[:] = x
-        grad = self.f_krylovprime(*args, **kwargs)
-        self.krylov_coefficients[:] = old
-        return grad
-
     def __iter__(self):
         step = scipy.ones(self.wrt.shape)
         while True:
             _args, _kwargs = self.args.next()
             self.krylov_coefficients *= 0
-            loss, grad = self.fandprime(*_args, **_kwargs)
+            loss, grad = self.fandprime(self.wrt, *_args, **_kwargs)
             self._calc_krylov_basis(grad, step)
 
             # Minimize subobjective.
             subargs, subkwargs = self.krylov_args.next()
-            f = lambda x: self._f_krylov(x, *subargs, **subkwargs)
-            fprime = lambda x: self._fprime_krylov(x, *subargs, **subkwargs)
 
             subopt = Lbfgs(
                 self.krylov_coefficients, self.f_krylov, self.f_krylovprime,
                 n_factors=10,
                 args=itertools.repeat((subargs, subkwargs)))
-            #import linesearch
-            #subopt.line_search = linesearch.StrongWolfeBackTrack(
-            #    subopt.wrt, subopt.f_with_x, subopt.fprime_with_x)
+
             def log(info):
                 print 'inner loop loss', info['loss']
             info = optimize_while(subopt, 1E-4, log=log)
 
             # Take search step.
-            step[:] = scipy.dot(self.krylov_coefficients, self.krylov_basis)
+            step[:] = scipy.dot(step_coeffs, self.krylov_basis)
             self.wrt += step
             yield dict(
                 loss=loss, step=step, grad=grad,

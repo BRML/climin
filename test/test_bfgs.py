@@ -13,10 +13,8 @@ quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
 def test_bfgs_rosen():
     dim = 2
     wrt = scipy.zeros((dim,))
-    f = lambda: rosen(wrt)
-    fprime = lambda: rosen_der(wrt)
 
-    opt = Bfgs(wrt, f, fprime)
+    opt = Bfgs(wrt, rosen, rosen_der)
     for i, info in enumerate(opt):
         if i > 5000:
             break
@@ -27,10 +25,8 @@ def test_bfgs_rosen():
 def test_bfgs_quadratic():
     dim = 2
     wrt = scipy.array([1., 1.])
-    f = lambda: quadratic(wrt)
-    fprime = lambda: quadraticprime(wrt)
 
-    opt = Bfgs(wrt, f, fprime)
+    opt = Bfgs(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
         print wrt
         if i > 100:

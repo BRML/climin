@@ -31,22 +31,7 @@ class Lbfgs(Minimizer):
         if line_search is not None:
             self.line_search = line_search
         else:
-            self.line_search = WolfeLineSearch(
-                wrt, self.f_with_x, self.fprime_with_x)
-
-    def f_with_x(self, x, *args, **kwargs):
-        old = self.wrt.copy()
-        self.wrt[:] = x
-        res = self.f(*args, **kwargs)
-        self.wrt[:] = old
-        return res
-
-    def fprime_with_x(self, x, *args, **kwargs):
-        old = self.wrt.copy()
-        self.wrt[:] = x
-        res = self.fprime(*args, **kwargs)
-        self.wrt[:] = old
-        return res
+            self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
     def inv_hessian_dot_gradient(self, grad_diffs, steps, grad, hessian_diag, 
                                  idxs):
@@ -79,7 +64,7 @@ class Lbfgs(Minimizer):
 
     def __iter__(self):
         args, kwargs = self.args.next()
-        grad = self.fprime(*args, **kwargs)
+        grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = scipy.zeros(grad.shape)
         factor_shape = self.n_factors, self.wrt.shape[0]
         grad_diffs = scipy.zeros(factor_shape)
@@ -104,7 +89,7 @@ class Lbfgs(Minimizer):
 
         for i, (next_args, next_kwargs) in enumerate(self.args):
             if i > 0 and i % self.stop == 0:
-                loss = self.f(*args, **kwargs)
+                loss = self.f(self.wrt, *args, **kwargs)
                 yield dict(loss=loss)
 
             # If the gradient is exactly zero, we stop. Otherwise, the
