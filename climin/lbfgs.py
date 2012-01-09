@@ -118,6 +118,7 @@ class Lbfgs(Minimizer):
             else:
                 sTgd = scipy.inner(step, grad_diff)
                 if sTgd > 1E-10:
+                    # Don't do an update if this value is too small.
                     # Determine index for the current update. 
                     if not idxs:
                         # First iteration.
@@ -133,8 +134,7 @@ class Lbfgs(Minimizer):
                     grad_diffs[this_idx] = grad_diff
                     steps[this_idx] = step
                     hessian_diag = sTgd / scipy.inner(grad_diff, grad_diff)
-                else:
-                    print 'skipping update,', sTgd
+
                 direction = self.inv_hessian_dot_gradient(
                     grad_diffs, steps, -grad, hessian_diag, idxs)
 
@@ -144,6 +144,7 @@ class Lbfgs(Minimizer):
 
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
+            # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
             grad_diff = grad - grad_m1
