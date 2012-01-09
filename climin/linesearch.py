@@ -207,10 +207,11 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     A = np.zeros((2*nPoints, order+1))
     b = np.zeros((2*nPoints, 1))
     # Constraints based on available function values
-    for i, p in enumerate(points[:, 1]):
-        if np.isreal(p):
+    for i in range(points.shape[0]):
+        if np.isreal(points[i, 1]):
             A[i] = [points[i, 0]**(order - j) for j in xrange(order+1)]
-            b[i] = p
+            b[i] = points[i, 1]
+            points[i, 0], points[i, 1]
     # Constraints based on available derivatives
     for i, p in enumerate(points[:, 2]):
         if np.isreal(p):
@@ -301,7 +302,7 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
     f_new, g_new = funObj(x + t*d)
     funEvals = 1
 
-    while f_new > fr + c1*t*gtd or isLegal(f_new):
+    while f_new > fr + c1*t*gtd or not isLegal(f_new):
         # A comment here will be nice!
         temp = t
         # this could be nicer, if idea how to work out 'LS'
@@ -476,10 +477,11 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 # Extrapolated into illegal region, switching
                 # to Armijo line search
                 # no Hessian is computed!!
-                t, x_new, f_new, g_new, _fevals = \
-                        armijobacktrack(x, t, d, f, f, g, gtd,\
-                        c1, max(0, min(LS-2, 2)), tolX, funObj)
+                t, x_new, f_new, g_new, _fevals = armijobacktrack(
+                    x, t, d, f, f, g, gtd, c1, max(0, min(LS-2, 2)), tolX, 
+                    funObj)
                 funEvals += _fevals
+                return t, f_new, g_new, funEvals
             #
             if (f_new > f + c1*t*gtd) or (LSiter > 1 and f_new >= f_prev):
                 bracket = [t_prev, t]
