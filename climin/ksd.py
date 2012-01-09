@@ -6,7 +6,8 @@ import scipy
 
 from base import Minimizer, repeat_or_iter
 from lbfgs import Lbfgs
-from util import optimize_some
+from bfgs import Bfgs
+from util import optimize_some, optimize_while
 
 
 class KrylovSubspaceDescent(Minimizer):
@@ -57,44 +58,21 @@ class KrylovSubspaceDescent(Minimizer):
         W = scipy.empty((n_bases, grad.shape[0]))
         V = self.krylov_basis
 
-        #V[0] = inv_diag_fisher * grad
-        #V[0] /= scipy.sqrt(scipy.inner(V[0], V[0]) + 1E-8)
-        #for i in range(0, n_bases):
-        #    w = self.f_Hp(V[i], *args, **kwargs)
+        V[0] = grad / diag_fisher
+        V[0] = V[0] / scipy.sqrt(scipy.inner(V[0], V[0]))
 
-        #    if i < n_bases - 1:
-        #        u = w * inv_diag_fisher
-        #    elif i == n_bases - 1:
-        #        u = step.copy()
-
-        #    for j in range(0, i + 1):
-        #        H[j, i] = H[i, j] = scipy.inner(w, V[j])
-        #        u -= scipy.inner(u, V[j])  * V[j]
-
-        #    if i < n_bases - 1:
-        #        V[i + 1] = u / scipy.sqrt(scipy.inner(u, u) + 1E-8)
-
-
-        V[0] = step
-        V[1] = grad
-
-        # Calculate bases formed by hessian gradient products.
-        for i in range(2, n_bases):
-            V[i] = W[i] = self.f_Hp(V[i - 1], *args, **kwargs)
-
-        # Multiply each basis by the inverse diagonal fisher.
-        V /= diag_fisher[scipy.newaxis, :]          # TODO: newaxis necessary?
-
-        # Orthonormalize V.
-        for i in range(n_bases):
-            for j in range(i):
-                V[i] -= scipy.inner(V[i], V[j]) * V[j]
-            V[i] /= scipy.sqrt(scipy.inner(V[i], V[i]))
-
-        # Calculate Hessian.
         for i in range(0, n_bases):
-            for j in range(0, i):
-                H[i, j] = H[j, i] = scipy.inner(W[i], V[j])
+            w = self.f_Hp(V[i], *args, **kwargs)
+            if i < n_bases - 1:
+                u = w / diag_fisher
+            elif i == n_bases - 1:
+                u = step
+
+            for j in range(i):
+                H[i, j] = H[j, i] = scipy.inner(w, V[j])
+                u -= scipy.inner(u, V[j]) * V[j]
+            if i < n_bases - 1:
+                V[i + 1] = u / scipy.sqrt(scipy.inner(u, u))
 
         if self.precond_hessian:
             if self.floor_hessian:
@@ -105,8 +83,8 @@ class KrylovSubspaceDescent(Minimizer):
                 H = scipy.dot(v, scipy.dot(scipy.diag(w), v.T))
 
             C = scipy.linalg.cholesky(H, lower=True)
-            CinvT = scipy.linalg.inv(C).T
-            V[:] = scipy.dot(CinvT, V)
+            Cinv = scipy.linalg.inv(C)
+            V[:] = scipy.dot(Cinv, V)
 
         self.krylov_hessian = H
 
@@ -139,21 +117,18 @@ class KrylovSubspaceDescent(Minimizer):
 
             subopt = Lbfgs(
                 self.krylov_coefficients, self.f_krylov, self.f_krylovprime,
+                n_factors=10,
                 args=itertools.repeat((subargs, subkwargs)))
             #import linesearch
             #subopt.line_search = linesearch.StrongWolfeBackTrack(
             #    subopt.wrt, subopt.f_with_x, subopt.fprime_with_x)
-            for i, info in enumerate(subopt):
-                if i == 10:
-                    break
-                loss = info['loss']
-                print 'intermediate lbfgs loss', loss
-            #loss = optimize_some(subopt, 20)
+            def log(info):
+                print 'inner loop loss', info['loss']
+            info = optimize_while(subopt, 1E-4, log=log)
 
             # Take search step.
             step[:] = scipy.dot(self.krylov_coefficients, self.krylov_basis)
             self.wrt += step
-            print 'lossafter', self.fandprime(*_args, **_kwargs)[0]
             yield dict(
                 loss=loss, step=step, grad=grad,
                 krylov_basis=self.krylov_basis,
