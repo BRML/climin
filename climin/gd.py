@@ -22,7 +22,7 @@ class GradientDescent(Minimizer):
         periterargs = itertools.izip(self.steprates, self.momentums, self.args)
         for i, j in enumerate(periterargs):
             steprate, momentum, (args, kwargs) = j
-            loss, gradient = self.fandprime(*args, **kwargs)
+            loss, gradient = self.fandprime(self.wrt, *args, **kwargs)
             step = gradient * steprate + momentum * step_m1
             self.wrt -= step
 

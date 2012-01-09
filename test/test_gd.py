@@ -12,9 +12,7 @@ def test_gradient_descent_constant_step():
     dim = 10
     wrt = scipy.random.standard_normal((dim,)) * 10 + 5
 
-    fandprime = lambda: quadraticandprime(wrt)
-
-    opt = GradientDescent(wrt, fandprime, steprate=0.01)
+    opt = GradientDescent(wrt, quadraticandprime, steprate=0.01)
     for i, info in enumerate(opt):
         if i > 1000:
             break
