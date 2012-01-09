@@ -13,9 +13,7 @@ def test_rprop_quadratic():
     dim = 10
     wrt = scipy.random.standard_normal((dim,)) * 10 + 5
 
-    fandprime = lambda: quadraticandprime(wrt)
-
-    opt = Rprop(wrt, fandprime, stepshrink=0.1, stepgrow=1.2, 
+    opt = Rprop(wrt, quadraticandprime, stepshrink=0.1, stepgrow=1.2, 
                 minstep=1E-6, maxstep=0.1)
     for i, info in enumerate(opt):
         if i > 1000:
@@ -26,9 +24,9 @@ def test_rprop_quadratic():
 def test_rprop_rosen():
     dim = 2
     wrt = scipy.zeros((dim,))
-    fandprime = lambda: (rosen(wrt), rosen_der(wrt))
+    rosenandprime = lambda x: (rosen(x), rosen_der(x))
 
-    opt = Rprop(wrt, fandprime, stepshrink=0.5, stepgrow=1.1,
+    opt = Rprop(wrt, rosenandprime, stepshrink=0.5, stepgrow=1.1,
             minstep=1E-10, maxstep=0.1)
     for i, info in enumerate(opt):
         if i > 10000:

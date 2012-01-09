@@ -26,7 +26,7 @@ class Rprop(Minimizer):
         changes = scipy.random.random(self.wrt.shape) * self.changes_max
 
         for i, (args, kwargs) in enumerate(self.args):
-            loss, grad = self.fandprime(*args, **kwargs)
+            loss, grad = self.fandprime(self.wrt, *args, **kwargs)
             changes_min = changes * self.stepgrow
             changes_max = changes * self.stepshrink
             gradprod = grad_m1 * grad
