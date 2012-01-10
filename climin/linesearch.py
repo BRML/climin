@@ -108,7 +108,7 @@ class ScipyLineSearch(LineSearch):
 class WolfeLineSearch(LineSearch):
 
     def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=25,
-                 min_step_length=1E-9):
+                 min_step_length=1E-9, typ=4):
         super(WolfeLineSearch, self).__init__(wrt)
         self.f = f
         self.fprime = fprime
@@ -116,6 +116,7 @@ class WolfeLineSearch(LineSearch):
         self.c2= c2
         self.maxiter = 30
         self.min_step_length = min_step_length
+        self.typ = typ
 
         # TODO: find better API for this
         self.first_try = True
@@ -138,7 +139,7 @@ class WolfeLineSearch(LineSearch):
         print 'going into ls'
         step, fstep, fprimestep, n_evals  = wolfe_line_search(
             self.wrt, t, direction, loss0, grad0, direct_deriv0,
-            self.c1, self.c2, 4, self.maxiter, self.min_step_length,
+            self.c1, self.c2, self.typ, self.maxiter, self.min_step_length,
             f)
         print 'finished ls'
 
