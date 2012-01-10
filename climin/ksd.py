@@ -7,6 +7,7 @@ import scipy
 from base import Minimizer, repeat_or_iter
 from lbfgs import Lbfgs
 from bfgs import Bfgs
+from sbfgs import SBfgs
 from util import optimize_some, optimize_while
 
 
@@ -105,9 +106,8 @@ class KrylovSubspaceDescent(Minimizer):
             # Minimize subobjective.
             subargs, subkwargs = self.krylov_args.next()
 
-            subopt = Lbfgs(
+            subopt = SBfgs(
                 self.krylov_coefficients, self._inner_f, self._inner_fprime,
-                n_factors=10,
                 args=itertools.repeat((subargs, subkwargs)))
 
             def log(info):
