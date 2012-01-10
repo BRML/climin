@@ -25,7 +25,7 @@ class SBfgs(Minimizer):
         if line_search is not None:
             self.line_search = line_search
         else:
-            self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
+            self.line_search = WolfeLineSearch(wrt, self.f, self.fprime, typ=0)
 
     def __iter__(self):
         args, kwargs = self.args.next()
