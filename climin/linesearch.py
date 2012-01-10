@@ -366,7 +366,7 @@ def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
     gtdNonT = np.dot(bracketGval[nonTpos], d)
     oldLOgtd = np.dot(oldLOGval, d)
     #
-    if bracketFval(Tpos) > oldLOFval:
+    if bracketFval[Tpos] > oldLOFval:
         # A comment here would be nice ...
         alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
                 [bracket[Tpos], bracketFval[Tpos], gtdT]]))
@@ -412,13 +412,13 @@ def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
             # Bounded Secant Extrapolation
             t = alpha_s
 
-        if bracket(Tpos) > oldLOval:
+        if bracket[Tpos] > oldLOval:
             t = min(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
         else:
             t = max(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
     else:
-        t, _ = polyinterp(np.array([[bracket(nonTpos), bracketFval(nonTpos), gtdNonT],\
-                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+        t, _ = polyinterp(np.array([[bracket[nonTpos], bracketFval[nonTpos], gtdNonT],\
+                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
     return t
 
 
@@ -563,9 +563,9 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 # Is this correct ???????
                 nonTpos = 1 - Tpos
                 if not LOposRemoved:
-                    oldLOval = bracket(nonTpos)
-                    oldLOFval = bracketFval(nonTpos)
-                    oldLOGval = bracketGval[ nonTpos]
+                    oldLOval = bracket[nonTpos]
+                    oldLOFval = bracketFval[nonTpos]
+                    oldLOGval = bracketGval[nonTpos]
                 t = mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
                         oldLOval, oldLOFval, oldLOGval)
             #
