@@ -135,10 +135,12 @@ class WolfeLineSearch(LineSearch):
         else:
             t = 1
 
+        print 'going into ls'
         step, fstep, fprimestep, n_evals  = wolfe_line_search(
             self.wrt, t, direction, loss0, grad0, direct_deriv0,
             self.c1, self.c2, 4, self.maxiter, self.min_step_length,
             f)
+        print 'finished ls'
 
         self.grad = fprimestep
 
@@ -329,9 +331,13 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         elif t > 0.6 * temp:
             t = 0.6 * temp
 
+        print t
+
         f_prev = f_new
         t_prev = temp
         # Missing part: call return Hessian
+        print t, x, d
+
         f_new, g_new = funObj(x + t*d)
         #
         funEvals += 1
@@ -343,6 +349,8 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
             f_new = f
             g_new = g
             break
+
+        print funEvals
     #
 
     # Missing: evaluate at new point
@@ -469,6 +477,8 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         done = False
 
         while LSiter < maxLS:
+
+            print '#line search', LSiter
             # Bracketing phase
             if not isLegal(f_new) or not isLegal(g_new):
                 t = (t + t_prev)/2.
@@ -554,10 +564,12 @@ def wolfe_line_search(x, t, d, f, g, gtd,
             if LS == 3 or not isLegal(bracketFval) or not isLegal(bracketGval):
                 # Bisecting
                 t = np.mean(bracket)
+                print 'mean t', t
             elif LS == 4:
                 # Grad cubic interpolation
                 t, _ = polyinterp(np.array([[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],\
                         [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
+                print 'pi t', t
             else:
                 # Mixed case
                 # Is this correct ???????
@@ -568,6 +580,8 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                     oldLOGval = bracketGval[ nonTpos]
                 t = mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
                         oldLOval, oldLOFval, oldLOGval)
+
+                print 'mi t', t
             #
             # Test that we are making sufficient progress
             bracket_min = min(bracket)
@@ -591,6 +605,10 @@ def wolfe_line_search(x, t, d, f, g, gtd,
 
             # Evaluate new point
             # no Hessian!
+            t = scipy.real(t)
+            print x
+            print t
+            print d
             f_new, g_new = funObj(x + t*d)
             funEvals += 1
             gtd_new = np.dot(g_new, d)
