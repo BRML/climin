@@ -16,7 +16,7 @@ def test_bfgs_rosen():
 
     opt = Bfgs(wrt, rosen, rosen_der)
     for i, info in enumerate(opt):
-        if i > 5000:
+        if i > 14:
             break
     print wrt
     assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
