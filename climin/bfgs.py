@@ -3,6 +3,7 @@
 import itertools
 
 import scipy
+import numpy as np
 import scipy.linalg
 import scipy.optimize
 
@@ -29,16 +30,16 @@ class Bfgs(Minimizer):
     def __iter__(self):
         args, kwargs = self.args.next()
         grad = self.fprime(self.wrt, *args, **kwargs)
+        grad_m1 = scipy.zeros(grad.shape)
 
+        # Following lines should be cleaned up.
         if self.inv_hessian is None:
             self.inv_hessian = scipy.eye(grad.shape[0])
 
-        for i, (args, kwargs) in enumerate(self.args):
+        for i, (next_args, next_kwargs) in enumerate(self.args):
             if i > 0 and i % self.stop == 0:
                 loss = self.f(self.wrt, *args, **kwargs)
-                yield dict(loss=loss, step=step, grad=grad, 
-                           direction=direction, steplength=steplength,
-                           inv_hessian=self.inv_hessian)
+                yield dict(loss=loss)
 
             # If the gradient is exactly zero, we stop. Otherwise, the
             # updates will lead to NaN errors because the direction will
@@ -48,34 +49,25 @@ class Bfgs(Minimizer):
                     print 'gradient is 0'
                 break
 
-            direction = scipy.dot(self.inv_hessian, -grad)
-            direction /= abs(direction).max()
+            if i == 0:
+                direction = -grad
+            else:
+                grad_diff = grad - grad_m1
+                ys = np.inner(grad_diff, step)
+                ss = np.inner(step, step)
+                yy = np.inner(grad_diff, grad_diff)
+                if i == 1:
+                    H = np.eye(grad.size)
+                #
+                Hy = np.dot(H, grad_diff)
+                yHy = np.inner(grad_diff, Hy)
+                H = H + (ys + yHy)*np.outer(step, step)/ys**2 - (np.outer(Hy, step) + np.outer(step, Hy))/ys
+                direction = - np.dot(H, grad)
             steplength = self.line_search.search(direction, args, kwargs)
-
-            if steplength == 0:
-                if self.verbose:
-                    print 'steplength is 0'
-                break
-
             step = steplength * direction
             self.wrt += step
-            grad_m1 = grad
-            grad = self.fprime(self.wrt, *args, **kwargs)
 
-            # Update for inverse Hessian approximation.
-            # We will do some abbreviations here to keep the code short.
-            grad_diff = grad - grad_m1
-            s = step
-            y = grad_diff
-            B = self.inv_hessian
-
-            sTy = scipy.inner(s, y)
-            yTBy = scipy.inner(y, scipy.dot(B, y))
-            ssT = scipy.outer(s, s)
-
-            ysT = scipy.outer(y, s)
-            BysT = scipy.dot(B, ysT)
-            syB = scipy.dot(ysT, B)
-
-            self.inv_hessian += (sTy + yTBy) * ssT / sTy**2
-            self.inv_hessian -= (BysT + syB) / sTy
+            # Prepare everything for the next loop.
+            args, kwargs = next_args, next_kwargs
+            # TODO: not all line searches have .grad!
+            grad_m1[:], grad[:] = grad, self.line_search.grad
