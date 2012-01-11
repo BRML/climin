@@ -25,7 +25,7 @@ class SBfgs(Minimizer):
         if line_search is not None:
             self.line_search = line_search
         else:
-            self.line_search = WolfeLineSearch(wrt, self.f, self.fprime, typ=0)
+            self.line_search = WolfeLineSearch(wrt, self.f, self.fprime, typ=4)
 
     def __iter__(self):
         args, kwargs = self.args.next()
@@ -53,27 +53,24 @@ class SBfgs(Minimizer):
                 direction = -grad
             else:
                 grad_diff = grad - grad_m1
-                if (grad_diff == 0).all():
-                    direction == -grad
-                else:
-                    ys = np.inner(grad_diff, step)
-                    ss = np.inner(step, step)
-                    yy = np.inner(grad_diff, grad_diff)
-                    if i == 1:
-                        # Make initial Hessian approximation
-                        # via scaled identity 
-                        H = np.eye(grad.size)*ys/yy
-                    #
-                    Hy = np.dot(H, grad_diff)
-                    yHy = np.inner(grad_diff, Hy)
-                    gamma = ys/yHy
-                    v = scipy.sqrt(yHy) * (step/ys - Hy/yHy)
-                    v = scipy.real(v)
-                    # update H inplace
-                    H += np.outer(v, v) - np.outer(Hy, Hy)/yHy 
-                    H *= gamma
-                    H += np.outer(step, step)/ys
-                    direction = - np.dot(H, grad)
+                ys = np.inner(grad_diff, step)
+                ss = np.inner(step, step)
+                yy = np.inner(grad_diff, grad_diff)
+                if i == 1:
+                    # Make initial Hessian approximation
+                    # via scaled identity 
+                    print 'ys / yy', ys / yy
+                    H = np.eye(grad.size)*ys/yy
+                #
+                Hy = np.dot(H, grad_diff)
+                yHy = np.inner(grad_diff, Hy)
+                gamma = ys/yHy
+                v = scipy.sqrt(yHy) * (step/ys - Hy/yHy)
+                v = scipy.real(v)
+                H = gamma * (H - np.outer(Hy, Hy) / yHy + np.outer(v, v))
+                H += np.outer(step, step) / ys
+                direction = - np.dot(H, grad)
+
             print 'direction', direction
 
             if not scipy.isfinite(direction).all():
@@ -104,10 +101,8 @@ class SBfgs(Minimizer):
             print 'steplength', steplength
 
             if steplength == 0:
-                print 'converged'
                 print 'converged - steplengthis 0'
                 break
-
 
             step = steplength * direction
 
