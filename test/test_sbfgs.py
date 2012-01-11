@@ -22,11 +22,11 @@ def test_sbfgs_rosen():
     assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
 
 
-def test_bfgs_quadratic():
+def test_sbfgs_quadratic():
     dim = 2
     wrt = scipy.array([1., 1.])
 
-    opt = Bfgs(wrt, quadratic, quadraticprime)
+    opt = SBfgs(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
         print wrt
         if i > 100:
