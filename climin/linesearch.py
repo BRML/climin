@@ -607,7 +607,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 if np.abs(gtd_new) <= -c2*gtd:
                     # Wolfe conditions satisfied
                     done = True
-                elif np.dot(gtd_new, bracket[HIpos] - bracket[LOpos]) >= 0:
+                elif gtd_new * (bracket[HIpos] - bracket[LOpos]) >= 0:
                     # old HI becomes new LO
                     bracket[HIpos] = bracket[LOpos]
                     bracketFval[HIpos] = bracketFval[LOpos]
