@@ -112,6 +112,7 @@ class KrylovSubspaceDescent(Minimizer):
 
             def log(info):
                 print 'inner loop loss', info['loss']
+                print '=' * 20
 
             info = optimize_while(subopt, 1E-4, log=log)
 
@@ -122,3 +123,9 @@ class KrylovSubspaceDescent(Minimizer):
                 loss=loss, step=step, grad=grad,
                 krylov_basis=self.krylov_basis,
                 krylov_coefficients=self.krylov_coefficients)
+
+
+            print 'parameter hash', self.wrt.sum(), (self.wrt**2).sum()
+            print '-' * 20
+            print '=' * 20
+            print '-' * 20

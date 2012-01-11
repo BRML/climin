@@ -332,12 +332,10 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         elif t > 0.6 * temp:
             t = 0.6 * temp
 
-        print t
 
         f_prev = f_new
         t_prev = temp
         # Missing part: call return Hessian
-        print t, x, d
 
         f_new, g_new = funObj(x + t*d)
         #
@@ -351,7 +349,6 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
             g_new = g
             break
 
-        print funEvals
     #
 
     # Missing: evaluate at new point
@@ -492,6 +489,9 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                     x, t, d, f, f, g, gtd, c1, max(0, min(LS-2, 2)), tolX, 
                     funObj)
                 funEvals += _fevals
+                print 'result from armijo, 492', t
+                print x
+                print d
                 return t, f_new, g_new, funEvals
             #
             if (f_new > f + c1*t*gtd) or (LSiter > 1 and f_new >= f_prev):
@@ -607,9 +607,6 @@ def wolfe_line_search(x, t, d, f, g, gtd,
             # Evaluate new point
             # no Hessian!
             t = scipy.real(t)
-            print x
-            print t
-            print d
             f_new, g_new = funObj(x + t*d)
             funEvals += 1
             gtd_new = np.dot(g_new, d)
@@ -664,6 +661,11 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         f_new = bracketFval[LOpos]
         g_new = bracketGval[LOpos]
 
+        print bracket
+
         #
         # missing Hessain evaluation
+        print 'result from line 666', t
+        print x
+        print d
         return t, f_new, g_new, funEvals

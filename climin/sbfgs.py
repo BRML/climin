@@ -32,6 +32,8 @@ class SBfgs(Minimizer):
         grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = scipy.zeros(grad.shape)
 
+        print 'VERY FIRST GRAD', grad
+
         if self.inv_hessian is None:
             self.inv_hessian = scipy.eye(grad.shape[0])
 
@@ -44,6 +46,8 @@ class SBfgs(Minimizer):
                 if self.verbose:
                     print 'gradient is 0'
                 break
+
+            print 'grad', grad
 
             if i == 0:
                 direction = -grad
@@ -70,6 +74,7 @@ class SBfgs(Minimizer):
                     H *= gamma
                     H += np.outer(step, step)/ys
                     direction = - np.dot(H, grad)
+            print 'direction', direction
 
             if not scipy.isfinite(direction).all():
                 print 'v'
@@ -96,9 +101,11 @@ class SBfgs(Minimizer):
                 raise ValueError('direction is complex')
 
             steplength = self.line_search.search(direction, args, kwargs)
+            print 'steplength', steplength
 
             if steplength == 0:
                 print 'converged'
+                print 'converged - steplengthis 0'
                 break
 
 
