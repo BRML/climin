@@ -77,7 +77,7 @@ class KrylovSubspaceDescent(Minimizer):
             elif i == n_bases - 1:
                 u = step
 
-            for j in range(i):
+            for j in range(i + 1):
                 H[i, j] = H[j, i] = scipy.inner(w, V[j])
                 u -= scipy.inner(u, V[j]) * V[j]
             if i < n_bases - 1:
