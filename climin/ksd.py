@@ -61,8 +61,6 @@ class KrylovSubspaceDescent(Minimizer):
             df_floor = diag_fisher_max * self.floor_eps
             diag_fisher = scipy.clip(diag_fisher, df_floor, diag_fisher_max)
 
-        inv_diag_fisher = 1 / diag_fisher
-
         H = scipy.empty((n_bases, n_bases))
         W = scipy.empty((n_bases, grad.shape[0]))
         V = self.basis
