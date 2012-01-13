@@ -12,8 +12,6 @@ from linesearch import WolfeLineSearch
 
 # Things left to do:
 #
-# - update initial diagonal inverse hessian as in minfunc
-# - figure out what the corrections are
 # - damped update
 
 
