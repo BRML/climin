@@ -124,8 +124,3 @@ class KrylovSubspaceDescent(Minimizer):
             yield dict(
                 loss=loss, step=step, grad=grad, basis=self.basis,
                 coefficients=self.coefficients)
-
-            print 'parameter hash', self.wrt.sum(), (self.wrt**2).sum()
-            print '-' * 20
-            print '=' * 20
-            print '-' * 20
