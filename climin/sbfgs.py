@@ -55,8 +55,10 @@ class SBfgs(Minimizer):
                 if i == 1:
                     # Make initial Hessian approximation
                     # via scaled identity 
-                    print 'ys / yy', ys / yy
-                    H = np.eye(grad.size)*ys/yy
+                    if self.inv_hessian is None:
+                        H = np.eye(grad.size)*ys/yy
+                    else:
+                        H = self.inv_hessian
                 #
                 Hy = np.dot(H, grad_diff)
                 yHy = np.inner(grad_diff, Hy)
