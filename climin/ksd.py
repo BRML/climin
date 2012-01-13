@@ -110,6 +110,7 @@ class KrylovSubspaceDescent(Minimizer):
 
             subopt = SBfgs(
                 self.coefficients, self._f_krylov, self._f_krylov_prime,
+                initial_inv_hessian=self.hessian,
                 args=itertools.repeat((subargs, subkwargs)))
 
             def log(info):
