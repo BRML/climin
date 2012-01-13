@@ -24,26 +24,18 @@ def test_ksd_rosen():
     p = T.dvector('point')
     Hp = T.grad(T.sum(rosen_grad *  p), pars)
 
-    k_coeff_var = T.dvector('coeffs var')
-    k_basis, k_coeff, k_loss, k_grad = krylov_subspace(rosen_expr, pars, wrt, 2)
-    k_coeff.name = 'coeffs'
-    k_basis.name = 'basis'
-    f_kl = theano.function([pars, k_coeff_var], k_loss, givens={k_coeff: k_coeff_var})
-    f_kp = theano.function([pars, k_coeff_var], k_grad, givens={k_coeff: k_coeff_var})
     f_Hp = theano.function([pars, p], Hp)
-    fandprime = theano.function([pars], [rosen_expr, rosen_grad])
+    f = theano.function([pars], rosen_expr)
+    fprime = theano.function([pars], rosen_grad) 
 
     args = hessian_args = krylov_args = itertools.repeat(((), {}))
 
     opt = KrylovSubspaceDescent(**{
         'wrt': wrt,
-        'fandprime': fandprime,
+        'f': f,
+        'fprime': fprime,
         'f_Hp': f_Hp,
-        'f_krylov': f_kl,
-        'f_krylovprime': f_kp,
-        'krylov_basis': k_basis.get_value(borrow=True, return_internal_type=True),
-        'krylov_coefficients':
-            k_coeff.get_value(borrow=True, return_internal_type=True),
+        'n_bases': 3,
         'floor_fisher': True,
         'floor_hessian': True,
         'precond_hessian': True,
