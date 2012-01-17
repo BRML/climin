@@ -8,7 +8,6 @@ from base import Minimizer, repeat_or_iter
 from lbfgs import Lbfgs
 from bfgs import Bfgs
 from sbfgs import SBfgs
-from util import optimize_some, optimize_while
 
 
 class KrylovSubspaceDescent(Minimizer):
