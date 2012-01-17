@@ -106,14 +106,12 @@ class KrylovSubspaceDescent(Minimizer):
             # Minimize subobjective.
             subargs, subkwargs = self.krylov_args.next()
 
-            subopt = SBfgs(
-                self.coefficients, self._f_krylov, self._f_krylov_prime,
-                initial_inv_hessian=self.hessian,
-                args=itertools.repeat((subargs, subkwargs)))
+            subopt = Lbfgs(self.coefficients, 
+                           self._f_krylov, self._f_krylov_prime,
+                           args=itertools.repeat((subargs, subkwargs)))
 
             def log(info):
                 print 'inner loop loss', info['loss']
-                print '=' * 20
 
             info = optimize_while(subopt, 1E-4, log=log)
             loss = info['loss']
