@@ -4,6 +4,7 @@ import scipy
 from scipy.optimize import rosen, rosen_der
 import theano
 import theano.tensor as T
+import nose.tools
 
 from climin.ksd import KrylovSubspaceDescent
 from zeitgeist.model import krylov_subspace
@@ -14,6 +15,7 @@ quadraticprime = lambda x: 2 * x
 quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
 
 
+@nose.tools.nottest
 def test_ksd_rosen():
     pars = T.dvector('pars')
     wrt = scipy.zeros(2)
