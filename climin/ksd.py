@@ -113,7 +113,7 @@ class KrylovSubspaceDescent(Minimizer):
             def log(info):
                 print 'inner loop loss', info['loss']
 
-            info = optimize_while(subopt, 1E-4, log=log)
+            info = subopt.some(5, 2 * self.n_bases, 1e-4, log=log)
             loss = info['loss']
 
             # Take search step.
