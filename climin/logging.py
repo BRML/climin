@@ -126,12 +126,22 @@ def include_tags_only(consumer, tags):
 
 
 @coroutine
-def project(consumer, keys):
+def keep(consumer, keys):
     """Return consumer that only keeps a subset of the dictionary given by
     `keys`."""
     while True:
         info = (yield)
         new_info = dict((k, v) for k, v in info.items() if k in keys)
+        consumer.send(new_info)
+
+
+@coroutine
+def dontkeep(consumer, keys):
+    """Return consumer that throws away a subset of the dictionary given by
+    `keys`."""
+    while True:
+        info = (yield)
+        new_info = dict((k, v) for k, v in info.items() if k not in keys)
         consumer.send(new_info)
 
 
