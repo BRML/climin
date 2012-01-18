@@ -7,11 +7,23 @@ import uuid
 from util import coroutine, aslist
 
 
+# TODO: this is a quick hack. It should actually do a deep search over the dict
+# and replace everything in a way that makes it serializable. For now it only
+# does that for numpy arrays on the first level.
+def sane_to_json(dct):
+    dct = dct.copy()
+    for key in dct:
+        if hasattr(dct[key], 'tolist'):
+            dct[key] = dct[key].tolist()
+    return dct
+
+
 @coroutine
 def jsonify(consumer):
     """Return a consumer which passes values on as json string."""
     while True:
         info = (yield)
+        info = sane_to_json(info)
         consumer.send(json.dumps(info))
 
 
