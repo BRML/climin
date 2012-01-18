@@ -29,6 +29,7 @@ class GradientDescent(Minimizer):
             if i > 0 and i % self.stop == 0:
                 info = dict(
                     loss=loss, gradient=gradient, steprate=steprate, 
+                    args=args, kwargs=kwargs,
                     momentum=momentum, step=step, wrt=self.wrt)
                 self.logger.send(info)
                 yield info

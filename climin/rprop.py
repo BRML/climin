@@ -44,5 +44,7 @@ class Rprop(Minimizer):
 
             grad_m1 = grad
 
+            # TODO: yield correct loss
             if i > 0 and i % self.stop == 0:
-              yield dict(loss=loss, grad=grad, step=step)
+                yield dict(loss=loss, args=args, kwargs=kwargs, grad=grad,
+                           step=step)

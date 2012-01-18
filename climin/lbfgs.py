@@ -139,7 +139,9 @@ class Lbfgs(Minimizer):
                 info = {
                     'loss': loss,
                     'steplength': steplength,
-                    'n_iter': i
+                    'n_iter': i,
+                    'args': args,
+                    'kwargs': kwargs,
                 }
                 self.logger.send(info)
                 yield info
