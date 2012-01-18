@@ -7,15 +7,18 @@ import uuid
 from util import coroutine, aslist
 
 
-# TODO: this is a quick hack. It should actually do a deep search over the dict
-# and replace everything in a way that makes it serializable. For now it only
-# does that for numpy arrays on the first level.
-def sane_to_json(dct):
-    dct = dct.copy()
-    for key in dct:
-        if hasattr(dct[key], 'tolist'):
-            dct[key] = dct[key].tolist()
-    return dct
+def sane_to_json(item):
+    """Return a copy of item where each array is replaced with a list."""
+    if isinstance(item, dict):
+        item = dict((k, sane_to_json(item[k])) for k in item)
+    elif isinstance(item, list):
+        item = [sane_to_json(i) for i in item]
+    elif isinstance(item, tuple):
+        item = tuple(sane_to_json(i) for i in item)
+    elif hasattr(item, 'tolist'):
+        item = item.tolist()
+
+    return item
 
 
 @coroutine
