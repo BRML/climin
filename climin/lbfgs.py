@@ -21,7 +21,7 @@ class Lbfgs(Minimizer):
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
                  n_factors=10, line_search=None,
                  args=None, stop=1, logger=None):
-        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, logger=None)
+        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, logger=logger)
 
         self.f = f
         self.fprime = fprime
