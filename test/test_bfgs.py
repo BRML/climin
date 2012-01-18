@@ -18,7 +18,6 @@ def test_bfgs_rosen():
     for i, info in enumerate(opt):
         if i > 14:
             break
-    print wrt
     assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
 
 
@@ -28,8 +27,6 @@ def test_bfgs_quadratic():
 
     opt = Bfgs(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
-        print wrt
         if i > 100:
             break
-    print wrt
     assert (abs(wrt) < 0.01).all(), 'did not find solution'
