@@ -139,3 +139,14 @@ def test_project():
 
     assert len(lst) == 1, 'wrong number of messages got through'
     assert lst[0] == {'message': 'take care'}, 'wrong keys got through'
+
+def test_uniquify():
+    lst = []
+    pipe = L.list_sink(lst)
+    pipe = L.uniquify(pipe)
+
+    pipe.send({'message': 'take care', 'blabla': 'blubb'})
+
+    assert len(lst) == 1, 'wrong number of messages got through'
+    assert 'uuid' in lst[0], 'did not get a uuid'
+    assert len(lst[0]['uuid']) == 36, 'not a uuid'

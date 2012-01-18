@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import json
 from datetime import datetime
+import json
+import uuid
 
 from util import coroutine, aslist
 
@@ -124,3 +125,12 @@ def deadend():
     """Return a consumer that does not do anything."""
     while True:
         (yield)
+
+
+@coroutine
+def uniquify(consumer):
+    uid = str(uuid.uuid4())
+    while True:
+        info = (yield).copy()
+        info['uuid'] = uid
+        consumer.send(info)
