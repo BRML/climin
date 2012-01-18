@@ -18,7 +18,6 @@ class Minimizer(object):
         self.wrt = wrt
         self.stop = stop
         self.logger = logger if logger is not None else deadend()
-        self.verbose = verbose
         if args is None:
             self.args = itertools.repeat(([], {}))
         else:
