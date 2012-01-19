@@ -1,7 +1,7 @@
 import scipy
 from scipy.optimize import rosen, rosen_der
 
-from climin import Bfgs
+from climin import SBfgs
 from climin.linesearch import WolfeLineSearch
 
 
@@ -10,22 +10,22 @@ quadraticprime = lambda x: 2 * x
 quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
 
 
-def test_bfgs_rosen():
+def test_sbfgs_rosen():
     dim = 2
     wrt = scipy.zeros((dim,))
 
-    opt = Bfgs(wrt, rosen, rosen_der)
+    opt = SBfgs(wrt, rosen, rosen_der)
     for i, info in enumerate(opt):
-        if i > 14:
+        if i > 20:
             break
     assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
 
 
-def test_bfgs_quadratic():
+def test_sbfgs_quadratic():
     dim = 2
     wrt = scipy.array([1., 1.])
 
-    opt = Bfgs(wrt, quadratic, quadraticprime)
+    opt = SBfgs(wrt, quadratic, quadraticprime)
     for i, info in enumerate(opt):
         if i > 100:
             break

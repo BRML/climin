@@ -8,12 +8,11 @@ import scipy.optimize
 
 from base import Minimizer
 from linesearch import WolfeLineSearch
+from logging import taggify
 
 
 # Things left to do:
 #
-# - update initial diagonal inverse hessian as in minfunc
-# - figure out what the corrections are
 # - damped update
 
 
@@ -21,8 +20,8 @@ class Lbfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
                  n_factors=10, line_search=None,
-                 args=None, stop=1, verbose=False):
-        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, verbose=verbose)
+                 args=None, stop=1, logger=None):
+        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, logger=logger)
 
         self.f = f
         self.fprime = fprime
@@ -32,6 +31,7 @@ class Lbfgs(Minimizer):
             self.line_search = line_search
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
+        self.line_search.logger = taggify(self.logger, 'linesearch')
 
     def inv_hessian_dot_gradient(self, grad_diffs, steps, grad, hessian_diag, 
                                  idxs):
@@ -70,6 +70,7 @@ class Lbfgs(Minimizer):
         grad_diffs = scipy.zeros(factor_shape)
         steps = scipy.zeros(factor_shape)
         hessian_diag = self.initial_hessian_diag
+        steplength = None
 
         # We need to keep track in which order the different statistics
         # from different runs are saved. 
@@ -88,14 +89,11 @@ class Lbfgs(Minimizer):
         idxs = []
 
         for i, (next_args, next_kwargs) in enumerate(self.args):
-            if i > 0 and i % self.stop == 0:
-                loss = self.f(self.wrt, *args, **kwargs)
-                yield dict(loss=loss)
-
             # If the gradient is exactly zero, we stop. Otherwise, the
             # updates will lead to NaN errors because the direction will
             # be zero.
             if (grad == 0.0).all():
+                self.logger.send({'message': 'gradient is 0'})
                 break
 
             if i == 0:
@@ -124,6 +122,9 @@ class Lbfgs(Minimizer):
                     grad_diffs, steps, -grad, hessian_diag, idxs)
 
             steplength = self.line_search.search(direction, args, kwargs)
+            if steplength == 0:
+                self.logger.send({'message': 'converged - steplength is 0'})
+                break
             step = steplength * direction
             self.wrt += step
 
@@ -131,5 +132,16 @@ class Lbfgs(Minimizer):
             args, kwargs = next_args, next_kwargs
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
-
             grad_diff = grad - grad_m1
+
+            if i > 0 and i % self.stop == 0:
+                loss = self.f(self.wrt, *args, **kwargs)
+                info = {
+                    'loss': loss,
+                    'steplength': steplength,
+                    'n_iter': i,
+                    'args': args,
+                    'kwargs': kwargs,
+                }
+                self.logger.send(info)
+                yield info
