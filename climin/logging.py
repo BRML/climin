@@ -39,6 +39,16 @@ def print_sink():
 
 
 @coroutine
+def prettyprint_sink():
+    """Return a consumer that prints values received prettily."""
+    while True:
+        info = (yield)
+        for key in info:
+            print '%s: %s' % (key, info[key])
+        print '-' * 20
+
+
+@coroutine
 def broadcast(*consumers):
     """Return a consumer that broadcasts values to all given consumers."""
     while True:
