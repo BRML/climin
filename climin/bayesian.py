@@ -7,7 +7,6 @@ from scipy import stats
 from sklearn import gaussian_process
 
 from base import Minimizer
-from util import optimize_some
 from nes import Xnes
 
 
@@ -30,7 +29,7 @@ def upper_confidence_bound(sigma):
     return acq
 
 
-def expected_improvement(gp, best_loss, atleast=0.01):
+def expected_improvement(gp, best_loss, atleast=0.00):
     def inner(x):
         mean, var = gp.predict(x, eval_MSE=True)
         if var[0] == 0: 
@@ -42,39 +41,39 @@ def expected_improvement(gp, best_loss, atleast=0.01):
     return inner
 
 
-def calc_proposal(xs, losses, model_factory, acq_func, n_inner_iters=1000):
+def calc_proposal(trials, losses, model_factory, acq_func, n_inner_iters=100):
     # Make sure the data given is a proper array.
-    xs = scipy.asarray(xs)
+    trials = scipy.asarray(trials)
     losses = scipy.asarray(losses)
 
     # Best solution found so far.
     best_loss = losses.min()
-    best_x = xs[losses.argmin()]
+    best_trial = trials[losses.argmin()]
 
     # Fit a model of the cost function...
     model = model_factory()
-    model.fit(xs, losses)
+    model.fit(trials, losses)
     # ... and wrap it into the acquaintance function.
     f = acq_func(model, best_loss)
 
     # Optimize the model of the cost to obtain new query point.
-    new_x = best_x.copy()
-    inner_opt = Xnes(new_x, f)
-    optimize_some(inner_opt, n_inner_iters)
+    new_trial = best_trial.copy()
+    inner_opt = Xnes(new_trial, f)
+    inner_opt.some(max_iter=n_inner_iters)
 
-    return new_x
+    return new_trial
 
 
-class BayesianMinimizer):
+class Bayesian(Minimizer):
 
-    def __init__(self, wrt, f, x0s, model_factory=None, acq_func=None,
-                 tolerance=1E-20,
+    def __init__(self, wrt, f, initial_trials, model_factory=None, 
+                 acq_func=None, tolerance=1E-20,
                  args=None, stop=1, logfunc=None):
         super(Bayesian, self).__init__(wrt, args, stop, logfunc=logfunc)
         self.f = f
 
-        self.x0s = x0s
-        self.xs = []
+        self.initial_trials = initial_trials
+        self.trials = []
         self.losses = []
 
         if model_factory is None:
@@ -90,13 +89,13 @@ class BayesianMinimizer):
     def eval_initial_points(self, args, kwargs):
         best_loss = float('inf')
 
-        self.x0s = scipy.asarray(self.x0s)
-        for x in self.x0s:
-            loss = self.f(x, *args, **kwargs)
-            self.xs.append(x)
+        self.initial_trials = scipy.asarray(self.initial_trials)
+        for trial in self.initial_trials:
+            loss = self.f(trial, *args, **kwargs)
+            self.trials.append(trial)
             self.losses.append(loss)
             if loss < best_loss:
-                self.wrt[:] = x
+                self.wrt[:] = trial 
                 best_loss = loss
         return best_loss
 
@@ -108,14 +107,14 @@ class BayesianMinimizer):
 
         # Now go into Bayesian loop.
         for i, (args, kwargs) in enumerate(self.args):
-            new_x = calc_proposal(
-                self.xs, self.losses, self.model_factory, self.acq_func)
-            new_loss = self.f(new_x, *args, **kwargs)
-            self.xs.append(new_x)
+            new_trial = calc_proposal(
+                self.trials, self.losses, self.model_factory, self.acq_func)
+            new_loss = self.f(new_trial, *args, **kwargs)
+            self.trials.append(new_trial)
             self.losses.append(new_loss)
 
             if new_loss < best_loss:
-                self.wrt[:] = new_x
+                self.wrt[:] = new_trial
                 best_loss = new_loss
 
             yield dict(loss=best_loss)
