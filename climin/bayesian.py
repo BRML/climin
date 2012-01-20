@@ -11,6 +11,9 @@ from util import optimize_some
 from nes import Xnes
 
 
+# TODO: add logging functionality
+
+
 # Taken from: http://atpassos.posterous.com/bayesian-optimization
 
 def upper_confidence_bound(sigma):
@@ -67,8 +70,8 @@ class BayesianMinimizer):
 
     def __init__(self, wrt, f, x0s, model_factory=None, acq_func=None,
                  tolerance=1E-20,
-                 args=None, stop=1, verbose=False):
-        super(Bayesian, self).__init__(wrt, args, stop, verbose)
+                 args=None, stop=1, logfunc=None):
+        super(Bayesian, self).__init__(wrt, args, stop, logfunc=logfunc)
         self.f = f
 
         self.x0s = x0s
