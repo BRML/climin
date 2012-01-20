@@ -108,7 +108,7 @@ class ScipyLineSearch(LineSearch):
 class WolfeLineSearch(LineSearch):
 
     def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=25,
-                 min_step_length=1E-9):
+                 min_step_length=1E-9, typ=4):
         super(WolfeLineSearch, self).__init__(wrt)
         self.f = f
         self.fprime = fprime
@@ -116,6 +116,7 @@ class WolfeLineSearch(LineSearch):
         self.c2= c2
         self.maxiter = 30
         self.min_step_length = min_step_length
+        self.typ = typ
 
         # TODO: find better API for this
         self.first_try = True
@@ -137,7 +138,7 @@ class WolfeLineSearch(LineSearch):
 
         step, fstep, fprimestep, n_evals  = wolfe_line_search(
             self.wrt, t, direction, loss0, grad0, direct_deriv0,
-            self.c1, self.c2, 4, self.maxiter, self.min_step_length,
+            self.c1, self.c2, self.typ, self.maxiter, self.min_step_length,
             f)
 
         self.grad = fprimestep
@@ -329,9 +330,11 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         elif t > 0.6 * temp:
             t = 0.6 * temp
 
+
         f_prev = f_new
         t_prev = temp
         # Missing part: call return Hessian
+
         f_new, g_new = funObj(x + t*d)
         #
         funEvals += 1
@@ -343,7 +346,6 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
             f_new = f
             g_new = g
             break
-    #
 
     # Missing: evaluate at new point
     #
@@ -366,7 +368,7 @@ def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
     gtdNonT = np.dot(bracketGval[nonTpos], d)
     oldLOgtd = np.dot(oldLOGval, d)
     #
-    if bracketFval(Tpos) > oldLOFval:
+    if bracketFval[Tpos] > oldLOFval:
         # A comment here would be nice ...
         alpha_c, _ = polyinterp(np.array([[oldLOval, oldLOFval, oldLOgtd],\
                 [bracket[Tpos], bracketFval[Tpos], gtdT]]))
@@ -412,13 +414,13 @@ def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
             # Bounded Secant Extrapolation
             t = alpha_s
 
-        if bracket(Tpos) > oldLOval:
+        if bracket[Tpos] > oldLOval:
             t = min(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
         else:
             t = max(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
     else:
-        t, _ = polyinterp(np.array([[bracket(nonTpos), bracketFval(nonTpos), gtdNonT],\
-                [bracket(Tpos), bracketFval(Tpos), gtdT]]))
+        t, _ = polyinterp(np.array([[bracket[nonTpos], bracketFval[nonTpos], gtdNonT],\
+                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
     return t
 
 
@@ -469,6 +471,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         done = False
 
         while LSiter < maxLS:
+
             # Bracketing phase
             if not isLegal(f_new) or not isLegal(g_new):
                 t = (t + t_prev)/2.
@@ -563,11 +566,12 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 # Is this correct ???????
                 nonTpos = 1 - Tpos
                 if not LOposRemoved:
-                    oldLOval = bracket(nonTpos)
-                    oldLOFval = bracketFval(nonTpos)
-                    oldLOGval = bracketGval[ nonTpos]
+                    oldLOval = bracket[nonTpos]
+                    oldLOFval = bracketFval[nonTpos]
+                    oldLOGval = bracketGval[nonTpos]
                 t = mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
                         oldLOval, oldLOFval, oldLOGval)
+
             #
             # Test that we are making sufficient progress
             bracket_min = min(bracket)
@@ -591,6 +595,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
 
             # Evaluate new point
             # no Hessian!
+            t = scipy.real(t)
             f_new, g_new = funObj(x + t*d)
             funEvals += 1
             gtd_new = np.dot(g_new, d)
@@ -607,7 +612,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 if np.abs(gtd_new) <= -c2*gtd:
                     # Wolfe conditions satisfied
                     done = True
-                elif np.dot(gtd_new, bracket[HIpos] - bracket[LOpos]) >= 0:
+                elif gtd_new * (bracket[HIpos] - bracket[LOpos]) >= 0:
                     # old HI becomes new LO
                     bracket[HIpos] = bracket[LOpos]
                     bracketFval[HIpos] = bracketFval[LOpos]
@@ -645,6 +650,6 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         f_new = bracketFval[LOpos]
         g_new = bracketGval[LOpos]
 
-        #
+
         # missing Hessain evaluation
         return t, f_new, g_new, funEvals
