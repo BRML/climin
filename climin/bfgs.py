@@ -9,14 +9,13 @@ import scipy.optimize
 
 from base import Minimizer
 from linesearch import WolfeLineSearch
-from logging import taggify
 
 
 class Bfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
-                 line_search=None, args=None, stop=1, logger=None):
-        super(Bfgs, self).__init__(wrt, args=args, logger=logger)
+                 line_search=None, args=None, stop=1, logfunc=None):
+        super(Bfgs, self).__init__(wrt, args=args, logfunc=logfunc)
         self.f = f
         self.fprime = fprime
         if initial_inv_hessian is not None:
@@ -28,7 +27,6 @@ class Bfgs(Minimizer):
             self.line_search = line_search
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
-        self.line_search.logger = taggify(self.logger, 'linesearch')
 
     def __iter__(self):
         args, kwargs = self.args.next()
@@ -44,7 +42,7 @@ class Bfgs(Minimizer):
             # updates will lead to NaN errors because the direction will
             # be zero.
             if (grad == 0.0).all():
-                self.logger.send({'message': 'gradient is 0'})
+                self.logfunc({'message': 'gradient is 0'})
                 break
 
             if i == 0:
@@ -62,7 +60,7 @@ class Bfgs(Minimizer):
 
             steplength = self.line_search.search(direction, args, kwargs)
             if steplength == 0:
-                self.logger.send({'message': 'converged - steplength is 0'})
+                self.logfunc({'message': 'converged - steplength is 0'})
                 break
             step = steplength * direction
             self.wrt += step
@@ -81,6 +79,6 @@ class Bfgs(Minimizer):
                     'args': args,
                     'kwargs': kwargs,
                 }
-                self.logger.send(info)
+                self.logfunc(info)
                 yield info
 

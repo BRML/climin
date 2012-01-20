@@ -21,10 +21,10 @@ class KrylovSubspaceDescent(Minimizer):
         self, wrt, f, fprime, f_Hp, n_bases,
         args, hessian_args, krylov_args,
         floor_fisher=False, precond_hessian=False, floor_hessian=False,
-        stop=1, verbose=False):
+        stop=1, logfunc=None):
 
         super(KrylovSubspaceDescent, self).__init__(
-            wrt, args=args, stop=stop, verbose=verbose)
+            wrt, args=args, stop=stop, logfunc=logfunc)
         self.f = f
         self.fprime = fprime
         self.f_Hp = f_Hp
@@ -107,12 +107,10 @@ class KrylovSubspaceDescent(Minimizer):
 
             subopt = Lbfgs(self.coefficients, 
                            self._f_krylov, self._f_krylov_prime,
-                           args=itertools.repeat((subargs, subkwargs)))
+                           args=itertools.repeat((subargs, subkwargs)),
+                           logfunc=self.logfunc)
 
-            def log(info):
-                print 'inner loop loss', info['loss']
-
-            info = subopt.some(5, 2 * self.n_bases, 1e-4, log=log)
+            info = subopt.some(5, 2 * self.n_bases, 1e-4)
             loss = info['loss']
 
             # Take search step.
