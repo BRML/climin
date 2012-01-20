@@ -30,16 +30,15 @@ def upper_confidence_bound(sigma):
     return acq
 
 
-def expected_improvement(gp, best_loss):
+def expected_improvement(gp, best_loss, atleast=0.01):
     def inner(x):
         mean, var = gp.predict(x, eval_MSE=True)
         if var[0] == 0: 
             return 0.
         std = scipy.sqrt(var)
-        improv = mean - best_loss
+        improv = mean - best_loss + atleast
         z = improv / std
         return (improv * stats.norm.cdf(z) + std * stats.norm.pdf(z))
-
     return inner
 
 
