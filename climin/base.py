@@ -32,7 +32,7 @@ class Minimizer(object):
         number if the loss gets lower) is less than min_improv, minimization is
         stopped."""
         loss_m1 = float('inf')
-        info = {}
+        info = None
         for i, info in enumerate(self):
             loss = info['loss']
             improvement = loss_m1 - loss
