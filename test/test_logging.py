@@ -130,15 +130,27 @@ def test_exclude_tags():
     assert lst[0]['message'] == 'take care', 'wrong message got through'
 
 
-def test_project():
+def test_keep():
     lst = []
     pipe = L.list_sink(lst)
-    pipe = L.project(pipe, ['message'])
+    pipe = L.keep(pipe, ['message'])
 
     pipe.send({'message': 'take care', 'blabla': 'blubb'})
 
     assert len(lst) == 1, 'wrong number of messages got through'
     assert lst[0] == {'message': 'take care'}, 'wrong keys got through'
+
+
+def test_dontkeep():
+    lst = []
+    pipe = L.list_sink(lst)
+    pipe = L.dontkeep(pipe, ['blabla'])
+
+    pipe.send({'message': 'take care', 'blabla': 'blubb'})
+
+    assert len(lst) == 1, 'wrong number of messages got through'
+    assert lst[0] == {'message': 'take care'}, 'wrong keys got through'
+
 
 def test_uniquify():
     lst = []

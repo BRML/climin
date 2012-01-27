@@ -2,8 +2,6 @@
 
 import itertools
 
-from logging import deadend
-
 
 def repeat_or_iter(obj):
     try:
@@ -12,12 +10,15 @@ def repeat_or_iter(obj):
         return itertools.repeat(obj)
 
 
+def dummylogfunc(*args, **kwargs): pass
+
+
 class Minimizer(object):
 
-    def __init__(self, wrt, args=None, stop=1, logger=None):
+    def __init__(self, wrt, args=None, stop=1, logfunc=None):
         self.wrt = wrt
         self.stop = stop
-        self.logger = logger if logger is not None else deadend()
+        self.logfunc = logfunc if logfunc is not None else dummylogfunc
         if args is None:
             self.args = itertools.repeat(([], {}))
         else:
@@ -31,7 +32,7 @@ class Minimizer(object):
         number if the loss gets lower) is less than min_improv, minimization is
         stopped."""
         loss_m1 = float('inf')
-        info = {}
+        info = None
         for i, info in enumerate(self):
             loss = info['loss']
             improvement = loss_m1 - loss

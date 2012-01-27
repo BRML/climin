@@ -11,8 +11,8 @@ class Rprop(Minimizer):
 
     def __init__(self, wrt, fandprime, stepshrink=0.5, stepgrow=1.2,
                  minstep=1E-6, maxstep=1, changes_max=0.1,
-                 args=None, stop=1, logger=None):
-        super(Rprop, self).__init__(wrt, args=args, stop=stop, logger=logger)
+                 args=None, stop=1, logfunc=None):
+        super(Rprop, self).__init__(wrt, args=args, stop=stop, logfunc=logfunc)
 
         self.fandprime = fandprime
         self.stepshrink = stepshrink
@@ -45,6 +45,7 @@ class Rprop(Minimizer):
             grad_m1 = grad
 
             # TODO: yield correct loss
+            # TODO: log something
             if i > 0 and i % self.stop == 0:
                 yield dict(loss=loss, args=args, kwargs=kwargs, grad=grad,
                            step=step)

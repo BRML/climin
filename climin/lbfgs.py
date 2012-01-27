@@ -20,8 +20,8 @@ class Lbfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
                  n_factors=10, line_search=None,
-                 args=None, stop=1, logger=None):
-        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, logger=None)
+                 args=None, stop=1, logfunc=None):
+        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, logfunc=logfunc)
 
         self.f = f
         self.fprime = fprime
@@ -31,7 +31,6 @@ class Lbfgs(Minimizer):
             self.line_search = line_search
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
-        self.line_search.logger = taggify(self.logger, 'linesearch')
 
     def inv_hessian_dot_gradient(self, grad_diffs, steps, grad, hessian_diag, 
                                  idxs):
@@ -93,7 +92,7 @@ class Lbfgs(Minimizer):
             # updates will lead to NaN errors because the direction will
             # be zero.
             if (grad == 0.0).all():
-                self.logger.send({'message': 'gradient is 0'})
+                self.logfunc({'message': 'gradient is 0'})
                 break
 
             if i == 0:
@@ -123,7 +122,7 @@ class Lbfgs(Minimizer):
 
             steplength = self.line_search.search(direction, args, kwargs)
             if steplength == 0:
-                self.logger.send({'message': 'converged - steplength is 0'})
+                self.logfunc({'message': 'converged - steplength is 0'})
                 break
             step = steplength * direction
             self.wrt += step
@@ -143,5 +142,5 @@ class Lbfgs(Minimizer):
                     'args': args,
                     'kwargs': kwargs,
                 }
-                self.logger.send(info)
+                self.logfunc(info)
                 yield info
