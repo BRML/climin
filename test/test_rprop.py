@@ -29,5 +29,4 @@ def test_rprop_rosen():
     for i, info in enumerate(opt):
         if i > 10000:
             break
-    print wrt
     assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'

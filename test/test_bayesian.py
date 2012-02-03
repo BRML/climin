@@ -42,10 +42,9 @@ def test_bayesian_quadratic():
         [1.2, 1.3],
     ])
 
-    opt = Bayesian(wrt, quadratic, x0s)
+    scipy.random.seed(1234)
+    opt = Bayesian(wrt, quadratic, x0s, n_inner_iters=100)
     for i, info in enumerate(opt):
-        print wrt
         if i > 100:
             break
-    print wrt
     assert (abs(wrt) < 0.01).all(), 'did not find solution'
