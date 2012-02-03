@@ -68,7 +68,7 @@ class SBfgs(Minimizer):
                 H += np.outer(step, step) / ys
                 direction = - np.dot(H, grad)
 
-            steplength = self.line_search.search(direction, args, kwargs)
+            steplength = self.line_search.search(direction, None, args, kwargs)
             if steplength == 0:
                 self.logfunc({'message': 'converged - steplength is 0'})
                 break
