@@ -90,7 +90,10 @@ class Xnes(Minimizer):
         for i, (j, _) in enumerate(l):
             ranks[j] = i
         # smooth reshaping
-        utilities = -scipy.log(n_fitnesses - ranks)
+
+        # If we do not cast to float64 here explicitly, scipy will at random
+        # points crash with a weird AttributeError.
+        utilities = -scipy.log((n_fitnesses - ranks).astype('float64'))
         utilities += scipy.log(n_fitnesses / 2. + 1.0)
         utilities = scipy.clip(utilities, 0, float('inf'))
         utilities /= utilities.sum()       # make the utilities sum to 1
