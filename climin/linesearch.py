@@ -134,7 +134,7 @@ class WolfeLineSearch(LineSearch):
             self.first_try = False
             t = min(1, 1 / sum(abs(grad0)))
         else:
-            t = initialization
+            t = initialization if initialization is not None else 1
 
         step, fstep, fprimestep, n_evals  = wolfe_line_search(
             self.wrt, t, direction, loss0, grad0, direct_deriv0,

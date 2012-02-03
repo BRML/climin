@@ -120,7 +120,7 @@ class Lbfgs(Minimizer):
                 direction = self.inv_hessian_dot_gradient(
                     grad_diffs, steps, -grad, hessian_diag, idxs)
 
-            steplength = self.line_search.search(direction, args, kwargs)
+            steplength = self.line_search.search(direction, None, args, kwargs)
             if steplength == 0:
                 self.logfunc({'message': 'converged - steplength is 0'})
                 break

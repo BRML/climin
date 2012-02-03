@@ -58,7 +58,7 @@ class Bfgs(Minimizer):
                 H += (ys + yHy)*np.outer(step, step)/ys**2 - (np.outer(Hy, step) + np.outer(step, Hy))/ys
                 direction = -np.dot(H, grad)
 
-            steplength = self.line_search.search(direction, args, kwargs)
+            steplength = self.line_search.search(direction, None, args, kwargs)
             if steplength == 0:
                 self.logfunc({'message': 'converged - steplength is 0'})
                 break
