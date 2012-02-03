@@ -5,3 +5,4 @@ from bfgs import Bfgs
 from lbfgs import Lbfgs
 from sbfgs import SBfgs
 from cg import ConjugateGradient
+from ncg import NonlinearConjugateGradient

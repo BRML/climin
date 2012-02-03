@@ -121,7 +121,7 @@ class WolfeLineSearch(LineSearch):
         # TODO: find better API for this
         self.first_try = True
 
-    def search(self, direction, args=None, kwargs=None):
+    def search(self, direction, initialization=None, args=None, kwargs=None):
         args = args if args is not None else ()
         kwargs = kwargs if kwargs is not None else {}
         loss0 = self.f(self.wrt, *args, **kwargs)
@@ -134,7 +134,7 @@ class WolfeLineSearch(LineSearch):
             self.first_try = False
             t = min(1, 1 / sum(abs(grad0)))
         else:
-            t = 1
+            t = initialization
 
         step, fstep, fprimestep, n_evals  = wolfe_line_search(
             self.wrt, t, direction, loss0, grad0, direct_deriv0,
