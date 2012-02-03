@@ -14,8 +14,10 @@ def test_xnes_rosen():
     wrt = scipy.ones((dim,)) * 0.6
     rosenandprime = lambda x: (rosen(x), rosen_der(x))
 
+    scipy.random.seed(1234)
+
     opt = Xnes(wrt, rosen)
     for i, info in enumerate(opt):
-        if i > 5000:
+        if i > 3000:
             break
-    assert (abs(wrt - [1, 1]) < 0.3).all(), 'did not find solution: %s' % wrt
+    assert (abs(wrt - [1, 1]) < 0.2).all(), 'did not find solution: %s' % wrt
