@@ -67,12 +67,13 @@ def calc_proposal(trials, losses, model_factory, acq_func, n_inner_iters=100):
 class Bayesian(Minimizer):
 
     def __init__(self, wrt, f, initial_trials, model_factory=None, 
-                 acq_func=None, tolerance=1E-20,
+                 acq_func=None, tolerance=1E-20, n_inner_iters=50,
                  args=None, stop=1, logfunc=None):
         super(Bayesian, self).__init__(wrt, args, stop, logfunc=logfunc)
         self.f = f
 
         self.initial_trials = initial_trials
+        self.n_inner_iters = n_inner_iters
         self.trials = []
         self.losses = []
 
@@ -108,7 +109,8 @@ class Bayesian(Minimizer):
         # Now go into Bayesian loop.
         for i, (args, kwargs) in enumerate(self.args):
             new_trial = calc_proposal(
-                self.trials, self.losses, self.model_factory, self.acq_func)
+                self.trials, self.losses, self.model_factory, self.acq_func,
+                n_inner_iters=self.n_inner_iters)
             new_loss = self.f(new_trial, *args, **kwargs)
             self.trials.append(new_trial)
             self.losses.append(new_loss)
