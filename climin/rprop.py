@@ -45,9 +45,9 @@ class Rprop(Minimizer):
 
             grad_m1 = grad
 
-            # TODO: yield correct loss
-            # TODO: log something
             if i > 0 and i % self.stop == 0:
                 loss = self.f(self.wrt, *args, **kwargs)
-                yield dict(loss=loss, args=args, kwargs=kwargs, grad=grad,
+                info = dict(loss=loss, args=args, kwargs=kwargs, grad=grad,
                            step=step)
+                self.logfunc(info)
+                yield info
