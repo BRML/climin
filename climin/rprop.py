@@ -48,6 +48,6 @@ class Rprop(Minimizer):
             if i > 0 and i % self.stop == 0:
                 loss = self.f(self.wrt, *args, **kwargs)
                 info = dict(loss=loss, args=args, kwargs=kwargs, grad=grad,
-                           step=step)
+                            step=step)
                 self.logfunc(info)
                 yield info
