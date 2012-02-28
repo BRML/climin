@@ -119,8 +119,8 @@ class Lbfgs(Minimizer):
 
             steplength = self.line_search.search(direction, None, args, kwargs)
 
+            step = steplength * direction
             if steplength != 0:
-                step = steplength * direction
                 self.wrt += step
             else:
                 self.logfunc({'message': 'step length is 0.'})
