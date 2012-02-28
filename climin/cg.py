@@ -49,9 +49,11 @@ class ConjugateGradient(Minimizer):
                 beta = np.dot(grad, grad)/ rr
                 direction = - grad + beta * direction
             
+            # If we don't bail out here, we will enter regions of numerical
+            # instability.
             if (abs(grad) < self.epsilon).all():
                 self.logfunc(
-                    {'message': 'converged - residual smaller than epsilon'})
+                    {'message': 'converged - gradient smaller than epsilon'})
                 break
 
             # Prepare everything for the next loop.
