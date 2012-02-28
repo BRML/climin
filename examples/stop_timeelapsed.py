@@ -17,9 +17,10 @@ if __name__ == '__main__':
     for info in opt:
         # pretend that optimizing step takes some time
         time.sleep(0.01)
-        print "iteration %3i loss=%g" % (info['n_iter'], info['loss'])
+        print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
     
         if stop(info):
+            print "stopped after 5 seconds."
             break
             
     assert (abs(wrt) < 0.01).all(), 'did not find solution'

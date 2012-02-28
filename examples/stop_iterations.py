@@ -19,11 +19,11 @@ if __name__ == '__main__':
     for info in opt:
         # show every 50th result
         if modulostop(info):
-            print "iteration %3i loss=%g" % (info['n_iter'], info['loss'])
+            print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
      
         # stop after 1000 iterations
         if fullstop(info):
-            print "iteration %3i loss=%g" % (info['n_iter'], info['loss'])
+            print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
             break
             
     assert (abs(wrt) < 0.01).all(), 'did not find solution'
