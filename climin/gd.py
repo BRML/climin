@@ -27,7 +27,7 @@ class GradientDescent(Minimizer):
             self.wrt -= step
 
             yield dict(gradient=gradient, steprate=steprate, 
-                       args=args, kwargs=kwargs,
+                       args=args, kwargs=kwargs, n_iter=i,
                        momentum=momentum, step=step )
 
             step_m1 = step
