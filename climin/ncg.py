@@ -17,7 +17,7 @@ class NonlinearConjugateGradient(Minimizer):
     """
 
     def __init__(self, wrt, f, fprime, epsilon = 1e-6,
-                 args=None, stop=1, logfunc=None):
+                 args=None, logfunc=None):
         super(NonlinearConjugateGradient, self).__init__(
             wrt, args=args, logfunc=logfunc)
         self.f = f
@@ -75,14 +75,13 @@ class NonlinearConjugateGradient(Minimizer):
             grad_m1[:], grad[:] = grad, self.fprime(self.wrt, *args, **kwargs)
             f_old, f_val = f_val, self.f(self.wrt, *args, **kwargs)
 
-            if i > 0 and i % self.stop == 0:
-                loss = self.f(self.wrt, *args, **kwargs)
-                info = {
-                    'loss': loss,
-                    'steplength': alpha,
-                    'n_iter': i,
-                    'args': args,
-                    'kwargs': kwargs,
-                }
-                self.logfunc(info)
-                yield info
+            loss = self.f(self.wrt, *args, **kwargs)
+            info = {
+                'loss': loss,
+                'steplength': alpha,
+                'n_iter': i,
+                'args': args,
+                'kwargs': kwargs,
+            }
+            self.logfunc(info)
+            yield info

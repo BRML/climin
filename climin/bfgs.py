@@ -14,7 +14,7 @@ from linesearch import WolfeLineSearch
 class Bfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
-                 line_search=None, args=None, stop=1, logfunc=None):
+                 line_search=None, args=None, logfunc=None):
         super(Bfgs, self).__init__(wrt, args=args, logfunc=logfunc)
         self.f = f
         self.fprime = fprime
@@ -70,15 +70,15 @@ class Bfgs(Minimizer):
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
-            if i > 0 and i % self.stop == 0:
-                loss = self.f(self.wrt, *args, **kwargs)
-                info = {
-                    'loss': loss,
-                    'steplength': steplength,
-                    'n_iter': i,
-                    'args': args,
-                    'kwargs': kwargs,
-                }
-                self.logfunc(info)
-                yield info
+            # TODO: should not be explicitly calculated.
+            loss = self.f(self.wrt, *args, **kwargs)
+            info = {
+                'loss': loss,
+                'steplength': steplength,
+                'n_iter': i,
+                'args': args,
+                'kwargs': kwargs,
+            }
+            self.logfunc(info)
+            yield info
 

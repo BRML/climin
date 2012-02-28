@@ -20,8 +20,8 @@ class Lbfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
                  n_factors=10, line_search=None,
-                 args=None, stop=1, logfunc=None):
-        super(Lbfgs, self).__init__(wrt, args=args, stop=stop, logfunc=logfunc)
+                 args=None, logfunc=None):
+        super(Lbfgs, self).__init__(wrt, args=args, logfunc=logfunc)
 
         self.f = f
         self.fprime = fprime
@@ -133,14 +133,13 @@ class Lbfgs(Minimizer):
             grad_m1[:], grad[:] = grad, self.line_search.grad
             grad_diff = grad - grad_m1
 
-            if i > 0 and i % self.stop == 0:
-                loss = self.f(self.wrt, *args, **kwargs)
-                info = {
-                    'loss': loss,
-                    'steplength': steplength,
-                    'n_iter': i,
-                    'args': args,
-                    'kwargs': kwargs,
-                }
-                self.logfunc(info)
-                yield info
+            loss = self.f(self.wrt, *args, **kwargs)
+            info = {
+                'loss': loss,
+                'steplength': steplength,
+                'n_iter': i,
+                'args': args,
+                'kwargs': kwargs,
+            }
+            self.logfunc(info)
+            yield info

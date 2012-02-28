@@ -15,9 +15,8 @@ def dummylogfunc(*args, **kwargs): pass
 
 class Minimizer(object):
 
-    def __init__(self, wrt, args=None, stop=1, logfunc=None):
+    def __init__(self, wrt, args=None, logfunc=None):
         self.wrt = wrt
-        self.stop = stop
         self.logfunc = logfunc if logfunc is not None else dummylogfunc
         if args is None:
             self.args = itertools.repeat(([], {}))

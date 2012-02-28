@@ -21,10 +21,10 @@ class KrylovSubspaceDescent(Minimizer):
         self, wrt, f, fprime, f_Hp, n_bases,
         args, hessian_args, krylov_args,
         floor_fisher=False, precond_hessian=False, floor_hessian=False,
-        stop=1, logfunc=None):
+        logfunc=None):
 
         super(KrylovSubspaceDescent, self).__init__(
-            wrt, args=args, stop=stop, logfunc=logfunc)
+            wrt, args=args, logfunc=logfunc)
         self.f = f
         self.fprime = fprime
         self.f_Hp = f_Hp

@@ -68,8 +68,8 @@ class Bayesian(Minimizer):
 
     def __init__(self, wrt, f, initial_trials, model_factory=None, 
                  acq_func=None, tolerance=1E-20, n_inner_iters=50,
-                 args=None, stop=1, logfunc=None):
-        super(Bayesian, self).__init__(wrt, args, stop, logfunc=logfunc)
+                 args=None, logfunc=None):
+        super(Bayesian, self).__init__(wrt, args, logfunc=logfunc)
         self.f = f
 
         self.initial_trials = initial_trials

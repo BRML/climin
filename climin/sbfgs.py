@@ -16,7 +16,7 @@ class SBfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
                  line_search=None,
-                 args=None, stop=1, logfunc=None):
+                 args=None, logfunc=None):
         super(SBfgs, self).__init__(wrt, args=args, logfunc=logfunc)
 
         self.f = f
@@ -80,14 +80,13 @@ class SBfgs(Minimizer):
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
-            if i > 0 and i % self.stop == 0:
-                loss = self.f(self.wrt, *args, **kwargs)
-                info = {
-                    'loss': loss,
-                    'steplength': steplength,
-                    'n_iter': i,
-                    'args': args,
-                    'kwargs': kwargs,
-                }
-                self.logfunc(info)
-                yield info
+            loss = self.f(self.wrt, *args, **kwargs)
+            info = {
+                'loss': loss,
+                'steplength': steplength,
+                'n_iter': i,
+                'args': args,
+                'kwargs': kwargs,
+            }
+            self.logfunc(info)
+            yield info

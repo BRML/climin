@@ -37,8 +37,8 @@ from base import Minimizer
 
 class Xnes(Minimizer):
 
-    def __init__(self, wrt, f, args=None, stop=1, logfunc=None):
-        super(Xnes, self).__init__(wrt, args=args, stop=stop, logfunc=logfunc)
+    def __init__(self, wrt, f, args=None, logfunc=None):
+        super(Xnes, self).__init__(wrt, args=args, logfunc=logfunc)
         self._f = f
         # Set some default values.
         dim = self.wrt.shape[0]

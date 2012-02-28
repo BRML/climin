@@ -18,7 +18,7 @@ class ConjugateGradient(Minimizer):
     """
 
     def __init__(self, wrt, f, fprime, epsilon = 1e-14,
-                 args=None, stop=1, logfunc=None):
+                 args=None, logfunc=None):
         super(ConjugateGradient, self).__init__(wrt, args=args, logfunc=logfunc)
         self.f = f
         self.fprime = fprime
@@ -39,12 +39,13 @@ class ConjugateGradient(Minimizer):
 
             if i == 0:
                 direction = -grad
+                step_length = None
             else:
                 Ap = self.fprime(direction)+ self.b
                 rr = np.dot(grad, grad)
-                alpha = rr / np.dot(direction, Ap)
-                self.wrt += alpha * direction
-                grad = grad + alpha * Ap
+                step_length = rr / np.dot(direction, Ap)
+                self.wrt += step_length * direction
+                grad = grad + step_length * Ap
                 beta = np.dot(grad, grad)/ rr
                 direction = - grad + beta * direction
             
@@ -56,14 +57,13 @@ class ConjugateGradient(Minimizer):
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
 
-            if i > 0 and i % self.stop == 0:
-                loss = self.f(self.wrt, *args, **kwargs)
-                info = {
-                    'loss': loss,
-                    'steplength': alpha,
-                    'n_iter': i,
-                    'args': args,
-                    'kwargs': kwargs,
-                }
-                self.logfunc(info)
-                yield info
+            loss = self.f(self.wrt, *args, **kwargs)
+            info = {
+                'loss': loss,
+                'step_length': step_length,
+                'n_iter': i,
+                'args': args,
+                'kwargs': kwargs,
+            }
+            self.logfunc(info)
+            yield info
