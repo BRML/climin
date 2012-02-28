@@ -53,7 +53,12 @@ class NonlinearConjugateGradient(Minimizer):
                 if scipy.dot(grad, grad_m1) / grad_norm_m1 > 0.1 :
                     beta = 0
                          
-                direction = - grad + beta * direction
+                direction = -grad + beta * direction
+
+            if not np.isfinite(direction).all() or (abs(direction) == 0).all():
+                self.logfunc(
+                    {'message': 'direction is 0, inf or NaN -- using gradient.'})
+                break
                 
             #line search minimization          
             initialization = min(1, 2 * (loss - loss_m1) / scipy.dot(grad, direction))
