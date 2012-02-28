@@ -1,18 +1,40 @@
-import scipy
+import itertools
 
-from climin import GradientDescent
+import nose
+import numpy as np
+
+from climin import GradientDescent 
+
+from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-quadratic = lambda x: (x**2).sum()
-quadraticprime = lambda x: 2 * x
-
-
-def test_gradient_descent_constant_step():
-    dim = 10
-    wrt = scipy.random.standard_normal((dim,)) * 10 + 5
-
-    opt = GradientDescent(wrt, quadraticprime, steprate=0.01)
-    for i, info in enumerate(opt):
-        if i > 1000:
+def test_gd_quadratic():
+    obj = Quadratic()
+    opt = GradientDescent(
+        obj.pars, obj.fprime, steprate=0.01, momentum=.9)
+    for i, info in enumerate(opt):      
+        if i > 500:
             break
-    assert (abs(wrt) < 0.01).all(), 'did not find solution'
+    assert obj.solved(), 'did not find solution'
+
+
+@nose.tools.nottest
+def test_gd_rosen():
+    obj = Rosenbrock()
+    opt = GradientDescent(
+        obj.pars, obj.fprime, steprate=0.01, momentum=.9)
+    for i, info in enumerate(opt):      
+        if i > 5000:
+            break
+    assert ((1 - obj.pars) < 0.01).all(), 'did not find solution'
+
+
+def test_gd_lr():
+    obj = LogisticRegression()
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    opt = GradientDescent(
+        obj.pars, obj.fprime, steprate=0.01, momentum=.9, args=args)
+    for i, info in enumerate(opt):      
+        if i > 500:
+            break
+    assert obj.solved(), 'did not find solution'

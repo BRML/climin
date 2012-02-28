@@ -56,20 +56,25 @@ class LogisticRegression(object):
 
         return d_f_d_all / prediction.shape[0]
 
+    def solved(self, tolerance=0.1):
+        return self.f(self.pars, self.X, self.Z) - tolerance < 0
+
 
 class Quadratic(object):
 
     A = np.array([[1, 0],[0,100]])
-    b = np.array([25, 3])
 
     def __init__(self):
         self.pars = np.random.standard_normal(2)  + 5
 
     def f(self, x):
-        return 0.5 * np.dot(x, np.dot(self.A, x)) - np.dot(self.b, x)
+        return 0.5 * np.dot(x, np.dot(self.A, x))
 
     def fprime(self, x):
-        return np.dot(self.A, x) - self.b
+        return np.dot(self.A, x)
+
+    def solved(self, tolerance=0.01):
+        return self.f(self.pars) < tolerance
 
 
 class Rosenbrock(object):
@@ -82,6 +87,9 @@ class Rosenbrock(object):
 
     def fprime(self, x):
         return rosen_der(x)
+
+    def solved(self, tolerance=0.1):
+        return abs(self.pars - [1, 1]).mean() < tolerance
 
 
 

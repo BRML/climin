@@ -59,7 +59,7 @@ def calc_proposal(trials, losses, model_factory, acq_func, n_inner_iters=100):
     # Optimize the model of the cost to obtain new query point.
     new_trial = best_trial.copy()
     inner_opt = Xnes(new_trial, f)
-    inner_opt.some(max_iter=n_inner_iters)
+    for _ in zip(range(n_inner_iters), inner_opt): pass
 
     return new_trial
 

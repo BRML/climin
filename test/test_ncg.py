@@ -1,34 +1,35 @@
-import scipy
-from scipy.optimize import rosen, rosen_der
+import itertools
+
 import numpy as np
 
 from climin import NonlinearConjugateGradient
 
-
-A = np.array([[1, 0],[0,100]])
-b = np.array([25, 3])
-quadratic = lambda x: 0.5 * scipy.dot(x, scipy.dot(A,x)) - scipy.dot(b,x)
-quadraticprime = lambda x: scipy.dot(A,x) - b
-quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
+from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-def test_ncg():
-    dim = 2
-    wrt = scipy.random.standard_normal((dim,)) * 10 + 5
-
-    opt = NonlinearConjugateGradient(wrt, quadratic, quadraticprime)
+def test_ncg_quadratic():
+    obj = Quadratic()
+    opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime)
     for i, info in enumerate(opt):      
-        if i > 20:
+        if i > 50:
             break
-    assert (abs(quadraticprime(wrt)) < 0.01).all(), 'did not find solution'
+    assert obj.solved(), 'did not find solution'
 
 
 def test_ncg_rosen():
-    dim = 2
-    wrt = scipy.zeros((dim,))
-
-    opt = NonlinearConjugateGradient(wrt, rosen, rosen_der)
-    for i, info in enumerate(opt):  
-        if i > 14:            
+    obj = Rosenbrock()
+    opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime)
+    for i, info in enumerate(opt):      
+        if i > 14:
             break
-    assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
+    assert obj.solved(), 'did not find solution'
+
+
+def test_ncg_lr():
+    obj = LogisticRegression()
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime, args=args)
+    for i, info in enumerate(opt):      
+        if i > 20:
+            break
+    assert obj.solved(), 'did not find solution'
