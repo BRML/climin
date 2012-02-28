@@ -57,13 +57,9 @@ class ConjugateGradient(Minimizer):
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
 
-            loss = self.f(self.wrt, *args, **kwargs)
-            info = {
-                'loss': loss,
+            yield {
                 'step_length': step_length,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
             }
-            self.logfunc(info)
-            yield info

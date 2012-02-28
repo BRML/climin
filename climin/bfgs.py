@@ -70,15 +70,10 @@ class Bfgs(Minimizer):
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
-            # TODO: should not be explicitly calculated.
-            loss = self.f(self.wrt, *args, **kwargs)
-            info = {
-                'loss': loss,
+            yield {
                 'steplength': steplength,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
             }
-            self.logfunc(info)
-            yield info
 

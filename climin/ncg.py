@@ -75,13 +75,10 @@ class NonlinearConjugateGradient(Minimizer):
             grad_m1[:], grad[:] = grad, self.fprime(self.wrt, *args, **kwargs)
             f_old, f_val = f_val, self.f(self.wrt, *args, **kwargs)
 
-            loss = self.f(self.wrt, *args, **kwargs)
-            info = {
-                'loss': loss,
+            yield {
+                'loss': f_val,
                 'steplength': alpha,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
             }
-            self.logfunc(info)
-            yield info

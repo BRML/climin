@@ -80,13 +80,14 @@ class SBfgs(Minimizer):
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
-            loss = self.f(self.wrt, *args, **kwargs)
             info = {
-                'loss': loss,
                 'steplength': steplength,
+                'direction': direction,
+                'step': step,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
+                'gradient': grad,
+                'gradient_m1': grad_m1,
             }
-            self.logfunc(info)
             yield info

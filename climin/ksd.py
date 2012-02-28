@@ -107,10 +107,10 @@ class KrylovSubspaceDescent(Minimizer):
 
             initial_inv_hessian = scipy.linalg.inv(self.hessian)
             subopt = Bfgs(self.coefficients,
-                           self._f_krylov, self._f_krylov_prime,
-                           initial_inv_hessian=initial_inv_hessian,
-                           args=itertools.repeat((subargs, subkwargs)),
-                           logfunc=self.logfunc)
+                          self._f_krylov, self._f_krylov_prime,
+                          initial_inv_hessian=initial_inv_hessian,
+                          args=itertools.repeat((subargs, subkwargs)),
+                          logfunc=self.logfunc)
 
             info = subopt.some(5, 2 * self.n_bases, 1e-4)
             if info is None:
@@ -122,5 +122,4 @@ class KrylovSubspaceDescent(Minimizer):
             self.wrt += step
             info.update(dict(step=step, grad=grad, basis=self.basis,
                              coefficients=self.coefficients))
-            self.logfunc(info)
             yield info

@@ -8,12 +8,11 @@ from base import Minimizer, repeat_or_iter
 
 class GradientDescent(Minimizer):
 
-    def __init__(self, wrt, f, fprime, steprate, momentum=0.0, 
+    def __init__(self, wrt, fprime, steprate, momentum=0.0, 
                  args=None, logfunc=None):
         super(GradientDescent, self).__init__(
             wrt, args=args, logfunc=logfunc)
 
-        self.f = f
         self.fprime = fprime
         self.steprates = repeat_or_iter(steprate)
         self.momentums = repeat_or_iter(momentum)
@@ -27,12 +26,8 @@ class GradientDescent(Minimizer):
             step = gradient * steprate + momentum * step_m1
             self.wrt -= step
 
-            loss = self.f(self.wrt, *args, **kwargs)
-            info = dict(
-                loss=loss, gradient=gradient, steprate=steprate, 
-                args=args, kwargs=kwargs,
-                momentum=momentum, step=step, wrt=self.wrt)
-            self.logfunc(info)
-            yield info
+            yield dict(gradient=gradient, steprate=steprate, 
+                       args=args, kwargs=kwargs,
+                       momentum=momentum, step=step )
 
             step_m1 = step

@@ -133,13 +133,11 @@ class Lbfgs(Minimizer):
             grad_m1[:], grad[:] = grad, self.line_search.grad
             grad_diff = grad - grad_m1
 
-            loss = self.f(self.wrt, *args, **kwargs)
-            info = {
-                'loss': loss,
+            yield {
                 'steplength': steplength,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
+                'gradient': grad,
+                'gradient_m1': grad_m1,
             }
-            self.logfunc(info)
-            yield info

@@ -45,8 +45,6 @@ class Rprop(Minimizer):
 
             grad_m1 = grad
 
-            loss = self.f(self.wrt, *args, **kwargs)
-            info = dict(loss=loss, args=args, kwargs=kwargs, grad=grad,
-                        step=step)
-            self.logfunc(info)
-            yield info
+            yield dict(args=args, kwargs=kwargs, gradient=grad, 
+                       gradient_m1=grad_m1,
+                       step=step)
