@@ -21,7 +21,7 @@ if __name__ == '__main__':
         if modulostop(info):
             print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
      
-        # stop after 1000 iterations
+        # stop after total of 1000 iterations
         if fullstop(info):
             print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
             break

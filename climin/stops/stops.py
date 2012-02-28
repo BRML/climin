@@ -38,7 +38,7 @@ def stop_time_elapsed(sec):
 
 
 def stop_and(criterions):
-    """ returns a stop criterion that takes a list of other stop criterions and
+    """ returns a stop criterion that takes a list of stop criterions and
         only returns True, if all of them return True. This basically
         implements a logical AND for stop criterions. 
     """
