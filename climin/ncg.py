@@ -30,54 +30,53 @@ class NonlinearConjugateGradient(Minimizer):
         args, kwargs = self.args.next()
         grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = scipy.zeros(grad.shape)
-        f_val = self.f(self.wrt, *args, **kwargs)
-        f_old = 0
-        
-        for i, (next_args, next_kwargs) in enumerate(self.args):
-            # If the gradient is exactly zero, we stop. Otherwise, the
-            # updates will lead to NaN errors because the direction will
-            # be zero.
-            
-            if (grad == 0.0).all():
-                self.logfunc({'message': 'converged - residual is null'})
-                break
+        loss = self.f(self.wrt, *args, **kwargs)
+        loss_m1 = 0
 
+        grad_norm_m1 = float('inf')
+
+        for i, (next_args, next_kwargs) in enumerate(self.args):
             if i == 0:                  
                 direction = -grad
             else:                
                 # Computation of beta as a compromise between Fletcher-Reeves 
                 # and Polak-Ribiere.
-                old_grad_norm = scipy.dot(grad_m1, grad_m1)
                 
-                betaFR = scipy.dot(grad, grad) / old_grad_norm
-                betaPR = scipy.dot(grad, grad - grad_m1) / old_grad_norm
-                betaHS = scipy.dot(grad, grad - grad_m1) / scipy.dot(direction, grad - grad_m1)
+                grad_diff = grad - grad_m1
+                betaFR = scipy.dot(grad, grad) / grad_norm_m1
+                betaPR = scipy.dot(grad, grad_diff) / grad_norm_m1 
+                betaHS = scipy.dot(grad, grad_diff) / scipy.dot(direction, grad_diff)
                 beta = max(-betaFR, min(betaPR, betaFR))
                 
                 # Restart if not a direction of sufficient descent, ie if two
                 # consecutive gradients are far from orthogonal.
-                if scipy.dot(grad, grad_m1)/old_grad_norm  >  0.1 :
+                if scipy.dot(grad, grad_m1) / grad_norm_m1 > 0.1 :
                     beta = 0
                          
                 direction = - grad + beta * direction
                 
             #line search minimization          
-            initialization = min(1, 2 * (f_val - f_old) / scipy.dot(grad, direction))
-            alpha = self.line_search.search(
+            initialization = min(1, 2 * (loss - loss_m1) / scipy.dot(grad, direction))
+            step_length = self.line_search.search(
                 direction, initialization,  args, kwargs)
-            self.wrt += alpha * direction
-            if (abs(grad)<self.epsilon).all():
-                self.logfunc({'message': 'converged - residual is null'})
+            self.wrt += step_length * direction
+
+            # If we don't bail out here, we will enter regions of numerical
+            # instability.
+            if (abs(grad) < self.epsilon).all():
+                self.logfunc(
+                    {'message': 'converged - gradient smaller than epsilon'})
                 break
 
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
             grad_m1[:], grad[:] = grad, self.fprime(self.wrt, *args, **kwargs)
-            f_old, f_val = f_val, self.f(self.wrt, *args, **kwargs)
+            loss_m1, loss = loss, self.f(self.wrt, *args, **kwargs)
+            grad_norm_m1 = scipy.dot(grad_m1, grad_m1)
 
             yield {
-                'loss': f_val,
-                'steplength': alpha,
+                'loss': loss,
+                'step_length': step_length,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
