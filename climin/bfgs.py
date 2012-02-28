@@ -38,13 +38,6 @@ class Bfgs(Minimizer):
             self.inv_hessian = scipy.eye(grad.shape[0])
 
         for i, (next_args, next_kwargs) in enumerate(self.args):
-            # If the gradient is exactly zero, we stop. Otherwise, the
-            # updates will lead to NaN errors because the direction will
-            # be zero.
-            if (grad == 0.0).all():
-                self.logfunc({'message': 'gradient is 0'})
-                break
-
             if i == 0:
                 direction = -grad
             else:
@@ -58,12 +51,17 @@ class Bfgs(Minimizer):
                 H += (ys + yHy)*np.outer(step, step)/ys**2 - (np.outer(Hy, step) + np.outer(step, Hy))/ys
                 direction = -np.dot(H, grad)
 
-            steplength = self.line_search.search(direction, None, args, kwargs)
-            if steplength == 0:
-                self.logfunc({'message': 'converged - steplength is 0'})
+            if (direction == 0.0).all():
+                self.logfunc({'message': 'direction is 0 -- need to bail out.'})
                 break
-            step = steplength * direction
-            self.wrt += step
+
+            steplength = self.line_search.search(direction, None, args, kwargs)
+
+            if steplength != 0:
+                step = steplength * direction
+                self.wrt += step
+            else:
+                self.logfunc({'message': 'step length is 0.'})
 
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
