@@ -8,6 +8,11 @@ def stop_after_1000_iterations(info):
     return info['n_iter'] > 1000
 
 
+# Stop criterions can be simple functions like the above one, but
+# most of the following functions are actually stop criterion
+# factories, that return a stop criterion upon initialization.
+
+
 def stop_after_n_iterations(n):
     """ returns a stop criterion that stops after n iterations. """
     def inner(info):
