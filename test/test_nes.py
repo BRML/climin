@@ -1,23 +1,38 @@
-import scipy
-from scipy.optimize import rosen, rosen_der
+import nose
+import itertools
 
-from climin.nes import Xnes
+import numpy as np
+
+from climin import Xnes
+
+from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-quadratic = lambda x: (x**2).sum()
-quadraticprime = lambda x: 2 * x
-quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
+@nose.tools.nottest
+def test_xnes_quadratic():
+    obj = Quadratic()
+    opt = Xnes(obj.pars, obj.f)
+    for i, info in enumerate(opt):      
+        if i > 5000:
+            break
+    assert obj.solved(), 'did not find solution'
 
 
 def test_xnes_rosen():
-    dim = 2
-    wrt = scipy.ones((dim,)) * 0.6
-    rosenandprime = lambda x: (rosen(x), rosen_der(x))
-
-    scipy.random.seed(1234)
-
-    opt = Xnes(wrt, rosen)
-    for i, info in enumerate(opt):
-        if i > 3000:
+    obj = Rosenbrock()
+    opt = Xnes(obj.pars, obj.f)
+    for i, info in enumerate(opt):      
+        if i > 10000:
             break
-    assert (abs(wrt - [1, 1]) < 0.2).all(), 'did not find solution: %s' % wrt
+    assert obj.solved(0.3), 'did not find solution'
+
+
+@nose.tools.nottest
+def test_xnes_lr():
+    obj = LogisticRegression(seed=10101)
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    opt = Xnes(obj.pars, obj.f, args=args)
+    for i, info in enumerate(opt):      
+        if i > 100:
+            break
+    assert obj.solved(), 'did not find solution'

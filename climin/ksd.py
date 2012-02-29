@@ -7,7 +7,6 @@ import scipy
 from base import Minimizer, repeat_or_iter
 from lbfgs import Lbfgs
 from bfgs import Bfgs
-from sbfgs import SBfgs
 
 
 class KrylovSubspaceDescent(Minimizer):
@@ -96,8 +95,7 @@ class KrylovSubspaceDescent(Minimizer):
 
     def __iter__(self):
         step = scipy.ones(self.wrt.shape)
-        i = 0
-        while True:
+        for i in itertools.count():
             _args, _kwargs = self.args.next()
             self.coefficients *= 0
             grad = self.fprime(self.wrt, *_args, **_kwargs)
@@ -113,7 +111,9 @@ class KrylovSubspaceDescent(Minimizer):
                           args=itertools.repeat((subargs, subkwargs)),
                           logfunc=self.logfunc)
 
-            info = subopt.some(5, 2 * self.n_bases, 1e-4)
+            info = subopt.minimize_until([
+                lambda info: info['n_iter'] > 2 * self.n_bases])
+
             if info is None:
                 self.logfunc({'message': 'inner loop took no steps'})
                 continue
@@ -124,4 +124,3 @@ class KrylovSubspaceDescent(Minimizer):
             info.update(dict(step=step, grad=grad, basis=self.basis, n_iter=i,
                              coefficients=self.coefficients))
             yield info
-            i += 1

@@ -1,32 +1,38 @@
-import scipy
-from scipy.optimize import rosen, rosen_der
+import itertools
+
+import numpy as np
 
 from climin import Rprop
 
-
-quadratic = lambda x: (x**2).sum()
-quadraticprime = lambda x: 2 * x
+from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
 def test_rprop_quadratic():
-    dim = 10
-    wrt = scipy.random.standard_normal((dim,)) * 10 + 5
-
-    opt = Rprop(wrt, quadratic, quadraticprime, step_shrink=0.1, step_grow=1.2, 
-                min_step=1E-6, max_step=0.1)
-    for i, info in enumerate(opt):
-        if i > 1000:
+    obj = Quadratic()
+    opt = Rprop(obj.pars, obj.f, obj.fprime, step_shrink=0.1, step_grow=1.2,
+                min_step=1e-6, max_step=0.1)
+    for i, info in enumerate(opt):      
+        if i > 500:
             break
-    assert (abs(wrt) < 0.01).all(), 'did not find solution'
+    assert obj.solved(), 'did not find solution'
 
 
 def test_rprop_rosen():
-    dim = 2
-    wrt = scipy.zeros((dim,))
-
-    opt = Rprop(wrt, rosen, rosen_der, step_shrink=0.5, step_grow=1.1,
-            min_step=1E-10, max_step=0.1)
-    for i, info in enumerate(opt):
-        if i > 10000:
+    obj = Rosenbrock()
+    opt = Rprop(obj.pars, obj.f, obj.fprime, step_shrink=0.1, step_grow=1.2,
+                min_step=1e-6, max_step=0.1)
+    for i, info in enumerate(opt):      
+        if i > 5000:
             break
-    assert (abs(wrt - [1, 1]) < 0.01).all(), 'did not find solution'
+    assert obj.solved(), 'did not find solution'
+
+
+def test_rprop_lr():
+    obj = LogisticRegression()
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    opt = Rprop(obj.pars, obj.f, obj.fprime, step_shrink=0.1, step_grow=1.2,
+                min_step=1e-6, max_step=0.1, args=args)
+    for i, info in enumerate(opt):      
+        if i > 500:
+            break
+    assert obj.solved(), 'did not find solution'

@@ -1,35 +1,36 @@
-import scipy
-from scipy.optimize import rosen, rosen_der
+import nose
+import itertools
 
-from climin.lbfgs import Lbfgs 
+import numpy as np
 
+from climin import Lbfgs 
 
-quadratic = lambda x: (x**2).sum()
-quadraticprime = lambda x: 2 * x
-quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
-
-
-def test_lbfgs_rosen():
-    dim = 2
-    wrt = scipy.zeros((dim,))
-
-    opt = Lbfgs(wrt, rosen, rosen_der)
-    for i, info in enumerate(opt):
-        if (abs(wrt - [1, 1]) < 0.01).all():
-            success = True
-            break
-        if i >= 500:
-            success = False
-            break
-    assert success, 'did not find solution'
+from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
 def test_lbfgs_quadratic():
-    dim = 2
-    wrt = scipy.random.standard_normal((dim,)) * 10 + 5
+    obj = Quadratic()
+    opt = Lbfgs(obj.pars, obj.f, obj.fprime)
+    for i, info in enumerate(opt):      
+        if i > 50:
+            break
+    assert obj.solved(), 'did not find solution'
 
-    opt = Lbfgs(wrt, quadratic, quadraticprime)
-    for i, info in enumerate(opt):
+
+def test_lbfgs_rosen():
+    obj = Rosenbrock()
+    opt = Lbfgs(obj.pars, obj.f, obj.fprime)
+    for i, info in enumerate(opt):      
+        if i > 50:
+            break
+    assert obj.solved(), 'did not find solution'
+
+
+def test_lbfgs_lr():
+    obj = LogisticRegression(seed=10101)
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    opt = Lbfgs(obj.pars, obj.f, obj.fprime, args=args)
+    for i, info in enumerate(opt):      
         if i > 100:
             break
-    assert (abs(wrt) < 0.01).all(), 'did not find solution'
+    assert obj.solved(), 'did not find solution'
