@@ -7,7 +7,7 @@ import numpy as np
 import scipy.linalg
 import scipy.optimize
 
-from base import Minimizer
+from base import Minimizer, is_nonzerofinite
 from linesearch import WolfeLineSearch
 
 
@@ -18,47 +18,50 @@ class Bfgs(Minimizer):
         super(Bfgs, self).__init__(wrt, args=args, logfunc=logfunc)
         self.f = f
         self.fprime = fprime
-        if initial_inv_hessian is not None:
-            self.inv_hessian = initial_inv_hessian
-        else:
-            self.inv_hessian = np.eye(wrt.size)
+        self.inv_hessian = initial_inv_hessian
 
         if line_search is not None:
             self.line_search = line_search
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
+    def find_direction(self, grad_m1, grad, step, inv_hessian):
+        H = self.inv_hessian
+        grad_diff = grad - grad_m1
+        ys = np.inner(grad_diff, step)
+        ss = np.inner(step, step)
+        yy = np.inner(grad_diff, grad_diff)
+        Hy = np.dot(H, grad_diff)
+        yHy = np.inner(grad_diff, Hy)
+        H += (ys + yHy) * np.outer(step, step) / ys**2 
+        H -= (np.outer(Hy, step) + np.outer(step, Hy)) / ys
+        direction = -np.dot(H, grad)
+        return direction, {'gradient_diff': grad_diff}
+
     def __iter__(self):
         args, kwargs = self.args.next()
         grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = scipy.zeros(grad.shape)
 
-        # TODO: Following lines should be cleaned up.
         if self.inv_hessian is None:
             self.inv_hessian = scipy.eye(grad.shape[0])
 
         for i, (next_args, next_kwargs) in enumerate(self.args):
             if i == 0:
-                direction = -grad
+                direction, info = -grad, {}
             else:
-                H = self.inv_hessian
-                grad_diff = grad - grad_m1
-                ys = np.inner(grad_diff, step)
-                ss = np.inner(step, step)
-                yy = np.inner(grad_diff, grad_diff)
-                Hy = np.dot(H, grad_diff)
-                yHy = np.inner(grad_diff, Hy)
-                H += (ys + yHy)*np.outer(step, step)/ys**2 - (np.outer(Hy, step) + np.outer(step, Hy))/ys
-                direction = -np.dot(H, grad)
+                direction, info = self.find_direction(
+                    grad_m1, grad, step, self.inv_hessian)
 
-            if (direction == 0.0).all():
-                self.logfunc({'message': 'direction is 0 -- need to bail out.'})
+            if not is_nonzerofinite(direction):
+                self.logfunc(
+                    {'message': 'direction is invalid -- need to bail out.'})
                 break
 
-            steplength = self.line_search.search(direction, None, args, kwargs)
+            step_length = self.line_search.search(direction, None, args, kwargs)
 
-            if steplength != 0:
-                step = steplength * direction
+            if step_length != 0:
+                step = step_length * direction
                 self.wrt += step
             else:
                 self.logfunc({'message': 'step length is 0.'})
@@ -68,10 +71,11 @@ class Bfgs(Minimizer):
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
-            yield {
-                'steplength': steplength,
+            info.update({
+                'step_length': step_length,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
-            }
+            })
+            yield info
 
