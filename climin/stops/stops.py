@@ -5,7 +5,7 @@ def after_1000_iterations(info):
         after 1000 iterations. stop criterions need to be callables 
         that take the info dictionary and return either True or False.
     """
-    return info['n_iter'] > 1000
+    return info['n_iter'] >= 1000-1
 
 # Stop criterions can be simple functions like the above one, but
 # most of the following functions are actually stop criterion

@@ -25,5 +25,4 @@ if __name__ == '__main__':
         if fullstop(info):
             print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
             break
-            
-    assert (abs(wrt) < 0.01).all(), 'did not find solution'
+    

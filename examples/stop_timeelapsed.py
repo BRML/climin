@@ -22,5 +22,4 @@ if __name__ == '__main__':
         if stop(info):
             print "stopped after 5 seconds."
             break
-            
-    assert (abs(wrt) < 0.01).all(), 'did not find solution'
+    

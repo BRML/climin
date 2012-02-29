@@ -14,7 +14,6 @@ if __name__ == '__main__':
     opt = GradientDescent(wrt, quadraticprime, steprate=0.01)
        
     for info in opt:
-        # show every 50th result
         print "iteration %3i loss=%g" % (info['n_iter'], quadratic(wrt))
         if loss_converged(info):
             print "loss converged."
@@ -22,4 +21,5 @@ if __name__ == '__main__':
     
     # the same can be achieved with minimize_until, if the user doesn't
     # need control in between steps:
-    opt.minimize_until( [loss_converged] )
+    
+    # opt.minimize_until( loss_converged )
