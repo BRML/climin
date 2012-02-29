@@ -11,8 +11,8 @@ if __name__ == '__main__':
     dim = 10
     wrt = scipy.random.standard_normal((dim,)) * 10 + 5
     
-    modulostop = stop_modulo_n_iterations(50)
-    fullstop = stop_after_n_iterations(1000)
+    modulostop = modulo_n_iterations(50)
+    fullstop = after_n_iterations(1000)
     
     opt = GradientDescent(wrt, quadraticprime, steprate=0.01)
     
