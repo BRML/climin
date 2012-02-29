@@ -36,8 +36,7 @@ class Minimizer(object):
         for info in self:
             for criterion in criterions:
                 if criterion(info):
-                    break
-        return info
+                    return info
 
 
 def is_nonzerofinite(arr):
