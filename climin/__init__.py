@@ -1,4 +1,3 @@
-from bayesian import Bayesian
 from bfgs import Bfgs
 from cg import ConjugateGradient
 from gd import GradientDescent
