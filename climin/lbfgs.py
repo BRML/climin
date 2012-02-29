@@ -11,11 +11,6 @@ from linesearch import WolfeLineSearch
 from logging import taggify
 
 
-# Things left to do:
-#
-# - damped update
-
-
 class Lbfgs(Minimizer):
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
