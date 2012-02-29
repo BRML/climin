@@ -66,7 +66,7 @@ class Quadratic(object):
     b = np.zeros(2)
 
     def __init__(self):
-        self.pars = np.random.standard_normal(2)  + 5
+        self.pars = np.random.standard_normal(2) + 5
 
     def f(self, x):
         return 0.5 * np.dot(x, np.dot(self.H, x)) - np.inner(x, self.b)
