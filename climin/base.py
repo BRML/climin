@@ -2,6 +2,8 @@
 
 import itertools
 
+import numpy as np
+
 
 def repeat_or_iter(obj):
     try:
@@ -33,8 +35,12 @@ class Minimizer(object):
         loss_m1 = float('inf')
         info = None
         for i, info in enumerate(self):
-            loss = info['loss']
-            improvement = loss_m1 - loss
+            # This is an ugly hack, but it will go anyway.
+            if min_improv is not None:
+                loss = info['loss']
+                improvement = loss_m1 - loss
+            else:
+                improvement = 1
             if improvement < min_improv and i > min_iter:
                 break
             if i == max_iter:
@@ -42,3 +48,8 @@ class Minimizer(object):
             loss_m1 = loss
 
         return info
+
+
+def is_nonzerofinite(arr):
+    """Return True if the array is neither zero, NaN or infinite."""
+    return (arr != 0).any() and np.isfinite(arr).all()
