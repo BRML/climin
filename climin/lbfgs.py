@@ -6,7 +6,7 @@ import scipy
 import scipy.linalg
 import scipy.optimize
 
-from base import Minimizer
+from base import Minimizer, is_nonzerofinite
 from linesearch import WolfeLineSearch
 from logging import taggify
 
@@ -32,8 +32,7 @@ class Lbfgs(Minimizer):
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
-    def inv_hessian_dot_gradient(self, grad_diffs, steps, grad, hessian_diag, 
-                                 idxs):
+    def find_direction(self, grad_diffs, steps, grad, hessian_diag, idxs):
         grad = grad.copy()  # We will change this.
         n_current_factors = len(idxs)
 
@@ -59,7 +58,7 @@ class Lbfgs(Minimizer):
             beta[i] = rho[i] * scipy.inner(grad_diffs[i], z)
             z += steps[i] * (alpha[i] - beta[i])
 
-        return z
+        return z, {}
 
     def __iter__(self):
         args, kwargs = self.args.next()
@@ -69,7 +68,7 @@ class Lbfgs(Minimizer):
         grad_diffs = scipy.zeros(factor_shape)
         steps = scipy.zeros(factor_shape)
         hessian_diag = self.initial_hessian_diag
-        steplength = None
+        step_length = None
 
         # We need to keep track in which order the different statistics
         # from different runs are saved. 
@@ -90,6 +89,7 @@ class Lbfgs(Minimizer):
         for i, (next_args, next_kwargs) in enumerate(self.args):
             if i == 0:
                 direction = -grad
+                info = {}
             else:
                 sTgd = scipy.inner(step, grad_diff)
                 if sTgd > 1E-10:
@@ -110,17 +110,17 @@ class Lbfgs(Minimizer):
                     steps[this_idx] = step
                     hessian_diag = sTgd / scipy.inner(grad_diff, grad_diff)
 
-                direction = self.inv_hessian_dot_gradient(
-                    grad_diffs, steps, -grad, hessian_diag, idxs)
+                direction, info = self.find_direction(
+                    grad_diffs, steps, -grad, hessian_diag, idxs) 
 
-            if (direction == 0.0).all():
-                self.logfunc({'message': 'direction is 0 -- need to bail out.'})
+            if not is_nonzerofinite(direction):
+                self.logfunc({'message': 'direction is invalid -- need to bail out.'})
                 break
 
-            steplength = self.line_search.search(direction, None, args, kwargs)
+            step_length = self.line_search.search(direction, None, args, kwargs)
 
-            step = steplength * direction
-            if steplength != 0:
+            step = step_length * direction
+            if step_length != 0:
                 self.wrt += step
             else:
                 self.logfunc({'message': 'step length is 0.'})
@@ -131,11 +131,12 @@ class Lbfgs(Minimizer):
             grad_m1[:], grad[:] = grad, self.line_search.grad
             grad_diff = grad - grad_m1
 
-            yield {
-                'steplength': steplength,
+            info.update({
+                'step_length': step_length,
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
                 'gradient': grad,
                 'gradient_m1': grad_m1,
-            }
+            })
+            yield info
