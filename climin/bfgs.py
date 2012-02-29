@@ -78,4 +78,3 @@ class Bfgs(Minimizer):
                 'kwargs': kwargs,
             })
             yield info
-
