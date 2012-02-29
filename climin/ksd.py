@@ -95,8 +95,7 @@ class KrylovSubspaceDescent(Minimizer):
 
     def __iter__(self):
         step = scipy.ones(self.wrt.shape)
-        i = 0
-        while True:
+        for i in itertools.count():
             _args, _kwargs = self.args.next()
             self.coefficients *= 0
             grad = self.fprime(self.wrt, *_args, **_kwargs)
@@ -125,4 +124,3 @@ class KrylovSubspaceDescent(Minimizer):
             info.update(dict(step=step, grad=grad, basis=self.basis, n_iter=i,
                              coefficients=self.coefficients))
             yield info
-            i += 1
