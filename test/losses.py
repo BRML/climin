@@ -62,19 +62,23 @@ class LogisticRegression(object):
 
 class Quadratic(object):
 
-    A = np.array([[1, 0],[0,100]])
+    H = np.array([[1, 0],[0, 100]])
+    b = np.zeros(2)
 
     def __init__(self):
         self.pars = np.random.standard_normal(2)  + 5
 
     def f(self, x):
-        return 0.5 * np.dot(x, np.dot(self.A, x))
+        return 0.5 * np.dot(x, np.dot(self.H, x)) - np.inner(x, self.b)
 
     def fprime(self, x):
-        return np.dot(self.A, x)
+        return np.dot(self.H, x) - self.b
+
+    def f_Hp(self, x):
+        return np.dot(self.H, x)
 
     def solved(self, tolerance=0.01):
-        return self.f(self.pars) < tolerance
+        return (abs(self.fprime(self.pars)) < tolerance).all()
 
 
 class Rosenbrock(object):

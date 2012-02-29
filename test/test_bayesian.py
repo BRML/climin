@@ -10,7 +10,7 @@ from losses import Quadratic
 
 def test_bayesian_quadratic():
     obj = Quadratic()
-    obj.A = np.eye(2)
+    obj.H = np.eye(2)
     obj.b = np.zeros(2)
 
     x0s = np.asarray([
