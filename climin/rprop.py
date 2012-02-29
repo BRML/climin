@@ -46,5 +46,5 @@ class Rprop(Minimizer):
             grad_m1 = grad
 
             yield dict(args=args, kwargs=kwargs, gradient=grad, 
-                       gradient_m1=grad_m1,
+                       gradient_m1=grad_m1, n_iter=i,
                        step=step)

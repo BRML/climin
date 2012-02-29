@@ -81,7 +81,7 @@ class Xnes(Minimizer):
             update = scipy.linalg.expm2(A * cov_gradient * self.step_rate * 0.5)
             A[:] = scipy.dot(A, update)
 
-            yield dict(loss=-best_x)
+            yield dict(loss=-best_x, n_iter=i)
 
     def compute_utilities(self, fitnesses):
         n_fitnesses = fitnesses.shape[0]

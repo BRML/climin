@@ -119,4 +119,4 @@ class Bayesian(Minimizer):
                 self.wrt[:] = new_trial
                 best_loss = new_loss
 
-            yield dict(loss=best_loss)
+            yield dict(loss=best_loss, n_iter=i)
