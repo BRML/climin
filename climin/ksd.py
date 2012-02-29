@@ -7,7 +7,6 @@ import scipy
 from base import Minimizer, repeat_or_iter
 from lbfgs import Lbfgs
 from bfgs import Bfgs
-from sbfgs import SBfgs
 
 
 class KrylovSubspaceDescent(Minimizer):

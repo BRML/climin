@@ -7,4 +7,4 @@ from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from nes import Xnes
 from rprop import Rprop
-from sbfgs import SBfgs
+from sbfgs import Sbfgs

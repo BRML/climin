@@ -3,24 +3,24 @@ import itertools
 
 import numpy as np
 
-from climin import SBfgs 
+from climin import Sbfgs 
 
 from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
 @nose.tools.nottest
-def test_bfgs_quadratic():
+def test_sbfgs_quadratic():
     obj = Quadratic()
-    opt = SBfgs(obj.pars, obj.f, obj.fprime)
+    opt = Sbfgs(obj.pars, obj.f, obj.fprime)
     for i, info in enumerate(opt):      
         if i > 50:
             break
     assert obj.solved(), 'did not find solution'
 
 
-def test_bfgs_rosen():
+def test_sbfgs_rosen():
     obj = Rosenbrock()
-    opt = SBfgs(obj.pars, obj.f, obj.fprime)
+    opt = Sbfgs(obj.pars, obj.f, obj.fprime)
     for i, info in enumerate(opt):      
         if i > 20:
             break
@@ -28,10 +28,10 @@ def test_bfgs_rosen():
 
 
 @nose.tools.nottest
-def test_bfgs_lr():
+def test_sbfgs_lr():
     obj = LogisticRegression()
     args = itertools.repeat(((obj.X, obj.Z), {}))
-    opt = SBfgs(obj.pars, obj.f, obj.fprime, args=args)
+    opt = Sbfgs(obj.pars, obj.f, obj.fprime, args=args)
     for i, info in enumerate(opt):      
         if i > 50:
             break
