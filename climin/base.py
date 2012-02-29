@@ -25,15 +25,17 @@ class Minimizer(object):
         else:
             self.args = args
 
-    def minimize_until(self, *conditions):
-        """Minimize until one of the supplied `conditions` is met.
+    def minimize_until(self, criterions):
+        """Minimize until one of the supplied `criterions` is met.
 
-        Each condition is a callable that, given the info object yielded by
+        Each criterion is a callable that, given the info object yielded by
         an optimizer, returns a boolean indicating whether to stop. False means
         to continue, True means to stop."""
+        if not criterions:
+            raise ValueError('need to supply at least one criterion')
         for info in self:
-            for cond in conditions:
-                if cond(info):
+            for criterion in criterions:
+                if criterion(info):
                     break
         return info
 

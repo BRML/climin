@@ -111,8 +111,8 @@ class KrylovSubspaceDescent(Minimizer):
                           args=itertools.repeat((subargs, subkwargs)),
                           logfunc=self.logfunc)
 
-            info = subopt.minimize_until(
-                lambda info: info['n_iter'] > 2 * self.n_bases)
+            info = subopt.minimize_until([
+                lambda info: info['n_iter'] > 2 * self.n_bases])
 
             if info is None:
                 self.logfunc({'message': 'inner loop took no steps'})
