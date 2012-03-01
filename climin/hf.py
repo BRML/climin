@@ -34,6 +34,9 @@ class HessianFree(Minimizer):
         direction = direction_m1.copy()             
         q_losses = []
 
+        #preconditioning matrix
+        precond = (grad**2 + damping )**(0.75)
+
         # Define short hand for the loss of the quadratic approximation.
         def f_q_loss(direction):
             qloss = .5 * np.inner(direction, f_Hp(direction))
@@ -47,12 +50,15 @@ class HessianFree(Minimizer):
             return self.f_Hp(self.wrt, x, *args, **kwargs) + damping * x 
 
         opt = ConjugateGradient(direction, f_Hp=f_Hp, b=-grad,
-                                logfunc=self.logfunc)
+                                logfunc=self.logfunc, precond = precond)
 
         # Calculate once first, because we might exit the loop before
         # calculating it.
         q_loss = f_q_loss(direction)
         q_losses = [q_loss]
+        old_p = [direction]
+        gamma = 1.3
+        next_saving = 2
 
         for i, info in enumerate(opt):
             self.logfunc(info)
@@ -70,6 +76,22 @@ class HessianFree(Minimizer):
 
             q_loss = f_q_loss(direction)
             q_losses.append(q_loss)
+
+            #saving current direction for backtracking
+            if i == next_saving:
+                next_saving = np.ceil(gamma*next_saving)
+                old_p.append(direction)
+                
+            
+
+        #backtracking
+        old_p.append(direction)
+        j = -1
+        while (self.f(self.wrt + old_p[j], *args, **kwargs)  > self.f(self.wrt + old_p[j-1], *args, **kwargs)):
+            j -= 1
+
+        direction = old_p[j]
+        q_loss = f_q_loss(direction)
 
         return direction, {'q-loss': q_loss}
 
@@ -102,8 +124,10 @@ class HessianFree(Minimizer):
             # TODO: actually, we should backtrack here, which means 
             # that we go back along the solutions that CG finds. But 
             # maybe a line search is fine.
+
             step_length = self.line_search.search(
                 direction, None, args, kwargs)
+
 
             if step_length != 0:
                 step = step_length * direction
