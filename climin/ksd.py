@@ -18,7 +18,7 @@ class KrylovSubspaceDescent(Minimizer):
 
     def __init__(
         self, wrt, f, fprime, f_Hp, n_bases,
-        args, hessian_args, krylov_args,
+        args=None, hessian_args=None, krylov_args=None,
         floor_fisher=False, precond_hessian=False, floor_hessian=False,
         logfunc=None):
 
@@ -32,8 +32,8 @@ class KrylovSubspaceDescent(Minimizer):
         self.basis = scipy.zeros((n_bases, self.wrt.shape[0]))
         self.coefficients = scipy.zeros(n_bases)
 
-        self.hessian_args = hessian_args
-        self.krylov_args = krylov_args
+        self.hessian_args = self.args if hessian_args is None else hessian_args
+        self.krylov_args = self.args if krylov_args is None else krylov_args
         self.floor_fisher = floor_fisher
         self.precond_hessian = precond_hessian
         self.floor_hessian = floor_hessian
@@ -116,11 +116,11 @@ class KrylovSubspaceDescent(Minimizer):
 
             if info is None:
                 self.logfunc({'message': 'inner loop took no steps'})
-                continue
-
-            # Take search step.
-            step[:] = scipy.dot(self.coefficients, self.basis)
-            self.wrt += step
+                info = {}
+            else:
+                # Take search step.
+                step[:] = scipy.dot(self.coefficients, self.basis)
+                self.wrt += step
             info.update(dict(step=step, grad=grad, basis=self.basis, n_iter=i,
                              coefficients=self.coefficients))
             yield info
