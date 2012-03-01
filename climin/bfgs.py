@@ -64,7 +64,8 @@ class Bfgs(Minimizer):
                 step = step_length * direction
                 self.wrt += step
             else:
-                self.logfunc({'message': 'step length is 0.'})
+                self.logfunc({'message': 'step length is 0--need to bail out.'})
+                break
 
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
