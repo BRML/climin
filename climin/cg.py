@@ -19,7 +19,8 @@ class ConjugateGradient(Minimizer):
 
     def __init__(self, wrt, H=None, b=None, f_Hp=None, epsilon=1e-14,
                  logfunc=None):
-        super(ConjugateGradient, self).__init__(wrt, args=None, logfunc=logfunc)
+        super(ConjugateGradient, self).__init__(
+            wrt, args=None, logfunc=logfunc)
         self.f_Hp = f_Hp if f_Hp is not None else lambda p: np.dot(H, p)
         self.b = b
         self.epsilon = epsilon
@@ -27,7 +28,7 @@ class ConjugateGradient(Minimizer):
     def __iter__(self):
         grad = self.f_Hp(self.wrt) - self.b
         direction = -grad
-        
+
         for i in range(self.wrt.size):
             # If the gradient is exactly zero, we stop. Otherwise, the
             # updates will lead to NaN errors because the direction will
@@ -43,7 +44,7 @@ class ConjugateGradient(Minimizer):
             grad = grad + step_length * Hp
             beta = np.dot(grad, grad)/ rr
             direction = - grad + beta * direction
-            
+
             # If we don't bail out here, we will enter regions of numerical
             # instability.
             if (abs(grad) < self.epsilon).all():

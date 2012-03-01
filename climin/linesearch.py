@@ -16,7 +16,7 @@ class LineSearch(object):
 
 class BackTrack(LineSearch):
     """Class implementing a back tracking line search.
- 
+
     The idea is to try out jumps along the search direction until
     one satisfies a condition. Jumps are done by multiplying the search
     direction with a scalar. The field `schedule` holds an iterator which
@@ -136,7 +136,7 @@ class WolfeLineSearch(LineSearch):
         else:
             t = initialization if initialization is not None else 1
 
-        step, fstep, fprimestep, n_evals  = wolfe_line_search(
+        step, fstep, fprimestep, n_evals = wolfe_line_search(
             self.wrt, t, direction, loss0, grad0, direct_deriv0,
             self.c1, self.c2, self.typ, self.maxiter, self.min_step_length,
             f)
@@ -161,7 +161,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     #   w/ function and derivative values for both
     # - no xminBound/xmaxBound
 
-    if (nPoints == 2) and (order == 3) and xminBound is None and xmaxBound is None:
+    if nPoints == 2 and order == 3 and xminBound is None and xmaxBound is None:
         # Solution in this case (where x2 is the farthest point):
         #    d1 = g1 + g2 - 3*(f1-f2)/(x1-x2);
         #    d2 = sqrt(d1^2 - g1*g2);
@@ -182,15 +182,16 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         d2 = sp.sqrt(d1**2 - g1 * g2)
         if np.isreal(d2):
             t = points[notMinPos, 0] -\
-                    ( points[notMinPos, 0] - points[minPos, 0] ) * \
-                    (\
-                      (points[notMinPos, 2] + d2 - d1)/ \
-                      (points[notMinPos, 2] - points[minPos, 2] + 2*d2)\
+                    (points[notMinPos, 0] - points[minPos, 0]) * \
+                    (
+                      (points[notMinPos, 2] + d2 - d1) / 
+                      (points[notMinPos, 2] - points[minPos, 2] + 2*d2)
                     )
-            minPos = np.minimum(np.maximum(t, points[minPos,0]), points[notMinPos, 0])
+            minPos = np.minimum(
+                np.maximum(t, points[minPos, 0]), points[notMinPos, 0])
 
         else:
-            minPos = np.mean(points[:,0])
+            minPos = np.mean(points[:, 0])
         # fmin is not returned here
         return minPos, None
     #
@@ -216,14 +217,15 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     # Constraints based on available derivatives
     for i, p in enumerate(points[:, 2]):
         if np.isreal(p):
-            A[nPoints + i] = [(order-j+1)*points[i, 0]**(order-j) for j in xrange(1, order+1)] + [0]
+            A[nPoints + i] = [(order - j + 1) * points[i, 0]**(order - j)
+                              for j in xrange(1, order + 1)] + [0]
             b[nPoints + i] = points[i, 2]
     #
     # Find interpolating polynomial
     params = np.linalg.lstsq(A, b)[0].flatten()
 
     # Compute critical points
-    dParams =  [(order-j)*params[j] for j in xrange(order)]
+    dParams = [(order - j)*params[j] for j in xrange(order)]
 
     cp = [xminBound, xmaxBound] + list(points[:, 0])
     if not np.any(np.isinf(dParams)):
@@ -247,14 +249,16 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
     """
     From minFunc, without switches doPlot and debug.
     """
-    alpha_c, _ = polyinterp(points=np.array([[x0, f0, g0],[x1, f1, g1]]), 
-            xminBound=minStep, xmaxBound=maxStep)
+    alpha_c, _ = polyinterp(
+        points=np.array([[x0, f0, g0], [x1, f1, g1]]), 
+        xminBound=minStep, xmaxBound=maxStep)
     #
-    alpha_s, _ = polyinterp(points=np.array([[x0, f0, g0],[x1, 1j, g1]]), 
-            xminBound=minStep, xmaxBound=maxStep)
+    alpha_s, _ = polyinterp(
+        points=np.array([[x0, f0, g0], [x1, 1j, g1]]), 
+        xminBound=minStep, xmaxBound=maxStep)
     if alpha_c > minStep and abs(alpha_c - x1) < abs(alpha_s - x1):
         # Cubic Extrapolation
-        t = alpha_c;
+        t = alpha_c
     else:
         # Secant Extrapolation
         t = alpha_s
@@ -265,7 +269,9 @@ def isLegal(v):
     """
     Do exactly that.
     """
-    return not np.any(np.iscomplex(v)) and not np.any(np.isnan(v)) and not np.any(np.isinf(v))
+    return not (np.any(np.iscomplex(v)) or
+                np.any(np.isnan(v)) or
+                np.any(np.isinf(v)))
 
 
 def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
@@ -312,7 +318,8 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
             t = 0.5 * t
         elif LS == 2 and isLegal(g_new):
             # Backtrack with cubic interpolation with derivative
-            t, _ = polyinterp(np.array([[0, f, gtd], [t, f_new, np.dot(g_new, d)]]))
+            t, _ = polyinterp(
+                np.array([[0, f, gtd], [t, f_new, np.dot(g_new, d)]]))
         elif funEvals < 2 or not isLegal(f_prev):
             # Backtracking with quadratic interpolation
             # (no derivatives at new point available)
@@ -329,7 +336,6 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         # or too large
         elif t > 0.6 * temp:
             t = 0.6 * temp
-
 
         f_prev = f_new
         t_prev = temp
@@ -353,8 +359,9 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
     # Hessian is missing here!
     return t, x_new, f_new, g_new, funEvals
 
+
 def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
-        oldLOval, oldLOFval, oldLOGval):
+                oldLOval, oldLOFval, oldLOGval):
     """
     From minFunc, without switches for doPlot and debug
     """
@@ -419,8 +426,9 @@ def mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
         else:
             t = max(bracket[Tpos] + 0.66*(bracket[nonTpos] - bracket[Tpos]), t)
     else:
-        t, _ = polyinterp(np.array([[bracket[nonTpos], bracketFval[nonTpos], gtdNonT],\
-                [bracket[Tpos], bracketFval[Tpos], gtdT]]))
+        t, _ = polyinterp(
+            np.array([[bracket[nonTpos], bracketFval[nonTpos], gtdNonT],
+                     [bracket[Tpos], bracketFval[Tpos], gtdT]]))
     return t
 
 
@@ -559,8 +567,9 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 t = np.mean(bracket)
             elif LS == 4:
                 # Grad cubic interpolation
-                t, _ = polyinterp(np.array([[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],\
-                        [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
+                t, _ = polyinterp(np.array(
+                    [[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],\
+                    [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
             else:
                 # Mixed case
                 # Is this correct ???????
@@ -649,7 +658,6 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         t = bracket[LOpos]
         f_new = bracketFval[LOpos]
         g_new = bracketGval[LOpos]
-
 
         # missing Hessain evaluation
         return t, f_new, g_new, funEvals

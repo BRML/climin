@@ -17,7 +17,7 @@ from nes import Xnes
 
 def upper_confidence_bound(sigma):
     """The upper-confidence-bound acquisition function with parameter sigma.
-    
+
     To avoid over-exploration all the way off to infinity (where the
     variance is huge) I truncate the confidence term.
     """
@@ -32,7 +32,7 @@ def upper_confidence_bound(sigma):
 def expected_improvement(gp, best_loss, atleast=0.00):
     def inner(x):
         mean, var = gp.predict(x, eval_MSE=True)
-        if var[0] == 0: 
+        if var[0] == 0:
             return 0.
         std = scipy.sqrt(var)
         improv = mean - best_loss + atleast
@@ -59,14 +59,15 @@ def calc_proposal(trials, losses, model_factory, acq_func, n_inner_iters=100):
     # Optimize the model of the cost to obtain new query point.
     new_trial = best_trial.copy()
     inner_opt = Xnes(new_trial, f)
-    for _ in zip(range(n_inner_iters), inner_opt): pass
+    for _ in zip(range(n_inner_iters), inner_opt):
+        pass
 
     return new_trial
 
 
 class Bayesian(Minimizer):
 
-    def __init__(self, wrt, f, initial_trials, model_factory=None, 
+    def __init__(self, wrt, f, initial_trials, model_factory=None,
                  acq_func=None, tolerance=1E-20, n_inner_iters=50,
                  args=None, logfunc=None):
         super(Bayesian, self).__init__(wrt, args, logfunc=logfunc)
@@ -96,7 +97,7 @@ class Bayesian(Minimizer):
             self.trials.append(trial)
             self.losses.append(loss)
             if loss < best_loss:
-                self.wrt[:] = trial 
+                self.wrt[:] = trial
                 best_loss = loss
         return best_loss
 

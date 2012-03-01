@@ -48,12 +48,12 @@ class HessianFree(Minimizer):
 
         opt = ConjugateGradient(direction, f_Hp=f_Hp, b=-grad,
                                 logfunc=self.logfunc)
-        
+
         # Calculate once first, because we might exit the loop before
         # calculating it.
         q_loss = f_q_loss(direction)
         q_losses = [q_loss]
-                 
+
         for i, info in enumerate(opt):
             self.logfunc(info)
 
@@ -88,7 +88,8 @@ class HessianFree(Minimizer):
             # Obtain search direction via cg.
             cg_args, cg_kwargs = self.cg_args.next()
             direction, info = self.find_direction(
-                loss_m1, grad, direction_m1 * 0.95, damping, cg_args, cg_kwargs)
+                loss_m1, grad, direction_m1 * 0.95, damping,
+                cg_args, cg_kwargs)
 
             q_loss = info['q-loss']
 
@@ -98,10 +99,11 @@ class HessianFree(Minimizer):
                 break
 
             # TODO: do line search on CG args or on args?
-            # TODO: actually, we should backtrack here, which means that we go
-            # back along the solutions that CG finds. But maybe a line search is
-            # fine.
-            step_length = self.line_search.search(direction, None, args, kwargs)
+            # TODO: actually, we should backtrack here, which means 
+            # that we go back along the solutions that CG finds. But 
+            # maybe a line search is fine.
+            step_length = self.line_search.search(
+                direction, None, args, kwargs)
 
             if step_length != 0:
                 step = step_length * direction

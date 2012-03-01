@@ -12,7 +12,8 @@ def repeat_or_iter(obj):
         return itertools.repeat(obj)
 
 
-def dummylogfunc(*args, **kwargs): pass
+def dummylogfunc(*args, **kwargs):
+    pass
 
 
 class Minimizer(object):

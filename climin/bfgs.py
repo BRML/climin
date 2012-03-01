@@ -58,13 +58,15 @@ class Bfgs(Minimizer):
                     {'message': 'direction is invalid -- need to bail out.'})
                 break
 
-            step_length = self.line_search.search(direction, None, args, kwargs)
+            step_length = self.line_search.search(
+                direction, None, args, kwargs)
 
             if step_length != 0:
                 step = step_length * direction
                 self.wrt += step
             else:
-                self.logfunc({'message': 'step length is 0--need to bail out.'})
+                self.logfunc(
+                    {'message': 'step length is 0--need to bail out.'})
                 break
 
             # Prepare everything for the next loop.
