@@ -33,10 +33,12 @@ class Minimizer(object):
         to continue, True means to stop."""
         if not criterions:
             raise ValueError('need to supply at least one criterion')
+        info = {}
         for info in self:
             for criterion in criterions:
                 if criterion(info):
                     return info
+        return info
 
 
 def is_nonzerofinite(arr):
