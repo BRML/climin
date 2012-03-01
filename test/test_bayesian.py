@@ -3,7 +3,7 @@ import itertools
 import nose
 import numpy as np
 
-from climin import Bayesian 
+from climin.bayesian import Bayesian 
 
 from losses import Quadratic
 
