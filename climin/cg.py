@@ -26,7 +26,7 @@ class ConjugateGradient(Minimizer):
 
     def __iter__(self):
         grad = self.f_Hp(self.wrt) - self.b
-        direction =-grad
+        direction = -grad
         
         for i in range(self.wrt.size):
             # If the gradient is exactly zero, we stop. Otherwise, the
@@ -52,6 +52,8 @@ class ConjugateGradient(Minimizer):
                 break
 
             yield {
+                'rr': rr,
+                'Hp': Hp,
                 'step_length': step_length,
                 'n_iter': i,
             }

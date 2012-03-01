@@ -4,7 +4,7 @@ import itertools
 
 import scipy
 
-from base import Minimizer, repeat_or_iter
+from base import Minimizer
 from lbfgs import Lbfgs
 from bfgs import Bfgs
 
