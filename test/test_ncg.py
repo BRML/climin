@@ -30,6 +30,6 @@ def test_ncg_lr():
     args = itertools.repeat(((obj.X, obj.Z), {}))
     opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime, args=args)
     for i, info in enumerate(opt):      
-        if i > 20:
+        if i > 50:
             break
     assert obj.solved(), 'did not find solution'
