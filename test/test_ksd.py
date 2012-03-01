@@ -1,57 +1,26 @@
+import nose
 import itertools
 
-import scipy
-from scipy.optimize import rosen, rosen_der
-import theano
-import theano.tensor as T
-import nose.tools
+import numpy as np
 
-from climin.ksd import KrylovSubspaceDescent
-from zeitgeist.model import krylov_subspace
+from climin import KrylovSubspaceDescent 
+
+from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-quadratic = lambda x: (x**2).sum()
-quadraticprime = lambda x: 2 * x
-quadraticandprime = lambda x: (quadratic(x), quadraticprime(x))
+# There are no more tests here because KSD explicitly constructs the
+# Krylov basis and for 2D problems this does not make so much sense.
 
-
-@nose.tools.nottest
-def test_ksd_rosen():
-    pars = T.dvector('pars')
-    wrt = scipy.zeros(2)
-    x, y = pars[0], pars[1]
-    rosen_expr = (1 - x)**2 + 100 * (y - x**2)**2
-    rosen_grad = T.grad(rosen_expr, pars)
-
-    p = T.dvector('point')
-    Hp = T.grad(T.sum(rosen_grad *  p), pars)
-
-    f_Hp = theano.function([pars, p], Hp)
-    f = theano.function([pars], rosen_expr)
-    fprime = theano.function([pars], rosen_grad) 
-
-    args = hessian_args = krylov_args = itertools.repeat(((), {}))
-
-    opt = KrylovSubspaceDescent(**{
-        'wrt': wrt,
-        'f': f,
-        'fprime': fprime,
-        'f_Hp': f_Hp,
-        'n_bases': 3,
-        'floor_fisher': True,
-        'floor_hessian': True,
-        'precond_hessian': True,
-        'args': args,
-        'hessian_args': hessian_args,
-        'krylov_args': krylov_args,
-        })
-
-    for i, info in enumerate(opt):
-        if (abs(wrt - [1, 1]) < 0.05).all():
-            success = True
+ 
+def test_ksd_lr():
+    obj = LogisticRegression(seed=20101)
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    krylov_args = args
+    hessian_args = args
+    opt = KrylovSubspaceDescent(
+        obj.pars, obj.f, obj.fprime, obj.f_Hp, n_bases=15,
+        args=args, krylov_args=krylov_args, hessian_args=hessian_args)
+    for i, info in enumerate(opt):      
+        if i > 100:
             break
-        if i >= 100:
-            success = False
-            break
-    print wrt
-    assert success, 'did not find solution'
+    assert obj.solved(), 'did not find solution'
