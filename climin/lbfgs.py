@@ -8,7 +8,6 @@ import scipy.optimize
 
 from base import Minimizer, is_nonzerofinite
 from linesearch import WolfeLineSearch
-from logging import taggify
 
 
 class Lbfgs(Minimizer):
