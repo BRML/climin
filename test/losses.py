@@ -88,6 +88,30 @@ class Quadratic(object):
         return (abs(self.fprime(self.pars)) < tolerance).all()
 
 
+class BigQuadratic(object):
+
+
+    def __init__(self, dim, seed=101010):
+        np.random.seed(seed)
+        self.pars = np.random.standard_normal(dim) + 5
+
+        L = np.random.standard_normal((dim, dim))
+        self.H = np.dot(L, L.T)
+        self.b = np.zeros(dim)
+
+    def f(self, x):
+        return 0.5 * np.dot(x, np.dot(self.H, x)) - np.inner(x, self.b)
+
+    def fprime(self, x):
+        return np.dot(self.H, x) - self.b
+
+    def f_Hp(self, pars, p):
+        return np.dot(self.H, p)
+
+    def solved(self, tolerance=0.01):
+        return (abs(self.fprime(self.pars)) < tolerance).all()
+
+
 class Rosenbrock(object):
 
     def __init__(self):
