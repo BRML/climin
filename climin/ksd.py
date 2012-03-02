@@ -19,7 +19,7 @@ class KrylovSubspaceDescent(Minimizer):
     def __init__(
         self, wrt, f, fprime, f_Hp, n_bases,
         args=None, hessian_args=None, krylov_args=None,
-        floor_fisher=False, precond_hessian=False, floor_hessian=False,
+        floor_fisher=True, precond_hessian=True, floor_hessian=True,
         logfunc=None):
 
         super(KrylovSubspaceDescent, self).__init__(
