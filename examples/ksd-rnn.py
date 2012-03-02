@@ -19,51 +19,66 @@ n_output = 1
 n_memory = 5
 structural_damping_factor = 0.00
 
-# Expressions.
-
+# Expressions for the recurrent network.
+# TODO: this functionality needs to be include in here to remove zeitgeist 
+# dependency.
 exprs, P = rnn(n_inpt, n_hidden, n_output, transferfunc='sig', outfunc='sig')
+
+# To make the passing of the parameters explicit, we need to substitute it
+# later with the givens parameter.
 par_sub = T.vector()
 
+# Some tensor for constructing the loss. the loss will only be defined on
+# the end of the sequences.
+inpt = exprs['inpt']
 target = T.tensor3('target')
 output = exprs['output']
 hidden = exprs['hidden']
-
 subtarget = target[-n_memory:]
 suboutput = output[-n_memory:]
 
+# Shorthand to create a cross entropy expression, which we will need for
+# structural damping as well as the overall loss.
 def cross_entropy(a, b):
-    return -(a * T.log(b + 1e-8) + (1 - a) * T.log(1 - b + 1e-8)).mean()
+    eps = 0
+    return -(a * T.log(b + eps) + (1 - a) * T.log(1 - b + eps)).mean()
 
+# Vector for the expression of the Hessian vector product, where this will
+# be the vector.
 p = T.vector('p')
 
+# Expression for the change of hidden variables if we move the parameters
+# into direction p.
 changed_hidden = theano.clone(hidden, {P.flat: P.flat + p})
+
+# Expression for the difference between the hiddens of the moved parameters
+# and the previous hiddens.
 diff_hidden = cross_entropy(hidden, changed_hidden) 
 
+# The loss and its gradient.
 loss = cross_entropy(subtarget, suboutput)
 lossgrad = T.grad(loss, P.flat)
 
+# The loss for the damping which will only be included in our Gauss-Newton
+# matrix.
 damping = structural_damping_factor * diff_hidden
 damped_loss = loss + damping
 
-#Hp = T.Rop(lossgrad, P.flat, p)
-#Hp = T.grad(T.sum(lossgrad * p), P.flat)
-
+# Expression for the Gauss-Newton matrix.
 Jp = T.Rop(output, P.flat, p)
 HJp = T.grad(T.sum(T.grad(damped_loss, output) * Jp),
              output, consider_constant=[Jp])
-Gp = T.grad(T.sum(HJp * output), P.flat, consider_constant=[HJp, Jp])
-
+Hp = T.grad(T.sum(HJp * output), P.flat, consider_constant=[HJp, Jp])
 
 # Functions.
-inpt = exprs['inpt']
 givens = {P.flat: par_sub}
 f = theano.function([par_sub, inpt, target], loss, givens=givens)
 fprime = theano.function([par_sub, inpt, target], lossgrad, givens=givens)
-f_Hp = theano.function([par_sub, p, inpt, target], Gp, givens=givens)
+f_Hp = theano.function([par_sub, p, inpt, target], Hp, givens=givens)
 f_predict = theano.function([par_sub, inpt], exprs['output'], givens=givens)
 
 # Build a dataset.
-n_samples = 500
+n_samples = 1000
 X = scipy.ones((30, 2 * n_samples, 1)) * 0.2
 X[:n_memory] = scipy.random.random(X[:n_memory].shape) > 0.5
 X[-n_memory] = scipy.ones(X[0].shape)
@@ -74,12 +89,6 @@ TX = X[:, n_samples:]
 TZ = Z[:, n_samples:]
 X = X[:, :n_samples]
 Z = Z[:, :n_samples]
-
-
-#t = scipy.arange(0, 10, 0.05)[:, scipy.newaxis, scipy.newaxis]
-#X = scipy.sin(t / 2) * 2 + scipy.sin(t)
-#Z = X[:-20].copy()
-#X = X[20:]
 
 P.randomize(1E-4)
 args = (([X, Z], {}) for _ in itertools.repeat(()))
@@ -94,10 +103,9 @@ Hargs = (([X, Z], {}) for _ in itertools.repeat(()))
 
 print '#pars:', P.data.size
 
-def logfunc(info): 
-    return
-    print info
-    print
+import chopmunk
+logger = chopmunk.prettyprint_sink()
+logfunc = logger.send
 
 optimizer = 'hf'
 
