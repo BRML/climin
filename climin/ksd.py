@@ -96,9 +96,9 @@ class KrylovSubspaceDescent(Minimizer):
     def __iter__(self):
         step = scipy.ones(self.wrt.shape)
         for i in itertools.count():
-            _args, _kwargs = self.args.next()
+            args, kwargs = self.args.next()
             self.coefficients *= 0
-            grad = self.fprime(self.wrt, *_args, **_kwargs)
+            grad = self.fprime(self.wrt, *args, **kwargs)
             self._calc_krylov_basis(grad, step)
 
             # Minimize subobjective.
@@ -121,6 +121,13 @@ class KrylovSubspaceDescent(Minimizer):
                 # Take search step.
                 step[:] = scipy.dot(self.coefficients, self.basis)
                 self.wrt += step
-            info.update(dict(step=step, grad=grad, basis=self.basis, n_iter=i,
-                             coefficients=self.coefficients))
+
+            info.update({
+                'args': args,
+                'kwargs': kwargs,
+                'step': step,
+                'grad': grad,
+                'basis': self.basis,
+                'n_iter': i,
+                'coefficients': self.coefficients})
             yield info

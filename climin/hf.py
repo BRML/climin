@@ -64,7 +64,7 @@ class HessianFree(Minimizer):
         # calculating it.
         q_loss = f_q_loss(direction)
         q_losses = [q_loss]
-        old_p = [direction]
+        old_p = [direction.copy()]
         gamma = 1.3
         next_saving = 2
 
@@ -154,6 +154,11 @@ class HessianFree(Minimizer):
             direction_m1 = direction
 
             info.update({
-                'loss': loss, 'gradient': grad, 'q_loss': q_loss,
-                'ratio': ratio, 'damping': damping})
+                'loss': loss,
+                'gradient': grad,
+                'q_loss': q_loss,
+                'ratio': ratio,
+                'damping': damping,
+                'args': args,
+                'kwargs': kwargs})
             yield info
