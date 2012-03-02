@@ -13,6 +13,7 @@ class HessianFree(Minimizer):
                  initial_damping=0.1,
                  cg_max_iter=250,
                  line_search=None,
+                 precond=False,
                  logfunc=None):
         super(HessianFree, self).__init__(wrt, args=args, logfunc=logfunc)
 
@@ -23,6 +24,7 @@ class HessianFree(Minimizer):
         self.cg_args = cg_args if cg_args is not None else self.args
         self.initial_damping = initial_damping
         self.cg_max_iter = cg_max_iter
+        self.precond = precond
 
         if line_search is not None:
             self.line_search = line_search
@@ -34,8 +36,14 @@ class HessianFree(Minimizer):
         direction = direction_m1.copy()             
         q_losses = []
 
-        #preconditioning matrix
-        precond = (grad**2 + damping )**(0.75)
+        # Preconditioning matrix.
+        if self.precond == 'martens':
+            precond = (grad**2 + damping )**(0.75)
+        elif not self.precond:
+            precond = np.ones(grad.size)
+        else:
+            raise ValueError('unknown preconditioning: %s' % self.precond)
+
 
         # Define short hand for the loss of the quadratic approximation.
         def f_q_loss(direction):
@@ -50,7 +58,7 @@ class HessianFree(Minimizer):
             return self.f_Hp(self.wrt, x, *args, **kwargs) + damping * x 
 
         opt = ConjugateGradient(direction, f_Hp=f_Hp, b=-grad,
-                                logfunc=self.logfunc, precond = precond)
+                                logfunc=self.logfunc, precond=precond)
 
         # Calculate once first, because we might exit the loop before
         # calculating it.
