@@ -81,27 +81,31 @@ class HessianFree(Minimizer):
                 if (q_loss - q_losses[-lookback]) / q_loss < 0.0005:
                     self.logfunc({
                         'message': 'stopping cg - stopping criterion'})
+                    break
 
             q_loss = f_q_loss(direction)
             q_losses.append(q_loss)
 
             #saving current direction for backtracking
             if i == next_saving:
-                next_saving = np.ceil(gamma*next_saving)
-                old_p.append(direction)
-                
-            
+                next_saving = np.ceil(gamma * next_saving)
+                old_p.append(direction.copy())
+        
+        # Backtrack results of cg. We step through saved cg points backwards
+        # as long as it reduces our loss.
+        # We assign to loss as well, so we have a loss even if the
+        # backtracking  breaks immediately.
+        loss = loss_m1 = self.f(self.wrt + direction, *args, **kwargs)
+        direction_m1 = direction
+        for direction in reversed(old_p):
+            loss = self.f(self.wrt + direction, *args, **kwargs)
+            if loss >= loss_m1:
+                direction = direction_m1
+                break
+            direction_m1 = direction
+            loss_m1 = loss
 
-        #backtracking
-        old_p.append(direction)
-        j = -1
-        while (self.f(self.wrt + old_p[j], *args, **kwargs)  > self.f(self.wrt + old_p[j-1], *args, **kwargs)):
-            j -= 1
-
-        direction = old_p[j]
-        q_loss = f_q_loss(direction)
-
-        return direction, {'q-loss': q_loss}
+        return direction, {'q-loss': q_loss, 'loss': loss}
 
     def __iter__(self):
         damping = self.initial_damping
@@ -128,20 +132,7 @@ class HessianFree(Minimizer):
                     {'message': 'direction is invalid -- need to bail out.'})
                 break
 
-            # TODO: do line search on CG args or on args?
-            # TODO: actually, we should backtrack here, which means 
-            # that we go back along the solutions that CG finds. But 
-            # maybe a line search is fine.
-
-            step_length = self.line_search.search(
-                direction, None, args, kwargs)
-
-
-            if step_length != 0:
-                step = step_length * direction
-                self.wrt += step
-            else:
-                self.logfunc({'message': 'step length is 0.'})
+            self.wrt += direction
 
             loss = self.f(self.wrt, *args, **kwargs)
 
