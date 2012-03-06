@@ -129,25 +129,23 @@ P['hiddenbias1'][:] = scipy.zeros(n_hidden1)
 P['hiddenbias2'][:] = scipy.zeros(n_hidden2)
 P['hiddenbias3'][:] = scipy.zeros(n_hidden3)
 
-P['outbias'][:] = scipy.zeros(n_output)
-P['inweights'][:,:] = scipy.zeros((n_inpt, n_hidden1))
-P['hiddenweights1'][:,:] = scipy.zeros((n_hidden1, n_hidden2))
-P['hiddenweights2'][:,:] = scipy.zeros((n_hidden2, n_hidden3))
-P['outweights'][:,:] = scipy.zeros((n_hidden3, n_output))
+P['outbias'][:] = np.random.randn(n_output)
+P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden1)
+P['hiddenweights1'][:,:] = np.random.randn(n_hidden1, n_hidden2)
+P['hiddenweights2'][:,:] = np.random.randn(n_hidden2, n_hidden3)
+P['outweights'][:,:] = np.random.randn(n_hidden3, n_output)
 
-for i in range(15):
-    idxRandom = random.randint(0, n_inpt - 1)
-    randVect = np.random.randn(n_hidden1)
-    P['inweights'][idxRandom,:] = randVect
-    idxRandom = random.randint(0, n_hidden1 - 1)
-    randVect = np.random.randn(n_hidden2)
-    P['hiddenweights1'][idxRandom,:] = randVect
-    idxRandom = random.randint(0, n_hidden2 - 1)
-    randVect = np.random.randn(n_hidden3)
-    P['hiddenweights2'][idxRandom,:] = randVect
-    idxRandom = random.randint(0, n_hidden3 - 1)
-    randVect = np.random.randn(n_output)
-    P['outweights'][idxRandom,:] = randVect
+def sparse_initialization(a, b, s, MaxNonZeroPerColumn = 15):
+    for j in range(b):
+        perm = np.random.permutation(a)
+        P[s][perm[MaxNonZeroPerColumn:], j] *= 0
+
+sparse_initialization( n_inpt, n_hidden1, 'inweights')
+sparse_initialization( n_hidden1, n_hidden2, 'hiddenweights1')  
+sparse_initialization( n_hidden2, n_hidden3, 'hiddenweights2')
+sparse_initialization( n_hidden3, n_output, 'outweights')
+
+
 
 #minibatches for HF: whole dataset
 args = (([X, Y], {}) for _ in itertools.repeat(()))
