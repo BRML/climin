@@ -16,12 +16,16 @@ import numpy as np
 # Hyper parameters.
 
 n_inpt = 784
+n_hidden = 300
 n_hidden1 = 500
 n_hidden2 = 500
 n_hidden3 = 2000
 n_output = 10
 
 initial_damping = 15
+
+
+
 
 # Expressions for the deep network.
 def deep_mlp(insize, hiddensize1, hiddensize2, hiddensize3, outsize, transferfunc='tanh', outfunc='id'):
@@ -71,7 +75,6 @@ def deep_mlp(insize, hiddensize1, hiddensize2, hiddensize3, outsize, transferfun
 
 
 exprs, P = deep_mlp(n_inpt, n_hidden1, n_hidden2, n_hidden3, n_output, transferfunc='sig', outfunc='softmax')
-
 # To make the passing of the parameters explicit, we need to substitute it
 # later with the givens parameter.
 par_sub = T.vector()
@@ -128,8 +131,9 @@ for i in range(N):
 P['hiddenbias1'][:] = scipy.zeros(n_hidden1)
 P['hiddenbias2'][:] = scipy.zeros(n_hidden2)
 P['hiddenbias3'][:] = scipy.zeros(n_hidden3)
+P['outbias'][:] = scipy.zeros(n_output)
 
-P['outbias'][:] = np.random.randn(n_output)
+
 P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden1)
 P['hiddenweights1'][:,:] = np.random.randn(n_hidden1, n_hidden2)
 P['hiddenweights2'][:,:] = np.random.randn(n_hidden2, n_hidden3)
