@@ -53,7 +53,6 @@ class HessianFree(Minimizer):
         def f_q_loss(direction):
             qloss = .5 * np.inner(direction, f_Hp(direction))
             qloss -= np.inner(-grad, direction)
-            qloss += loss
             return qloss
 
         # Define another function for the Hessian vector product that 
