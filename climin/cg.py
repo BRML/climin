@@ -30,6 +30,8 @@ class ConjugateGradient(Minimizer):
         if self.precond is  None:
             return r
         elif self.precond.ndim == 1:
+        #if the preconditioning matrix is diagonal,
+        #then it is supposedly given as a vector
             return r / self.precond
         else:
             return scipy.linalg.solve(self.precond, r)
@@ -52,7 +54,7 @@ class ConjugateGradient(Minimizer):
             ry = np.dot(grad, y)                     
             step_length = ry / np.dot(direction, Hp)
             self.wrt += step_length * direction            
-            grad = grad + step_length * Hp
+            grad +=  step_length * Hp
             y = self.solve(grad)
             beta = np.dot(grad, y) / ry
             direction = - y + beta * direction
