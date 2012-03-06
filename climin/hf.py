@@ -147,9 +147,8 @@ class HessianFree(Minimizer):
 
             # Obtain search direction via cg.
             cg_args, cg_kwargs = self.cg_args.next()
-            direction, info = self.find_direction(loss_m1, grad, 
-                                                  direction_m1 * 0.95, damping,
-                                                  cg_args, cg_kwargs)
+            direction, info = self.find_direction(
+                loss_m1, grad, direction_m1 * 0.95, damping, cg_args, cg_kwargs)
 
             q_loss = info['q-loss']
 
