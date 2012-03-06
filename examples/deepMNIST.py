@@ -115,18 +115,14 @@ f_predict = theano.function([par_sub, inpt], exprs['output'], givens=givens)
 import cPickle, gzip
 
 # Load the dataset
-with  gzip.open('mnist.pkl.gz','rb') as MNISTfile:
+with gzip.open('mnist.pkl.gz','rb') as MNISTfile:
     train_set, valid_set, test_set = cPickle.load(MNISTfile)
-
-
 
 X, labels = train_set
 N, _ = X.shape
 Y = np.zeros((N, 10))
 for i in range(N):
     Y[i][labels[i]] = 1
-
-
 
 #sparse initialization
 P['hiddenbias1'][:] = scipy.zeros(n_hidden1)
@@ -141,16 +137,16 @@ P['outweights'][:,:] = scipy.zeros((n_hidden3, n_output))
 
 for i in range(15):
     idxRandom = random.randint(0, n_inpt - 1)
-    randVect = np.random.randn(n_hidden1)*1e-4
+    randVect = np.random.randn(n_hidden1)
     P['inweights'][idxRandom,:] = randVect
     idxRandom = random.randint(0, n_hidden1 - 1)
-    randVect = np.random.randn(n_hidden2)*1e-4
+    randVect = np.random.randn(n_hidden2)
     P['hiddenweights1'][idxRandom,:] = randVect
     idxRandom = random.randint(0, n_hidden2 - 1)
-    randVect = np.random.randn(n_hidden3)*1e-4
+    randVect = np.random.randn(n_hidden3)
     P['hiddenweights2'][idxRandom,:] = randVect
     idxRandom = random.randint(0, n_hidden3 - 1)
-    randVect = np.random.randn(n_output)*1e-4
+    randVect = np.random.randn(n_output)
     P['outweights'][idxRandom,:] = randVect
 
 #minibatches for HF: whole dataset
@@ -168,7 +164,6 @@ cg_args = ((m, {}) for m in minibatches)
 print '#pars:', P.data.size
 
 
-
 import chopmunk
 
 @chopmunk.coroutine
@@ -179,6 +174,7 @@ def print_Hp_min_max():
             continue
         absed = abs(info['Hp'])
         print 'min max std mean', absed.min(), absed.max(), absed.std(), absed.mean()
+
 
 logger = chopmunk.prettyprint_sink()
 filesink = chopmunk.file_sink('mnist.log')

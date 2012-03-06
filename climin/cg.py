@@ -49,12 +49,18 @@ class ConjugateGradient(Minimizer):
             return
         for i in range(self.wrt.size):
             Hp = self.f_Hp(direction)
-            print 'minimum value of Hp',  abs(H).min()
-            print 'maximum value of Hp',  abs(H).max()
             ry = np.dot(grad, y)                     
             step_length = ry / np.dot(direction, Hp)
             self.wrt += step_length * direction            
-            grad +=  step_length * Hp
+
+
+            # We do this every few iterations to compensate for possible
+            # numerical errors.
+            if i % 10 == 0:
+                grad = self.f_Hp(self.wrt) - self.b
+            else:
+                grad += step_length * Hp
+
             y = self.solve(grad)
             beta = np.dot(grad, y) / ry
             direction = - y + beta * direction

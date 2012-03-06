@@ -66,7 +66,8 @@ class BackTrack(LineSearch):
             loss = self.f(candidate, *args, **kwargs)
             improvement = loss0 - loss
             if -(loss0 - loss) < 0:
-                # We check here for negative improvement to also 
+                # We check here for negative improvement to also not continue in
+                # the case of NaNs.
                 self.logfunc({'message': 'beating loss by %f' % (loss0 - loss)})
                 return s
 
