@@ -21,6 +21,8 @@ n_hidden2 = 500
 n_hidden3 = 2000
 n_output = 10
 
+initial_damping = 15
+
 # Expressions for the deep network.
 def deep_mlp(insize, hiddensize1, hiddensize2, hiddensize3, outsize, transferfunc='tanh', outfunc='id'):
     P = util.ParameterSet(
@@ -82,7 +84,7 @@ output = exprs['output']
 
 # Shorthand to create a cross entropy expression
 def cross_entropy(a, b):
-    epsilon = 1e-14
+    epsilon = 0
     return -(a * T.log(b+epsilon)).mean()
 
 # Vector for the expression of the Hessian vector product, where this will
@@ -165,8 +167,23 @@ cg_args = ((m, {}) for m in minibatches)
 
 print '#pars:', P.data.size
 
+
+
 import chopmunk
+
+@chopmunk.coroutine
+def print_Hp_min_max():
+    while True:
+        info = (yield)
+        if 'Hp' not in info:
+            continue
+        absed = abs(info['Hp'])
+        print 'min max std mean', absed.min(), absed.max(), absed.std(), absed.mean()
+
 logger = chopmunk.prettyprint_sink()
+filesink = chopmunk.file_sink('mnist.log')
+filesink = chopmunk.jsonify(filesink)
+logger = chopmunk.broadcast(logger, filesink, print_Hp_min_max())
 logfunc = logger.send
 
 optimizer = 'hf'
@@ -180,14 +197,15 @@ elif optimizer == 'rprop':
 elif optimizer == 'hf':
     opt = HessianFree(
         P.data, f, fprime, f_Hp, args=args, cg_args=cg_args,
-        initial_damping=0.5,
+        initial_damping=initial_damping,
+        precond='martens',
         logfunc=logfunc)
 
 for i, info in enumerate(opt):
     X, Y = info['args']
     loss = f(P.data, X, Y)
     print 'loss', loss
-    if i > 300:
+    if i > 30:
         break
 
 #pylab.plot(steps)
