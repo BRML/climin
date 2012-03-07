@@ -166,20 +166,15 @@ print '#pars:', P.data.size
 
 import chopmunk
 
-@chopmunk.coroutine
-def print_Hp_min_max():
-    while True:
-        info = (yield)
-        if 'Hp' not in info:
-            continue
-        absed = abs(info['Hp'])
-        print 'min max std mean', absed.min(), absed.max(), absed.std(), absed.mean()
+ignore = ['args', 'kwargs', 'gradient', 'Hp']
+console_sink = chopmunk.prettyprint_sink()
+console_sink = chopmunk.dontkeep(console_sink, ignore)
 
+file_sink = chopmunk.file_sink('mnist.log')
+file_sink = chopmunk.jsonify(file_sink)
+file_sink = chopmunk.dontkeep(file_sink, ignore)
 
-logger = chopmunk.prettyprint_sink()
-filesink = chopmunk.file_sink('mnist.log')
-filesink = chopmunk.jsonify(filesink)
-logger = chopmunk.broadcast(logger, filesink, print_Hp_min_max())
+logger = chopmunk.broadcast(console_sink, file_sink)
 logfunc = logger.send
 
 optimizer = 'hf'
@@ -198,10 +193,10 @@ elif optimizer == 'hf':
         logfunc=logfunc)
 
 for i, info in enumerate(opt):
-    X, Y = info['args']
-    loss = f(P.data, X, Y)
-    print 'loss', loss
-    if i > 30:
+    logfunc(info)
+    if i > 100:
+        break
+    if info['step_length'] == 0 and (info['direction_m1'] == 0).all():
         break
 
 #pylab.plot(steps)
