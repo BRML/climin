@@ -51,11 +51,12 @@ class ConjugateGradient(Minimizer):
         for i in range(self.wrt.size):
             Hp = self.f_Hp(direction)
             ry = np.dot(grad, y)                     
-            step_length = ry / np.dot(direction, Hp)
+            pHp = np.inner(direction, Hp)
+            step_length = ry / pHp
             self.wrt += step_length * direction            
 
             # We do this every few iterations to compensate for possible
-            # numerical errors.
+            # numerical errors due to additions.
             if i % 10 == 0:
                 grad = self.f_Hp(self.wrt) - self.b
             else:
@@ -76,6 +77,7 @@ class ConjugateGradient(Minimizer):
             yield {
                 'ry': ry,
                 'Hp': Hp,
+                'pHp': pHp,
                 'step_length': step_length,
                 'n_iter': i,
             }
