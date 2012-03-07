@@ -32,7 +32,7 @@ def mlp(insize, hiddensize, outsize, transferfunc='tanh', outfunc='id'):
         outweights=(hiddensize, outsize),
         outbias=outsize)
 
-    P.randomize(0.1)
+    P.randomize(1e-4)
 
     inpt = T.matrix('inpt')
     hidden_in = T.dot(inpt, P.inweights)
@@ -155,6 +155,12 @@ for i in range(N):
     Y[i][labels[i]] = 1
 
 #sparse initialization
+P['hiddenbias'][:] = scipy.zeros(n_hidden)
+P['outbias'][:] = scipy.zeros(n_output)
+
+P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden)
+P['outweights'][:,:] = np.random.randn(n_hidden, n_output)
+
 ## P['hiddenbias1'][:] = scipy.zeros(n_hidden1)
 ## P['hiddenbias2'][:] = scipy.zeros(n_hidden2)
 ## P['hiddenbias3'][:] = scipy.zeros(n_hidden3)
@@ -166,15 +172,19 @@ for i in range(N):
 ## P['hiddenweights2'][:,:] = np.random.randn(n_hidden2, n_hidden3)
 ## P['outweights'][:,:] = np.random.randn(n_hidden3, n_output)
 
-## def sparse_initialization(a, b, s, MaxNonZeroPerColumn = 15):
-##     for j in range(b):
-##         perm = np.random.permutation(a)
-##         P[s][perm[MaxNonZeroPerColumn:], j] *= 0
+def sparse_initialization(a, b, s, MaxNonZeroPerColumn = 15):
+    for j in range(b):
+        perm = np.random.permutation(a)
+        P[s][perm[MaxNonZeroPerColumn:], j] *= 0
 
 ## sparse_initialization( n_inpt, n_hidden1, 'inweights')
 ## sparse_initialization( n_hidden1, n_hidden2, 'hiddenweights1')  
 ## sparse_initialization( n_hidden2, n_hidden3, 'hiddenweights2')
 ## sparse_initialization( n_hidden3, n_output, 'outweights')
+
+
+sparse_initialization( n_inpt, n_hidden, 'inweights')
+sparse_initialization( n_hidden, n_output, 'outweights')
 
 
 
@@ -226,7 +236,9 @@ elif optimizer == 'hf':
         precond='martens',
         logfunc=logfunc)
 
-lossTab = scipy.empty(100)
+lossTab = scipy.empty(101)
+with open("./MNISTlog", 'w') as fileLog:
+    fileLog.write("")
 
 for i, info in enumerate(opt):
     X, Y = info['args']
@@ -234,7 +246,9 @@ for i, info in enumerate(opt):
     print 'iteration', i
     print 'loss', loss
     lossTab[i] = loss
-    logfunc({'loss':loss})
+    with open("./MNISTlog", 'a') as fileLog:
+        fileLog.write(str(loss))
+        fileLog.write("\n")
     
     if i > 100:
         break
