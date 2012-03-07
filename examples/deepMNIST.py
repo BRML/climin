@@ -81,6 +81,7 @@ par_sub = T.vector()
 inpt = exprs['inpt']
 target = T.matrix('target')
 output = exprs['output']
+output_in = exprs['output-in']
 
 # Shorthand to create a cross entropy expression
 def cross_entropy(a, b):
@@ -98,10 +99,11 @@ lossgrad = T.grad(loss, P.flat)
 
 
 # Expression for the Gauss-Newton matrix.
-Jp = T.Rop(output, P.flat, p)
-HJp = T.grad(T.sum(T.grad(loss, output) * Jp),
-             output, consider_constant=[Jp])
-Hp = T.grad(T.sum(HJp * output), P.flat, consider_constant=[HJp, Jp])
+Jp = T.Rop(output_in, P.flat, p)
+HJp = T.grad(T.sum(T.grad(loss, output_in) * Jp),
+             output_in, consider_constant=[Jp])
+Hp = T.grad(T.sum(HJp * output_in), P.flat, consider_constant=[HJp, Jp])
+
 
 # Functions.
 givens = {P.flat: par_sub}
