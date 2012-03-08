@@ -9,7 +9,6 @@ import scipy.optimize
 
 from bfgs import Bfgs
 from linesearch import WolfeLineSearch
-from logging import taggify
 
 
 class Sbfgs(Bfgs):

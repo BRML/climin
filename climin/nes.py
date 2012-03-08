@@ -52,7 +52,7 @@ class Xnes(Minimizer):
     def __iter__(self):
         dim = self.wrt.shape[0]
         I = scipy.eye(dim)
-    
+
         # Square root of covariance matrix.
         A = scipy.eye(dim)
         center = self.wrt.copy()
