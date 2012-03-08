@@ -70,7 +70,7 @@ class HessianFree(Minimizer):
     def get_preconditioner(self, grad, damping):
         # Preconditioning matrix.
         if self.precond == 'martens':
-            precond = (grad**2 + damping )**(0.75)
+            precond = (grad**2 + damping)**0.75
         elif not self.precond:
             precond = np.ones(grad.size)
         else:
