@@ -28,6 +28,6 @@ class GradientDescent(Minimizer):
 
             yield dict(gradient=gradient, steprate=steprate, 
                        args=args, kwargs=kwargs, n_iter=i,
-                       momentum=momentum, step=step )
+                       momentum=momentum, step=step)
 
             step_m1 = step

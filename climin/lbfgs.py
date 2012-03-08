@@ -8,7 +8,6 @@ import scipy.optimize
 
 from base import Minimizer, is_nonzerofinite
 from linesearch import WolfeLineSearch
-from logging import taggify
 
 
 class Lbfgs(Minimizer):
@@ -109,10 +108,12 @@ class Lbfgs(Minimizer):
                     grad_diffs, steps, -grad, hessian_diag, idxs) 
 
             if not is_nonzerofinite(direction):
-                self.logfunc({'message': 'direction is invalid -- need to bail out.'})
+                self.logfunc(
+                    {'message': 'direction is invalid--need to bail out.'})
                 break
 
-            step_length = self.line_search.search(direction, None, args, kwargs)
+            step_length = self.line_search.search(
+                direction, None, args, kwargs)
 
             step = step_length * direction
             if step_length != 0:

@@ -17,38 +17,45 @@ class ConjugateGradient(Minimizer):
     fprime = Ax - b
     """
 
-    def __init__(self, wrt, f, fprime, epsilon = 1e-14,
-                 args=None, logfunc=None):
-        super(ConjugateGradient, self).__init__(wrt, args=args, logfunc=logfunc)
-        self.f = f
-        self.fprime = fprime
-        self.b = - self.fprime(np.zeros(wrt.size))
+    def __init__(self, wrt, H=None, b=None, f_Hp=None, epsilon=1e-14,
+                 logfunc=None, precond = None):
+        super(ConjugateGradient, self).__init__(
+            wrt, args=None, logfunc=logfunc)
+        self.f_Hp = f_Hp if f_Hp is not None else lambda p: np.dot(H, p)
+        self.b = b
         self.epsilon = epsilon
+        self.precond = precond
+
+    def solve(self, r):
+        if self.precond is  None:
+            return r
+        elif (self.precond.ndim == 1 ):
+            return (r/self.precond)
+        else:
+            return scipy.linalg.solve(self.precond, r)
 
     def __iter__(self):
-        args, kwargs = self.args.next()
-        grad = self.fprime(self.wrt, *args, **kwargs)
-        
-        for i, (next_args, next_kwargs) in enumerate(self.args):
-            # If the gradient is exactly zero, we stop. Otherwise, the
-            # updates will lead to NaN errors because the direction will
-            # be zero.
-            if (grad == 0).all():
-                self.logfunc({'message': 'gradient is 0'})
-                break
+        grad = self.f_Hp(self.wrt) - self.b
+        y =self.solve(grad)
+        direction = -y
 
-            if i == 0:
-                direction = -grad
-                step_length = None
-            else:
-                Ap = self.fprime(direction)+ self.b
-                rr = np.dot(grad, grad)
-                step_length = rr / np.dot(direction, Ap)
-                self.wrt += step_length * direction
-                grad = grad + step_length * Ap
-                beta = np.dot(grad, grad)/ rr
-                direction = - grad + beta * direction
-            
+        
+        # If the gradient is exactly zero, we stop. Otherwise, the
+        # updates will lead to NaN errors because the direction will
+        # be zero.
+        if (grad == 0).all():
+            self.logfunc({'message': 'gradient is 0'})
+            return
+        for i in range(self.wrt.size):
+            Hp = self.f_Hp(direction)
+            ry = np.dot(grad, y)                     
+            step_length = ry / np.dot(direction, Hp)
+            self.wrt += step_length * direction            
+            grad = grad + step_length * Hp
+            y = self.solve(grad)
+            beta = np.dot(grad, y)/ ry
+            direction = - y + beta * direction
+
             # If we don't bail out here, we will enter regions of numerical
             # instability.
             if (abs(grad) < self.epsilon).all():
@@ -56,12 +63,9 @@ class ConjugateGradient(Minimizer):
                     {'message': 'converged - gradient smaller than epsilon'})
                 break
 
-            # Prepare everything for the next loop.
-            args, kwargs = next_args, next_kwargs
-
             yield {
+                'ry': ry,
+                'Hp': Hp,
                 'step_length': step_length,
                 'n_iter': i,
-                'args': args,
-                'kwargs': kwargs,
             }

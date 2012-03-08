@@ -1,35 +1,36 @@
+import nose
 import itertools
 
 import numpy as np
 
-from climin import NonlinearConjugateGradient
+from climin import HessianFree
 
 from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-def test_ncg_quadratic():
+def test_hf_quadratic():
     obj = Quadratic()
-    opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime)
+    opt = HessianFree(obj.pars, obj.f, obj.fprime, obj.f_Hp)
     for i, info in enumerate(opt):      
         if i > 50:
             break
     assert obj.solved(), 'did not find solution'
 
 
-def test_ncg_rosen():
+def test_hf_rosen():
     obj = Rosenbrock()
-    opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime)
+    opt = HessianFree(obj.pars, obj.f, obj.fprime, obj.f_Hp)
     for i, info in enumerate(opt):      
-        if i > 14:
+        if i > 50:
             break
     assert obj.solved(), 'did not find solution'
 
 
-def test_ncg_lr():
-    obj = LogisticRegression()
+def test_hf_lr():
+    obj = LogisticRegression(seed=10101)
     args = itertools.repeat(((obj.X, obj.Z), {}))
-    opt = NonlinearConjugateGradient(obj.pars, obj.f, obj.fprime, args=args)
+    opt = HessianFree(obj.pars, obj.f, obj.fprime, obj.f_Hp, args=args)
     for i, info in enumerate(opt):      
-        if i > 50:
+        if i > 100:
             break
     assert obj.solved(), 'did not find solution'
