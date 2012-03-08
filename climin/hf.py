@@ -66,7 +66,6 @@ class HessianFree(Minimizer):
             print 'backtracking through losses', loss
             if loss < base_loss:
                 break
-        return len(directions) - 1, self.f(self.wrt + directions[-1], *args, **kwargs)
         return len(directions) - i - 1, loss
 
     def get_preconditioner(self, grad, damping):
