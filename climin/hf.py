@@ -77,14 +77,15 @@ class HessianFree(Minimizer):
             raise ValueError('unknown preconditioning: %s' % self.precond)
         return precond
 
-    def find_direction(self, loss, grad, direction_m1, damping, args, kwargs):
+    def find_direction(self, loss, grad, direction_m1, damping, 
+                       cg_args, cg_kwargs, bt_args, bt_kwargs):
         # Copy, because we will optimize this beast inplace.
-        direction = direction_m1.copy()             
+        direction = direction_m1 * 0.95
 
         # Define function for the Hessian vector product that 
         # includes damping.
         def f_Hp(x):
-            return self.f_Hp(self.wrt, x, *args, **kwargs) + damping * x
+            return self.f_Hp(self.wrt, x, *cg_args, **cg_kwargs) + damping * x
 
         # Define short hand for the loss of the quadratic approximation.
         def f_q_loss(direction):
@@ -109,8 +110,6 @@ class HessianFree(Minimizer):
             logfunc=self.logfunc)
 
         for i, info in enumerate(opt):
-            self.logfunc(info)
-
             # Saving current direction for backtracking.
             if i == np.ceil(next_saving):
                 next_saving *= save_increase_factor
@@ -118,7 +117,10 @@ class HessianFree(Minimizer):
 
             q_losses.append(f_q_loss(direction))
 
-            # Stoping criterions.
+            info.update({'loss': q_losses[-1]})
+            self.logfunc(info)
+
+            # Stopping criterions.
             if relative_improvement_less_than(q_losses, 5e-4, 0.1, 10):
                 self.logfunc({
                     'message': 'stopping cg - stopping criterion'})
