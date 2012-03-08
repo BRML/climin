@@ -17,10 +17,12 @@ def relative_improvement_less_than(
 
     It is assumed that the loss is bounded by 0 from above.
     """
-    lookback = max(min_lookback, lookback_factor * len(losses))
+    lookback = int(max(min_lookback, lookback_factor * len(losses)))
     if lookback >= len(losses):
         return False
-    if (losses[-1] - losses[-lookback - 1] / losses[-1]) < atleast:
+    if losses[-1] > 0:
+        return False
+    if (losses[-1] - losses[-lookback - 1]) / losses[-1] < lookback * atleast:
         return True
 
 
