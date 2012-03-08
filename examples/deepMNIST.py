@@ -170,7 +170,8 @@ print '#pars:', P.data.size
 
 import chopmunk
 
-ignore = ['args', 'kwargs', 'gradient', 'Hp']
+ignore = ['args', 'kwargs', 'gradient', 'Hp', 'direction', 'step',
+          'cg_minimum']
 console_sink = chopmunk.prettyprint_sink()
 console_sink = chopmunk.dontkeep(console_sink, ignore)
 
@@ -179,6 +180,7 @@ file_sink = chopmunk.jsonify(file_sink)
 file_sink = chopmunk.dontkeep(file_sink, ignore)
 
 logger = chopmunk.broadcast(console_sink, file_sink)
+logger = chopmunk.timify(logger)
 logfunc = logger.send
 
 optimizer = 'hf'
