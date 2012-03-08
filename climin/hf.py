@@ -146,8 +146,10 @@ class HessianFree(Minimizer):
         damping = self.initial_damping
         cg_minimum = np.zeros(self.wrt.size)
 
+        args, kwargs = self.args.next()
         loss = self.f(self.wrt, *args, **kwargs)
         grad = self.fprime(self.wrt, *args, **kwargs)
+
         for i, (args, kwargs) in enumerate(self.args):
 
             # Get minibatches for cg and for backtracking.
