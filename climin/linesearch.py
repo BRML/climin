@@ -31,17 +31,12 @@ class BackTrack(LineSearch):
     than `tolerance`.
     """
 
-    def __init__(self, wrt, f, schedule=None, decay=None, max_iter=float('inf'),
+    def __init__(self, wrt, f, decay=None, max_iter=float('inf'),
                  tolerance=1E-20, logfunc=dummylogfunc):
         super(BackTrack, self).__init__(wrt, logfunc)
         self.f = f
         self.max_iter = max_iter
-
-        if schedule is not None:
-            self.schedule = schedule
-        else:
-            self.decay = decay
-            self.schedule = (decay**i for i in itertools.count())
+        self.decay = decay
 
         self.tolerance = tolerance
 
@@ -55,7 +50,8 @@ class BackTrack(LineSearch):
         kwargs = {} if kwargs is None else kwargs
 
         # Try out every point in the schedule until a reduction has been found.
-        for i, s in enumerate(self.schedule):
+        schedule = (self.decay**i for i in itertools.count())
+        for i, s in enumerate(schedule):
             if i + 1 >= self.max_iter:
                 break
             step = initialization * s * direction
@@ -64,11 +60,11 @@ class BackTrack(LineSearch):
                 break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
+            self.logfunc({'step_length': s, 'loss': loss})
             improvement = loss0 - loss
             if -(loss0 - loss) < 0:
                 # We check here for negative improvement to also not continue in
                 # the case of NaNs.
-                self.logfunc({'message': 'beating loss by %f' % (loss0 - loss)})
                 return s
 
         return 0
