@@ -137,10 +137,11 @@ class WolfeLineSearch(LineSearch):
         # TODO: find better API for this
         self.first_try = True
 
-    def search(self, direction, initialization=None, args=None, kwargs=None):
+    def search(self, direction, initialization=None, args=None, kwargs=None,
+               loss0=None):
         args = args if args is not None else ()
         kwargs = kwargs if kwargs is not None else {}
-        loss0 = self.f(self.wrt, *args, **kwargs)
+        loss0 = self.f(self.wrt, *args, **kwargs) if loss0 is None else loss0
         grad0 = self.fprime(self.wrt, *args, **kwargs)
         direct_deriv0 = scipy.inner(grad0, direction)
         f = lambda x: (self.f(x, *args, **kwargs),
