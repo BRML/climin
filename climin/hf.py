@@ -132,9 +132,6 @@ class HessianFree(Minimizer):
                     'message': 'stopping cg - max iterations reached'})
                 break
 
-        # TODO: we do this once too much if the last was a saving iteration.
-        directions.append(direction.copy())
-
         # Check intermediate CG results for the best.
         idx, loss = self.backtrack_cg(directions, loss, bt_args, bt_kwargs)
         self.logfunc({'backtrack-idx': idx})
