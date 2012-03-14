@@ -11,3 +11,4 @@ from sbfgs import Sbfgs
 from smd import SMD
 from nesterov import Nesterov
 from asgd import ASGD
+from tonga import tonga
