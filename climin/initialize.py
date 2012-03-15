@@ -9,5 +9,4 @@ def sparsify_columns(arr, n_non_zero):
     for i in range(arr.shape[1]):
         idxs = xrange(colsize)
         zeros = random.sample(idxs, colsize - n_non_zero)
-        print zeros
         arr[zeros, i] *= 0
