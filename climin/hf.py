@@ -35,6 +35,7 @@ class HessianFree(Minimizer):
                  cg_max_iter=250,
                  line_search=None,
                  precond=False,
+                 explicit_damping=False,
                  logfunc=None):
         super(HessianFree, self).__init__(wrt, args=args, logfunc=logfunc)
 
@@ -51,6 +52,7 @@ class HessianFree(Minimizer):
         self.cg_max_iter = cg_max_iter
 
         self.precond = precond
+        self.explicit_damping = explicit_damping
 
         if line_search is not None:
             self.line_search = line_search
@@ -85,8 +87,14 @@ class HessianFree(Minimizer):
 
         # Define function for the Hessian vector product that 
         # includes damping.
-        def f_Hp(x):
-            return self.f_Hp(self.wrt, x, *cg_args, **cg_kwargs) + damping * x
+        if not self.explicit_damping:
+            def f_Hp(x):
+                return (self.f_Hp(self.wrt, x, *cg_args, **cg_kwargs) 
+                        + damping * x)
+        else:
+            def f_Hp(x):
+                return (self.f_Hp(self.wrt, x, damping, *cg_args, **cg_kwargs) 
+                        + damping * x)
 
         # Define short hand for the loss of the quadratic approximation.
         def f_q_loss(direction):
@@ -177,7 +185,14 @@ class HessianFree(Minimizer):
             step = step_length * direction
             r_loss_m1 = self.f(self.wrt, *ratio_args, **ratio_kwargs)
             r_loss = self.f(self.wrt + cg_minimum, *ratio_args, **ratio_kwargs)
-            Hp = self.f_Hp(self.wrt, cg_minimum, *ratio_args, **ratio_kwargs)
+
+            if self.explicit_damping:
+                Hp = self.f_Hp(self.wrt, cg_minimum, damping, 
+                               *ratio_args, **ratio_kwargs)
+            else:
+                Hp = self.f_Hp(self.wrt, cg_minimum,
+                               *ratio_args, **ratio_kwargs)
+
             Hp += (damping * cg_minimum)
             q_loss = 0.5 * np.inner(cg_minimum, Hp) - np.inner(-grad, cg_minimum)
 
