@@ -27,10 +27,11 @@ def test_hf_rosen():
 
 
 def test_hf_lr():
-    obj = LogisticRegression(seed=10101)
+    obj = LogisticRegression(seed=1010)
     args = itertools.repeat(((obj.X, obj.Z), {}))
     opt = HessianFree(obj.pars, obj.f, obj.fprime, obj.f_Hp, args=args)
-    for i, info in enumerate(opt):      
+    for i, info in enumerate(opt):
+        print(info["loss"])
         if i > 100:
             break
     assert obj.solved(), 'did not find solution'
