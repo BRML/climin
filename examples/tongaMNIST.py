@@ -104,16 +104,12 @@ Y = np.zeros((N, 10))
 for i in range(N):
     Y[i][labels[i]] = 1
 
-#sparse initialization
+#initialization
 P['hiddenbias'][:] = np.random.randn(n_hidden)*1e-4
 P['outbias'][:] = np.random.randn(n_output)*1e-4
 
 P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden)*1e-4
 P['outweights'][:,:] = np.random.randn(n_hidden, n_output)*1e-4
-
-
-
-
 
 
 
@@ -130,7 +126,11 @@ print '#pars:', P.data.size
 
 import numericalGradientChecker
 
-numericalGradientChecker.numericalGradientChecker(fraw, fprime, inputDim=P.data.size, outputDim=batchsize, args=args, bounds=None, numberOfTry=10)
+checker = numericalGradientChecker.numericalGradientChecker(fraw, fprime, inputDim=P.data.size, outputDim=batchsize, args=args, bounds=None)
+for i, info in enumerate(checker):
+    print "errors in gradient", info['errors']
+    if i>0:
+        break
 
 import chopmunk
 
