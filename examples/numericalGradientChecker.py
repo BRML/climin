@@ -2,6 +2,8 @@ import scipy
 import numpy as np
 from scipy import misc
 import itertools
+import random
+import math
 
 
 class numericalGradientChecker:
@@ -36,15 +38,15 @@ class numericalGradientChecker:
 
     def acceptable_deviation(self, a, b):
         # return (np.around(a, self.precision) == np.around(b,  self.precision))
-        if (a!=0):
-            ret = (abs((a-b)/a))
+        if (abs(a)>1e-2): #or else, numerical instability
+            ret = abs((a-b)/a)
         else:
             ret = abs(a-b)
         return (ret > self.precision)
 
 
     def __iter__(self):
-        
+        random.seed()
         x0 = np.random.rand(self.inputDim)*(self.bounds[:,1]-self.bounds[:,0]) + self.bounds[:,0]
         info = {}
 
@@ -60,8 +62,8 @@ class numericalGradientChecker:
                     deltaX[i] = self.epsilon
                     derivative = (self.f(x0+deltaX, *args, **kwargs)-fX)/deltaX[i]
                 if (self.acceptable_deviation(gradient[i], derivative)):
-                    #print "Numerical gradient different from given gradient"
-                    #print derivative, gradient[i]
+                    print "Numerical gradient different from given gradient"
+                    print derivative, gradient[i]
                     noError = False
                     nbErrors +=1
 
@@ -76,8 +78,8 @@ class numericalGradientChecker:
                     for j in range(self.outputDim):
                         derivative = (fXdeltaX[j]-fX[j])/deltaX[i]
                         if (self.acceptable_deviation(jacobian[j,i], derivative)):
-                            #print "Numerical gradient different from given gradient"
-                            #print derivative, jacobian[j,i]
+                            print "Numerical gradient different from given gradient"
+                            print derivative, jacobian[j,i]
                             noError = False
                             nbErrors +=1
             info.update({ 'errors': nbErrors})   
