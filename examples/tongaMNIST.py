@@ -1,7 +1,7 @@
 import itertools
 import random
 
-from climin import tonga
+from climin import tonga, GradientDescent
 
 import pylab
 import scipy
@@ -76,19 +76,15 @@ p = T.vector('p')
 # The loss and its gradient.
 loss = cross_entropy(target, output)
 lossmean = T.mean(loss)
-lossgrad = theano.gradient.jacobian(loss, P.flat)
-## lossgradbias = theano.gradient.jacobian(loss, P['outbias'])
-## lossgradoutput= theano.gradient.jacobian(loss, P['outweights'])
-## lossgradhidden = theano.gradient.jacobian(loss, P['hiddenbias'])
+lossgrad = T.grad(lossmean, P.flat)
+lossjacobian = theano.gradient.jacobian(loss, P.flat)
 
 # Functions.
 givens = {P.flat: par_sub}
 f = theano.function([par_sub, inpt, target], lossmean, givens=givens)
 fraw = theano.function([par_sub, inpt, target], loss, givens=givens)
-fprime = theano.function([par_sub, inpt, target], lossgrad, givens=givens)
-## fbias = theano.function([par_sub, inpt, target], lossgradbias, givens=givens)
-## foutput = theano.function([par_sub, inpt, target], lossgradoutput, givens=givens)
-## fhidden = theano.function([par_sub, inpt, target], lossgradhidden, givens=givens)
+fjacobian = theano.function([par_sub, inpt, target], lossjacobian, givens=givens)
+fgrad = theano.function([par_sub, inpt, target], lossgrad, givens=givens)
 
 # Build a dataset.
 #MNIST
@@ -104,6 +100,7 @@ Y = np.zeros((N, 10))
 for i in range(N):
     Y[i][labels[i]] = 1
 
+print "data loaded"
 #initialization
 P['hiddenbias'][:] = np.random.randn(n_hidden)*1e-4
 P['outbias'][:] = np.random.randn(n_output)*1e-4
@@ -124,13 +121,13 @@ args = ((m, {}) for m in minibatches)
 
 print '#pars:', P.data.size
 
-import numericalGradientChecker
+## import numericalGradientChecker
 
-checker = numericalGradientChecker.numericalGradientChecker(fraw, fprime, inputDim=P.data.size, outputDim=batchsize, args=args, bounds=None)
-for i, info in enumerate(checker):
-    print "errors in gradient", info['errors']
-    if i>0:
-        break
+## checker = numericalGradientChecker.numericalGradientChecker(fraw, fprime, inputDim=P.data.size, outputDim=batchsize, args=args, bounds=None)
+## for i, info in enumerate(checker):
+##     print "errors in gradient", info['errors']
+##     if i>0:
+##         break
 
 import chopmunk
 
@@ -150,25 +147,34 @@ blocksizes = np.ones(n_hidden + n_output)
 blocksizes[:n_hidden] *= (n_inpt+1)
 blocksizes[n_hidden:] *= (n_hidden+1)
 
-opt = tonga(P.data, fprime, 1e-4, blocksizes, args=args, logfunc=logfunc)
+opt = tonga(P.data, fgrad, fjacobian
+            , damping=1e-4, blocksizes=blocksizes, args=args, logfunc=logfunc)
+#opt = GradientDescent(P.data, fgrad, steprate = 1e-4, args=args, logfunc=logfunc)
 
+print "initialization done"
 
-lossTab = scipy.empty(103)
+lossTab = scipy.empty(503)
 
 for i, info in enumerate(opt):
     x, y = info['args']
     loss = f(P.data, x, y)
     print 'iteration', i
     print 'loss', loss
-    ## print fbias(P.data, x, y)
-    ## print foutput(P.data, x, y)
-    ## print fhidden(P.data, x, y)
     lossTab[i] = loss
     
     
     logfunc(info)
-    if i > 100:
+    if i > 500:
         break
+
+fileLog = open('logTonga', 'w')
+fileLog.write('')
+fileLog.close()
+fileLog = open('logTonga', 'a')
+for i in range(501):
+    fileLog.write(str(lossTab[i]))
+    fileLog.write('\n')
+fileLog.close()
 
 pylab.plot(lossTab)
 pylab.show()

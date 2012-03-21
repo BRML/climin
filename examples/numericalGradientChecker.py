@@ -38,7 +38,7 @@ class numericalGradientChecker:
 
     def acceptable_deviation(self, a, b):
         # return (np.around(a, self.precision) == np.around(b,  self.precision))
-        if (abs(a)>1e-2): #or else, numerical instability
+        if (abs(a)>1e-3): #or else, numerical instability
             ret = abs((a-b)/a)
         else:
             ret = abs(a-b)
