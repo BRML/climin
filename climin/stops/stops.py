@@ -54,6 +54,22 @@ def converged(func, n=10, epsilon=1e-5):
     return inner
 
 
+def rising(func, n=1, epsilon=0):
+    """Return a stop criterion that remembers the last `n` results of `func` and
+    returns True if the its return value rose at least by `epsilon` in the
+    meantime."""
+    results = []
+    def inner(info):
+        results.append(func())
+        if len(results) < n + 1:
+            return False
+        if results[-n] + epsilon < results[-1]:
+            return True
+        else:
+            return False
+    return inner
+
+
 def and_(criterions):
     """Return a stop criterion that given a list `criterions` of stop criterions
     only returns True, if all of criterions return True.
@@ -63,3 +79,5 @@ def and_(criterions):
     def inner(info):
         return all(c(info) for c in criterions)
     return inner
+
+
