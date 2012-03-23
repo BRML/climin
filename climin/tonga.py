@@ -6,7 +6,7 @@ import scipy.linalg
 import scipy.optimize
 import itertools
 import math
-import scipy.sparse.linalg
+from scipy.sparse.linalg import eigsh
 
 from base import Minimizer, repeat_or_iter
 
@@ -33,27 +33,19 @@ class tonga(Minimizer):
 
           
 
-        
+    #@profile   
     def __iter__(self):
         X_m1 = np.zeros((1, self.wrt.size))
         oldGrad = np.zeros((self.b -1, self.wrt.size))
         step = scipy.empty(self.wrt.size)        
-
-        
+                
         for i, (args, kwargs) in enumerate(self.args):            
             offset = 0
             if (i==0):
-                gradient_mean = self.fprime(self.wrt, *args, **kwargs)
-                X = scipy.empty((self.wrt.size,1)) 
-                X[:,0] = gradient_mean
-            elif ((i%self.b)!=0):
-                gradient_mean = self.fprime(self.wrt, *args, **kwargs)
-                X = scipy.empty((self.wrt.size, X_m1[0].size + 1))
-                X[:,:-1] = X_m1 * self.gamma_sqrt
-                X[:,-1] = gradient_mean
-            else:
-                #gradient = self.fjacobian(self.wrt, *args, **kwargs)
-                #gradient_mean = gradient.mean(axis=0)
+                ## gradient_mean = self.fprime(self.wrt, *args, **kwargs)
+                ## X = scipy.empty((self.wrt.size,1)) 
+                ## X[:,0] = gradient_mean
+
                 batches = [self.cov_args.next() for _ in range(self.nb_estimates)]
                 gradient = [self.fprime(self.wrt, *cov_args, **cov_kwargs) for (cov_args, cov_kwargs) in batches]
                 gradient = np.array(gradient)
@@ -61,9 +53,26 @@ class tonga(Minimizer):
                 
                 X = scipy.empty((self.wrt.size, self.k + self.b)) 
 
+                1
+            elif ((i%self.b)!=0):
+                gradient_mean = self.fprime(self.wrt, *args, **kwargs)
+                X = scipy.empty((self.wrt.size, X_m1[0].size + 1))
+                X[:,:-1] = X_m1 * self.gamma_sqrt
+                X[:,-1] = gradient_mean
+            else:
+                batches = [self.cov_args.next() for _ in range(self.nb_estimates)]
+                gradient = [self.fprime(self.wrt, *cov_args, **cov_kwargs) for (cov_args, cov_kwargs) in batches]
+                gradient = np.array(gradient)
+                gradient_mean = gradient.mean(axis=0)
                 
+                X = scipy.empty((self.wrt.size, self.k + self.b)) 
+
+           
+            
             for size in self.blocksizes:
-                if (i%self.b==0) and (i>0):
+                length = len(X[0])
+                
+                if (i%self.b==0):# and (i>0):
                     #computing gradients
                     grad = gradient[:, offset:offset+size]                    
                     
@@ -75,10 +84,12 @@ class tonga(Minimizer):
 
                     #eigenvalues decomposition                    
                     covariance = scipy.dot(grad.T, grad)
-                    _,  X[offset:offset+size, :self.k] = scipy.sparse.linalg.eigsh(covariance, k=self.k)                                                               
+                    _,  X[offset:offset+size, :self.k] = eigsh(covariance, k=self.k)                                                               
 
                 x = X[offset:offset+size]
-                step[offset:offset+size] = scipy.dot(x, scipy.linalg.inv(scipy.dot(x.T,x)+ self.damping*scipy.eye(len(x[0]))))[:,-1]
+                
+                #step[offset:offset+size] = scipy.dot(x, scipy.linalg.inv(scipy.dot(x.T,x)+ self.damping*scipy.eye(length)))[:,-1]
+                step[offset:offset+size] = (scipy.linalg.solve((scipy.dot(x.T,x)+ self.damping*scipy.eye(length)).T, x.T, sym_pos=True, overwrite_a=True))[-1]
                 offset += size
                 
 

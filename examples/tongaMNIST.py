@@ -153,6 +153,11 @@ logger = chopmunk.broadcast(console_sink, file_sink)
 logfunc = logger.send
 
 
+#size of blocks used for the diagonal approximation
+## blocksizes = np.ones((n_hidden + n_output)/2)
+## blocksizes[:n_hidden] *= (n_inpt+1)*2
+## blocksizes[n_hidden:] *= (n_hidden+1)*2
+
 blocksizes = np.ones(n_hidden + n_output)
 blocksizes[:n_hidden] *= (n_inpt+1)
 blocksizes[n_hidden:] *= (n_hidden+1)
@@ -162,7 +167,7 @@ opt = tonga(P.data, fprime, damping=1e-4, blocksizes=blocksizes, args=args, cov_
 
 print "initialization done"
 
-N_ITER_MAX = 500
+N_ITER_MAX = 10
 
 lossTab = scipy.empty(N_ITER_MAX +3)
 scheduleTab = scipy.empty(N_ITER_MAX +3)
