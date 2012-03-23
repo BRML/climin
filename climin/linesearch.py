@@ -7,11 +7,14 @@ import scipy.optimize
 import numpy as np
 import scipy as sp
 
+from base import dummylogfunc
+
 
 class LineSearch(object):
 
-    def __init__(self, wrt):
+    def __init__(self, wrt, logfunc=dummylogfunc):
         self.wrt = wrt
+        self.logfunc = logfunc
 
 
 class BackTrack(LineSearch):
@@ -28,30 +31,47 @@ class BackTrack(LineSearch):
     than `tolerance`.
     """
 
-    def __init__(self, wrt, f, schedule=None, tolerance=1E-20):
-        super(BackTrack, self).__init__(wrt)
+    def __init__(self, wrt, f, schedule=None, decay=None, max_iter=float('inf'),
+                 tolerance=1E-20, logfunc=dummylogfunc):
+        super(BackTrack, self).__init__(wrt, logfunc)
         self.f = f
+        self.max_iter = max_iter
+
         if schedule is not None:
             self.schedule = schedule
         else:
-            self.schedule = (0.95**i for i in itertools.count())
+            self.decay = decay
+            self.schedule = (decay**i for i in itertools.count())
+
         self.tolerance = tolerance
 
-    def search(self, direction, args, kwargs, loss0=None):
+    def search(self, direction, initialization=1, args=None, kwargs=None, 
+               loss0=None):
         # Recalculate the current loss if it has not been given.
         if loss0 is None:
             loss0 = self.f(self.wrt, *args, **kwargs)
 
+        args = [] if args is None else args
+        kwargs = {} if kwargs is None else kwargs
+
         # Try out every point in the schedule until a reduction has been found.
-        for s in self.schedule:
-            step = s * direction
-            if abs(step.max()) < self.tolerance:
+        for i, s in enumerate(self.schedule):
+            if i + 1 >= self.max_iter:
+                break
+            step = initialization * s * direction
+            if abs(step).max() < self.tolerance:
                 # If the step is too short, just return 0.
-                return 0.0
+                break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
-            if loss0 - loss > 0:
+            improvement = loss0 - loss
+            if -(loss0 - loss) < 0:
+                # We check here for negative improvement to also not continue in
+                # the case of NaNs.
+                self.logfunc({'message': 'beating loss by %f' % (loss0 - loss)})
                 return s
+
+        return 0
 
 
 class StrongWolfeBackTrack(BackTrack):
