@@ -13,4 +13,4 @@ def test_rising():
     assert is_rising(None) == False, 'returns True although not enough data'
     assert is_rising(None) == False, 'returns True although not rising'
     assert is_rising(None) == False, 'returns True although rising in tolerance'
-    assert is_rising(None) == False, 'returns False although rising'
+    assert is_rising(None) == True, 'returns False although rising'

@@ -63,7 +63,7 @@ def rising(func, n=1, epsilon=0):
         results.append(func())
         if len(results) < n + 1:
             return False
-        if results[-n] + epsilon < results[-1]:
+        if results[-n - 1] + epsilon < results[-1]:
             return True
         else:
             return False
