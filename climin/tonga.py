@@ -42,18 +42,18 @@ class tonga(Minimizer):
         for i, (args, kwargs) in enumerate(self.args):            
             offset = 0
             if (i==0):
-                ## gradient_mean = self.fprime(self.wrt, *args, **kwargs)
-                ## X = scipy.empty((self.wrt.size,1)) 
-                ## X[:,0] = gradient_mean
+                gradient_mean = self.fprime(self.wrt, *args, **kwargs)
+                X = scipy.empty((self.wrt.size,1)) 
+                X[:,0] = gradient_mean
 
-                batches = [self.cov_args.next() for _ in range(self.nb_estimates)]
-                gradient = [self.fprime(self.wrt, *cov_args, **cov_kwargs) for (cov_args, cov_kwargs) in batches]
-                gradient = np.array(gradient)
-                gradient_mean = gradient.mean(axis=0)
+                ## batches = [self.cov_args.next() for _ in range(self.nb_estimates)]
+                ## gradient = [self.fprime(self.wrt, *cov_args, **cov_kwargs) for (cov_args, cov_kwargs) in batches]
+                ## gradient = np.array(gradient)
+                ## gradient_mean = gradient.mean(axis=0)
                 
-                X = scipy.empty((self.wrt.size, self.k + self.b)) 
+                ## X = scipy.empty((self.wrt.size, self.k + self.b)) 
 
-                1
+
             elif ((i%self.b)!=0):
                 gradient_mean = self.fprime(self.wrt, *args, **kwargs)
                 X = scipy.empty((self.wrt.size, X_m1[0].size + 1))
@@ -68,11 +68,11 @@ class tonga(Minimizer):
                 X = scipy.empty((self.wrt.size, self.k + self.b)) 
 
            
-            
+            length = len(X[0])
             for size in self.blocksizes:
-                length = len(X[0])
                 
-                if (i%self.b==0):# and (i>0):
+                                
+                if (i%self.b==0) and (i>0):
                     #computing gradients
                     grad = gradient[:, offset:offset+size]                    
                     
@@ -82,15 +82,27 @@ class tonga(Minimizer):
                     
                     X[offset:offset+size, self.k+self.b-1] = self.gamma_sqrt**(self.b+i) * gradient_mean[offset:offset+size]
 
-                    #eigenvalues decomposition                    
+                    #eigenvalues decomposition
                     covariance = scipy.dot(grad.T, grad)
-                    _,  X[offset:offset+size, :self.k] = eigsh(covariance, k=self.k)                                                               
+                    try:
+                        _,  X[offset:offset+size, :self.k] = eigsh(covariance, k=self.k, ncv=(2*self.k+2))
+                    except scipy.sparse.linalg.ArpackError :
+                        print ("ARPACK error 3: No shifts could be applied during a cycle of the Implicitly restarted Arnoldi iteration. One possibility is to increase the size of NCV relative to NEV")
+                        fileLog = open('logError', 'a')
+                        for j in range(grad.len):
+                            for l in range(grad.len):
+                                fileLog.write(str(covariance[i,j]))
+                                fileLog.write('\n')
+                        fileLog.close()     
+                        X[offset:offset+size, :self.k] = np.zeros((size, self.k))
 
                 x = X[offset:offset+size]
+                
                 
                 #step[offset:offset+size] = scipy.dot(x, scipy.linalg.inv(scipy.dot(x.T,x)+ self.damping*scipy.eye(length)))[:,-1]
                 step[offset:offset+size] = (scipy.linalg.solve((scipy.dot(x.T,x)+ self.damping*scipy.eye(length)).T, x.T, sym_pos=True, overwrite_a=True))[-1]
                 offset += size
+
                 
 
             #storing the old gradients
