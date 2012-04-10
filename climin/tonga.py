@@ -12,6 +12,26 @@ from base import Minimizer, repeat_or_iter
 
 
 class tonga(Minimizer):
+    """
+    Best hyper-parameters for TONGA :
+                    - number of hidden neurons : 298
+                    - value of gamma : 0,9429783274
+                    - damping : 2,67E-02
+                    - nb_estimates : 203
+                    - batch size : 2961
+                    - cov_batch_size : 152
+                    - variance of weights initialization : 3,80E-02
+    Second best hyper-parameters:    
+                    - number of hidden neurons : 259
+                    - value of gamma : 0,9007389073
+                    - damping : 3,70E-02
+                    - nb_estimates : 186 
+                    - batch size : 4875
+                    - cov_batch_size : 3
+                    - variance of weights initialization : 6,18E-03
+
+
+    """
 
     def __init__(self, wrt, fprime, damping, blocksizes,
                  gamma=0.995, b=50, k=5, nb_estimates=50, 
@@ -28,12 +48,13 @@ class tonga(Minimizer):
         self.gamma = gamma
         self.gamma_sqrt = math.sqrt(self.gamma)
         self.b = b #TODO find a meaningful name
+        #b is the number of iterations we let the rank of the approximate covariance grows
+        #before we use an eigen decomposition again
         self.k = k
+        #k is the number of eigenvectors we keep (rank of the approximation)
         self.nb_estimates = nb_estimates
 
-          
-
-    #@profile   
+           
     def __iter__(self):
         X_m1 = np.zeros((1, self.wrt.size))
         oldGrad = np.zeros((self.b -1, self.wrt.size))
@@ -45,14 +66,6 @@ class tonga(Minimizer):
                 gradient_mean = self.fprime(self.wrt, *args, **kwargs)
                 X = scipy.empty((self.wrt.size,1)) 
                 X[:,0] = gradient_mean
-
-                ## batches = [self.cov_args.next() for _ in range(self.nb_estimates)]
-                ## gradient = [self.fprime(self.wrt, *cov_args, **cov_kwargs) for (cov_args, cov_kwargs) in batches]
-                ## gradient = np.array(gradient)
-                ## gradient_mean = gradient.mean(axis=0)
-                
-                ## X = scipy.empty((self.wrt.size, self.k + self.b)) 
-
 
             elif ((i%self.b)!=0):
                 gradient_mean = self.fprime(self.wrt, *args, **kwargs)

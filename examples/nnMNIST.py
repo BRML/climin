@@ -3,7 +3,7 @@ import random
 import time
 import sys
 
-from climin import tonga, GradientDescent
+from climin import tonga, NaturalNewton, Lbfgs
 
 import scipy
 import theano
@@ -13,9 +13,9 @@ import zeitgeist.util as util
 from zeitgeist.model import transfermap
 import numpy as np
 
-seed = random.randint(0, sys.maxint)
-random.seed(seed)
-print seed
+## seed = random.randint(0, sys.maxint)
+## random.seed(seed)
+## print seed
 
 #random.seed(8561093027007434982)
 
@@ -25,10 +25,10 @@ n_inpt = 784
 n_hidden = 300
 n_output = 10
 
-optimizer = 'tonga'
-#optimizer = 'sgd'
-#art = 'stepsize'
-art = 'validation'
+#optimizer = 'tonga'
+#optimizer = 'lbfgs'
+optimizer = 'nn'
+
 
 
 #Expressions for a one-layer network
@@ -62,7 +62,7 @@ def mlp(insize, hiddensize, outsize, transferfunc='tanh', outfunc='id'):
 
 
 
-exprs, P = mlp(n_inpt, n_hidden, n_output, transferfunc='tanh', outfunc='softmax')
+exprs, P = mlp(n_inpt, n_hidden, n_output, transferfunc='sig', outfunc='softmax')
 # To make the passing of the parameters explicit, we need to substitute it
 # later with the givens parameter.
 par_sub = T.vector()
@@ -79,6 +79,9 @@ def cross_entropy(a, b):
     epsilon = 0
     return -(a * T.log(b+epsilon)).mean()
 
+# Vector for the expression of the Hessian vector product, where this will
+# be the vector.
+p = T.vector('p')
 
 
 # The loss and its gradient.
@@ -101,7 +104,7 @@ import cPickle, gzip
 
 # Load the dataset
 MNISTfile = gzip.open('mnist.pkl.gz','rb') 
-train_set, valid_set, test_set  = cPickle.load(MNISTfile)
+train_set, valid_set, test_set = cPickle.load(MNISTfile)
 MNISTfile.close()
 
 
@@ -186,11 +189,14 @@ blocksizes[:n_hidden] *= (n_inpt+1)
 blocksizes[n_hidden:] *= (n_hidden+1)
 
 if optimizer == 'tonga':
-    opt = tonga(P.data, fprime, damping=0.02, blocksizes=blocksizes, nb_estimates=200, gamma=0.995, args=args, cov_args=cov_args, logfunc=logfunc)
-    fileName = 'logTonga2'
-else:
-    opt = GradientDescent(P.data, fprime, steprate = 1e-2, momentum=0.9, args=args, logfunc=logfunc)
-    fileName = 'logSgd'
+    opt = tonga(P.data, fprime, damping=1e-2, blocksizes=blocksizes, nb_estimates=200, args=args, cov_args=cov_args, logfunc=logfunc)
+    fileName = 'logTonga'
+elif optimizer == 'nn':
+    opt = NaturalNewton(P.data, f, fprime, N=batchsize, args=args, logfunc=logfunc)
+    fileName = 'logNN'
+elif optimizer == 'lbfgs':
+    opt = Lbfgs(P.data, f, fprime, args=args, logfunc=logfunc)
+    fileName = 'logLbfgs'
 
 fileLog = open(fileName, 'w')
 fileLog.write('')
@@ -199,152 +205,100 @@ fileLog.close()
 print "initialization done"
 
 
-N_ITER_MAX = 1000
+N_ITER_MAX = 200
 STEP = 5
 
-if art == 'stepsize':
-    lossTab = scipy.empty(N_ITER_MAX +3)
-    scheduleTab = scipy.empty(N_ITER_MAX +3)
-    lossTot =  scipy.empty(N_ITER_MAX/STEP+1)
-    stepLen = scipy.empty(N_ITER_MAX/STEP+1)
 
-    start = time.clock()
-    bestLoss = 25
-    bestPars = np.zeros(P.data.size)
+lossTab = scipy.empty(N_ITER_MAX +3)
+scheduleTab = scipy.empty(N_ITER_MAX +3)
+lossTot =  scipy.empty(N_ITER_MAX/STEP+1)
+lossVal = scipy.empty(N_ITER_MAX/STEP+1)
+lossTest = scipy.empty(N_ITER_MAX/STEP+1)
+misclassif = scipy.empty(N_ITER_MAX/STEP+1)
+misclassifVal = scipy.empty(N_ITER_MAX/STEP+1)
+misclassifTest = scipy.empty(N_ITER_MAX/STEP+1)
 
-    for i, info in enumerate(opt):
-        x, y = info['args']
-        loss = f(P.data, x, y)
-        print 'iteration', i
-        print 'loss', loss
-        lossTab[i] = loss
-        scheduleTab[i] = time.clock()-start
+start = time.clock()
+bestLoss = 25
+bestPars = np.zeros(P.data.size)
 
-        if i%STEP == 0:
-            delay = time.clock()
-            loss = f(P.data, *(X,Y), **{})
-            lossval = f(P.data, *(Xval,Yval), **{})
-            lossTot[i/STEP] = loss
-            step = info['step']
-            stepLen[i/STEP] = (step**2).sum()
-           
+for i, info in enumerate(opt):
+    x, y = info['args']
+    loss = f(P.data, x, y)
+    print 'iteration', i
+    print 'loss', loss
+    lossTab[i] = loss
+    scheduleTab[i] = time.clock()-start
 
-            print '---'
-            print 'loss on the whole dataset', loss
-            print 'step length', stepLen[i/STEP]
-            print '---'
+    if i%STEP == 0:
+        delay = time.clock()
+        loss = f(P.data, *(X,Y), **{})
+        lossval = f(P.data, *(Xval,Yval), **{})
+        lossTot[i/STEP] = loss
+        lossVal[i/STEP] = lossval
+        lossTest[i/STEP] = f(P.data, *(Xtest,Ytest), **{})
 
-            if (lossval < bestLoss):
-                bestLoss = lossval
-                bestPars[:] = P.data[:]
+        misclassif[i/STEP] = fmisclass(P.data, *(X,Y), **{})
+        misclassifVal[i/STEP] = fmisclass(P.data, *(Xval,Yval), **{})
+        misclassifTest[i/STEP] = fmisclass(P.data, *(Xtest,Ytest), **{}) 
+
+        print '---'
+        print 'loss on the whole dataset', loss
+        print 'loss on the validation set', lossval
+        print 'loss on the test set', lossTest[i/STEP]
+
+        print 'misclassification on the training set: ', misclassif[i/STEP], '%'
+        print 'misclassification on the validation set: ', misclassifVal[i/STEP], '%'
+        print 'misclassification on the test set: ', misclassifTest[i/STEP], '%'
+        print '---'
+
+        if (lossval < bestLoss):
+            bestLoss = lossval
+            bestPars[:] = P.data[:]
 
 
-            fileLog = open(fileName, 'a')
-            fileLog.write(str(scheduleTab[i]))
+        fileLog = open(fileName, 'a')
+        for j in range(min(STEP,i),0,-1):
+            fileLog.write(str(lossTab[i-j]))
             fileLog.write('\n')
-            fileLog.write(str(lossTot[i/STEP]))
-            fileLog.write('\n')
-            fileLog.write(str(stepLen[i/STEP]))
-            fileLog.write('\n')
+            fileLog.write(str(scheduleTab[i-j]))
+            fileLog.write('\n')        
+        fileLog.write(str(lossTot[i/STEP]))
+        fileLog.write('\n')     
+        fileLog.write(str(lossVal[i/STEP]))
+        fileLog.write('\n')
+        fileLog.write(str(lossTest[i/STEP]))
+        fileLog.write('\n')
+        fileLog.write(str(misclassif[i/STEP]))
+        fileLog.write('\n')
+        fileLog.write(str(misclassifVal[i/STEP]))
+        fileLog.write('\n')
+        fileLog.write(str(misclassifTest[i/STEP]))
+        fileLog.write('\n')
+        fileLog.close()
 
-            fileLog.close()
+        start += (time.clock()-delay)
 
-            start += (time.clock()-delay)
-            
-        logfunc(info)
-        if (i >= N_ITER_MAX):
-            break
-else:
-    lossTab = scipy.empty(N_ITER_MAX +3)
-    scheduleTab = scipy.empty(N_ITER_MAX +3)
-    lossTot =  scipy.empty(N_ITER_MAX/STEP+1)
-    lossVal = scipy.empty(N_ITER_MAX/STEP+1)
-    lossTest = scipy.empty(N_ITER_MAX/STEP+1)
-    misclassif = scipy.empty(N_ITER_MAX/STEP+1)
-    misclassifVal = scipy.empty(N_ITER_MAX/STEP+1)
-    misclassifTest = scipy.empty(N_ITER_MAX/STEP+1)
+    logfunc(info)
+    if (i >= N_ITER_MAX):
+        fileLog = open(fileName, 'a')
+        fileLog.write(str(lossTab[i]))
+        fileLog.write('\n')
+        fileLog.write(str(scheduleTab[i]))
+        fileLog.write('\n')
+        fileLog.close()
+        break
 
-    start = time.clock()
-    bestLoss = 25
-    bestPars = np.zeros(P.data.size)
-    
-    for i, info in enumerate(opt):
-        x, y = info['args']
-        loss = f(P.data, x, y)
-        print 'iteration', i
-        print 'loss', loss
-        lossTab[i] = loss
-        scheduleTab[i] = time.clock()-start
 
-        if i%STEP == 0:
-            delay = time.clock()
-            loss = f(P.data, *(X,Y), **{})
-            lossval = f(P.data, *(Xval,Yval), **{})
-            lossTot[i/STEP] = loss
-            lossVal[i/STEP] = lossval
-            lossTest[i/STEP] = f(P.data, *(Xtest,Ytest), **{})
-            
-            misclassif[i/STEP] = fmisclass(P.data, *(X,Y), **{})
-            misclassifVal[i/STEP] = fmisclass(P.data, *(Xval,Yval), **{})
-            misclassifTest[i/STEP] = fmisclass(P.data, *(Xtest,Ytest), **{}) 
-            
-            print '---'
-            print 'loss on the whole dataset', loss
-            print 'loss on the validation set', lossval
-            print 'loss on the test set', lossTest[i/STEP]
-            
-            print 'misclassification on the training set: ', misclassif[i/STEP], '%'
-            print 'misclassification on the validation set: ', misclassifVal[i/STEP], '%'
-            print 'misclassification on the test set: ', misclassifTest[i/STEP], '%'
-            print '---'
-            
-            if (lossval < bestLoss):
-                bestLoss = lossval
-                bestPars[:] = P.data[:]
-                
-                
-            fileLog = open(fileName, 'a')
-            for j in range(min(STEP,i),0,-1):
-                fileLog.write(str(lossTab[i-j]))
-                fileLog.write('\n')
-                fileLog.write(str(scheduleTab[i-j]))
-                fileLog.write('\n')        
-            fileLog.write(str(lossTot[i/STEP]))
-            fileLog.write('\n')     
-            fileLog.write(str(lossVal[i/STEP]))
-            fileLog.write('\n')
-            fileLog.write(str(lossTest[i/STEP]))
-            fileLog.write('\n')
-            fileLog.write(str(misclassif[i/STEP]))
-            fileLog.write('\n')
-            fileLog.write(str(misclassifVal[i/STEP]))
-            fileLog.write('\n')
-            fileLog.write(str(misclassifTest[i/STEP]))
-            fileLog.write('\n')
-            fileLog.close()
-        
-            start += (time.clock()-delay)
-        
-        logfunc(info)
-        if (i >= N_ITER_MAX):
-            fileLog = open(fileName, 'a')
-            fileLog.write(str(lossTab[i]))
-            fileLog.write('\n')
-            fileLog.write(str(scheduleTab[i]))
-            fileLog.write('\n')
-            fileLog.close()
-            break
+print '---'
+print 'best loss on the whole dataset', f(bestPars, *(X,Y), **{})
+print 'best loss on the validation set', f(bestPars, *(Xval, Yval), **{})
+print 'best loss on the test set', f(bestPars, *(Xtest, Ytest), **{})
 
-       
-    print '---'
-    print 'best loss on the whole dataset', f(bestPars, *(X,Y), **{})
-    print 'best loss on the validation set', f(bestPars, *(Xval, Yval), **{})
-    print 'best loss on the test set', f(bestPars, *(Xtest, Ytest), **{})
-    
-    print 'best misclassification on the training set: ', fmisclass(bestPars, *(X,Y), **{}) , '%'
-    print 'best misclassification on the validation set: ',fmisclass(bestPars, *(Xval,Yval), **{}) , '%'
-    print 'best misclassification on the test set: ',fmisclass(bestPars, *(Xtest,Ytest), **{})  , '%'
-    print '---'
+print 'best misclassification on the training set: ', fmisclass(bestPars, *(X,Y), **{}) , '%'
+print 'best misclassification on the validation set: ',fmisclass(bestPars, *(Xval,Yval), **{}) , '%'
+print 'best misclassification on the test set: ',fmisclass(bestPars, *(Xtest,Ytest), **{})  , '%'
+print '---'
 
 
 

@@ -12,3 +12,5 @@ from smd import SMD
 from nesterov import Nesterov
 from asgd import ASGD
 from tonga import tonga
+from nn import NaturalNewton
+from nn_lowrank import NaturalNewtonLR
