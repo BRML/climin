@@ -137,17 +137,20 @@ class NaturalNewtonLR(Minimizer):
 
             
             # Update parameters.
+            # Similar to tonga, except that the direction returned by lbfgs  (ie the gradient times the inverse of the Hessian) is used instead of the gradient
+            # mu is the running estimate of the mean of Newton directions
+
             
             if (i%self.b == 0) and (i>0):
                 G = np.empty((mu.size, self.k))
                 offset = 0
                 #block diagonal approximation of eigenvectors 
                 for size in self.blocksizes:
-                    g = G[offset:offset+size]
+                    g = G_m1[offset:offset+size]
                     lamb, V =  eigsh(scipy.dot(g, g.T), k=self.k, ncv=(2*self.k+2))
                     G[offset:offset+size] = np.sqrt(scipy.minimum(self.BC, lamb/(self.N * mu_norm)))*V
                     ## lamb, V = eigsh(scipy.dot(g.T, g), k=self.k, ncv=(2*self.k+2))
-                    ## G[offset:offset+size] = np.sqrt(minimum(self.BC, lamb/(self.N * mu_norm))) * scipy.dot(g, V*np.sqrt(lamb))
+                    ## U[offset:offset+size] = np.sqrt(minimum(self.BC, lamb/(self.N * mu_norm))) * scipy.dot(g, V*np.sqrt(lamb))
                     offset += size
                 y = np.zeros(self.k)
                 y[-1] = 1                
@@ -164,7 +167,7 @@ class NaturalNewtonLR(Minimizer):
             
             mu = self.gamma * mu + (1-self.gamma)*direction
             mu_norm = (mu**2).sum()                                                                                                     
-            self.wrt -= step
+            self.wrt += step
             
 
 
@@ -175,8 +178,8 @@ class NaturalNewtonLR(Minimizer):
                 'loss': loss,
                 'direction':direction,
                 'gradient': grad,
-                #'mu':mu,
-                #'G':G,
+                'mu':mu,
+                'G':G,
                 'step': step,
                 'args': args,
                 'kwargs': kwargs}
