@@ -5,7 +5,6 @@ import itertools
 import scipy
 import numpy as np
 import scipy.linalg
-import scipy.optimize
 
 from base import Minimizer, is_nonzerofinite
 from linesearch import WolfeLineSearch
