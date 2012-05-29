@@ -24,7 +24,33 @@ n_output = 10
 
 initial_damping = 15
 
+#Expressions for a one-layer network
+def mlp(insize, hiddensize, outsize, transferfunc='tanh', outfunc='id'):
+    P = util.ParameterSet(
+        inweights=(insize, hiddensize),
+        hiddenbias=hiddensize,
+        outweights=(hiddensize, outsize),
+        outbias=outsize)
 
+    P.randomize(1e-4)
+
+    inpt = T.matrix('inpt')
+    hidden_in = T.dot(inpt, P.inweights)
+    hidden_in += P.hiddenbias
+
+    nonlinear = transfermap[transferfunc]
+    hidden = nonlinear(hidden_in)
+    output_in = T.dot(hidden, P.outweights)
+    output_in += P.outbias
+    output = output_in
+    output = transfermap[outfunc](output_in)
+
+    exprs = {'inpt': inpt,
+             'hidden-in': hidden_in,
+             'hidden': hidden,
+             'output-in': output_in,
+             'output': output}
+    return exprs, P
 
 
 # Expressions for the deep network.
@@ -74,7 +100,8 @@ def deep_mlp(insize, hiddensize1, hiddensize2, hiddensize3, outsize, transferfun
     return exprs, P
 
 
-exprs, P = deep_mlp(n_inpt, n_hidden1, n_hidden2, n_hidden3, n_output, transferfunc='sig', outfunc='softmax')
+#exprs, P = deep_mlp(n_inpt, n_hidden1, n_hidden2, n_hidden3, n_output, transferfunc='sig', outfunc='softmax')
+exprs, P = mlp(n_inpt, n_hidden, n_output, transferfunc='sig', outfunc='softmax')
 # To make the passing of the parameters explicit, we need to substitute it
 # later with the givens parameter.
 par_sub = T.vector()
@@ -139,26 +166,36 @@ TX, TZ = make_ds(test_set)
 
     
 #sparse initialization
-P['hiddenbias1'][:] = scipy.zeros(n_hidden1)
-P['hiddenbias2'][:] = scipy.zeros(n_hidden2)
-P['hiddenbias3'][:] = scipy.zeros(n_hidden3)
+P['hiddenbias'][:] = scipy.zeros(n_hidden)
 P['outbias'][:] = scipy.zeros(n_output)
 
+P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden)
+P['outweights'][:,:] = np.random.randn(n_hidden, n_output)
 
-P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden1)
-P['hiddenweights1'][:,:] = np.random.randn(n_hidden1, n_hidden2)
-P['hiddenweights2'][:,:] = np.random.randn(n_hidden2, n_hidden3)
-P['outweights'][:,:] = np.random.randn(n_hidden3, n_output)
+## P['hiddenbias1'][:] = scipy.zeros(n_hidden1)
+## P['hiddenbias2'][:] = scipy.zeros(n_hidden2)
+## P['hiddenbias3'][:] = scipy.zeros(n_hidden3)
+## P['outbias'][:] = scipy.zeros(n_output)
+
+
+## P['inweights'][:,:] = np.random.randn(n_inpt, n_hidden1)
+## P['hiddenweights1'][:,:] = np.random.randn(n_hidden1, n_hidden2)
+## P['hiddenweights2'][:,:] = np.random.randn(n_hidden2, n_hidden3)
+## P['outweights'][:,:] = np.random.randn(n_hidden3, n_output)
 
 def sparse_initialization(a, b, s, MaxNonZeroPerColumn = 15):
     for j in range(b):
         perm = np.random.permutation(a)
         P[s][perm[MaxNonZeroPerColumn:], j] *= 0
 
-sparse_initialization( n_inpt, n_hidden1, 'inweights')
-sparse_initialization( n_hidden1, n_hidden2, 'hiddenweights1')  
-sparse_initialization( n_hidden2, n_hidden3, 'hiddenweights2')
-sparse_initialization( n_hidden3, n_output, 'outweights')
+## sparse_initialization( n_inpt, n_hidden1, 'inweights')
+## sparse_initialization( n_hidden1, n_hidden2, 'hiddenweights1')  
+## sparse_initialization( n_hidden2, n_hidden3, 'hiddenweights2')
+## sparse_initialization( n_hidden3, n_output, 'outweights')
+
+
+sparse_initialization( n_inpt, n_hidden, 'inweights')
+sparse_initialization( n_hidden, n_output, 'outweights')
 
 
 
@@ -207,6 +244,10 @@ elif optimizer == 'hf':
         precond='martens',
         logfunc=logfunc)
 
+lossTab = scipy.empty(101)
+with open("./MNISTlog", 'w') as fileLog:
+    fileLog.write("")
+
 for i, info in enumerate(opt):
     info['test-loss'] = f(P.data, TX, TZ)
     info['validate-loss'] = f(P.data, VX, VZ)
@@ -219,6 +260,10 @@ for i, info in enumerate(opt):
         break
     if info['step_length'] == 0 and (info['cg_minimum'] == 0).all():
         break
+
+pylab.plot(lossTab)
+pylab.show()
+
 
 #pylab.plot(steps)
 #pylab.plot(losses)

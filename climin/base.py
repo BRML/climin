@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import itertools
-
+import collections
 import numpy as np
 
 
@@ -34,6 +34,11 @@ class Minimizer(object):
         to continue, True means to stop."""
         if not criterions:
             raise ValueError('need to supply at least one criterion')
+        
+        # if criterions is a single criterion, wrap it in iterable list
+        if not isinstance(criterions, collections.Iterable):
+            criterions = [criterions]
+        
         info = {}
         for info in self:
             for criterion in criterions:

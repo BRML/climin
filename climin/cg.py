@@ -18,7 +18,7 @@ class ConjugateGradient(Minimizer):
     """
 
     def __init__(self, wrt, H=None, b=None, f_Hp=None, epsilon=1e-14,
-                 logfunc=None, precond=None):
+                 logfunc=None, precond = None):
         super(ConjugateGradient, self).__init__(
             wrt, args=None, logfunc=logfunc)
         self.f_Hp = f_Hp if f_Hp is not None else lambda p: np.dot(H, p)
@@ -40,7 +40,7 @@ class ConjugateGradient(Minimizer):
         grad = self.f_Hp(self.wrt) - self.b
         y = self.solve(grad)
         direction = -y
-        
+       
         # If the gradient is exactly zero, we stop. Otherwise, the
         # updates will lead to NaN errors because the direction will
         # be zero.
@@ -64,6 +64,7 @@ class ConjugateGradient(Minimizer):
 
             y = self.solve(grad)
             beta = np.dot(grad, y) / ry
+
             direction = - y + beta * direction
 
             # If we don't bail out here, we will enter regions of numerical
