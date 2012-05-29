@@ -99,8 +99,6 @@ Hp += d_Hp
 givens = {P.flat: par_sub}
 f = theano.function([par_sub, inpt, target], loss, givens=givens)
 fprime = theano.function([par_sub, inpt, target], lossgrad, givens=givens)
-f_Hp = theano.function([par_sub, p, damping_factor, inpt, target], Hp, 
-                       givens=givens)
 f_predict = theano.function([par_sub, inpt], exprs['output'], givens=givens)
 f_empirical  = theano.function([par_sub, inpt, target], empirical_loss, givens=givens)
 f_hidden = theano.function([par_sub, inpt], exprs['hidden'], givens=givens)
@@ -140,7 +138,6 @@ sparsify_columns(P['hiddenweights'], 15)
 #ax.plot(hiddens[:, 0, :])
 #fig.savefig('initial.png')
 #del fig
-#1/0
 
 
 args = (([X, Z], {}) for _ in itertools.repeat(()))
@@ -168,15 +165,20 @@ logger = chopmunk.broadcast(console_sink, file_sink)
 logger = chopmunk.timify(logger)
 logfunc = logger.send
 
-optimizer = 'hf'
+optimizer = 'ksd'
 
 if optimizer == 'ksd':
+    givens.update({damping_factor: 0.})
+    f_Hp = theano.function([par_sub, p, inpt, target], Hp,
+                           givens=givens)
     opt = KrylovSubspaceDescent(
         P.data, f, fprime, f_Hp, n_bases=30,
         args=args, logfunc=logfunc)
 elif optimizer == 'rprop':
     opt = Rprop(P.data, f, fprime, args=args, logfunc=logfunc)
 elif optimizer == 'hf':
+    f_Hp = theano.function([par_sub, p, damping_factor, inpt, target], Hp, 
+                           givens=givens)
     #line_search = WolfeLineSearch(P.data, f, fprime)
     opt = HessianFree(
         P.data, f, fprime, f_Hp, args=args, cg_args=cg_args,
