@@ -14,13 +14,14 @@ import theano
 import theano.tensor as T
 from zeitgeist.model import rnn, lstmrnn
 import zeitgeist.data
+from zeitgeist.display import array2d_pil
 
 
 # Hyper parameters.
 
-n_inpt = 2
+n_inpt = 4
 n_hidden = 100
-n_output = 2
+n_output = 3
 n_memory = 5
 initial_damping = .1
 damping_to_structural_damping = 0.3
@@ -40,7 +41,7 @@ inpt = exprs['inpt']
 target = T.tensor3('target')
 output = exprs['output']
 exp_output = T.exp(output)
-output = exp_output / exp_output.sum(axis=2).dimshuffle(0, 1, 'x')
+output = exp_output / (exp_output.sum(axis=2).dimshuffle(0, 1, 'x'))
 output_in = exprs['output-in']
 hidden_in_rec = exprs['hidden-in-rec']
 hidden = exprs['hidden']
@@ -84,7 +85,7 @@ Hp = T.grad(T.sum(HJp * output_in), P.flat, consider_constant=[HJp, Jp])
 # The loss for the damping which will only be included in our Gauss-Newton
 # matrix.
 damping_factor = T.dscalar('damping-factor')
-structural_damping = diff_hidden
+structural_damping = diff_hidden * 0
 structural_damping *= damping_to_structural_damping * damping_factor
 
 d_Jp = T.Rop(hidden_in_rec, P.flat, p)
@@ -99,35 +100,55 @@ Hp += d_Hp
 givens = {P.flat: par_sub}
 f = theano.function([par_sub, inpt, target], loss, givens=givens)
 fprime = theano.function([par_sub, inpt, target], lossgrad, givens=givens)
-f_predict = theano.function([par_sub, inpt], exprs['output'], givens=givens)
+f_predict = theano.function([par_sub, inpt], output, givens=givens)
 f_empirical  = theano.function([par_sub, inpt, target], empirical_loss, givens=givens)
 f_hidden = theano.function([par_sub, inpt], exprs['hidden'], givens=givens)
 
 # Build a dataset.
-n_samples = 128
+
+#  First, built the possible bit strings.
+bitarrays = [np.array([int(j)
+                       for j in ('%5i' % int(bin(i)[2:])).replace(' ', '0')])
+             for i in range(2**n_memory)]
+bitarrays = np.array(bitarrays).T
+
+n_samples = 2**5
 n_timesteps = 60
 
-X = scipy.zeros((n_timesteps, 2 * n_samples, 2))
-X[:, :, 1] = 1
+X = scipy.zeros((n_timesteps, n_samples, 4))
+X[:, :, 0] = 1
 
-X[:n_memory, :, 0] = scipy.random.random(X[:n_memory, :, 0].shape)
-X[:n_memory, :, 1] = 1 - X[:n_memory, :, 0]
-X[:n_memory] = X[:n_memory] > 0.5
-X[-n_memory, 0, :] = 4, 0
+X[:n_memory, :, 0] = 0
+X[:n_memory, :, 1] = bitarrays
+X[:n_memory, :, 2] = 1 - bitarrays
 
-Z = scipy.zeros((n_timesteps, 2 * n_samples, 2))
-Z[:, :, 1] = 1
-Z[-n_memory:] = X[:n_memory]
+X[-n_memory, :, :] = 0, 0, 0, 1
 
-TX = X[:, n_samples:]
-TZ = Z[:, n_samples:]
-X = X[:, :n_samples]
-Z = Z[:, :n_samples]
+Z = scipy.zeros((n_timesteps, n_samples, 3))
+Z[:-n_memory, :, :] = 0, 0, 1
+Z[-n_memory:, :, :2] = X[:n_memory, :, 1:3]
 
-P.randomize(1./15)
+
+print 'X'
+print "".join(str(int(i)) for i in X[:, n_samples / 2, 0].tolist())
+print "".join(str(int(i)) for i in X[:, n_samples / 2, 1].tolist())
+print "".join(str(int(i)) for i in X[:, n_samples / 2, 2].tolist())
+print "".join(str(int(i)) for i in X[:, n_samples / 2, 3].tolist())
+print 'Z'
+print "".join(str(int(i)) for i in Z[:, n_samples / 2, 0].tolist())
+print "".join(str(int(i)) for i in Z[:, n_samples / 2, 1].tolist())
+print "".join(str(int(i)) for i in Z[:, n_samples / 2, 2].tolist())
+
+#1/0
+
+TX = X
+TZ = Z
+
+#P.randomize(1./15)
+P.randomize(1.)
 
 # Tune down the values of inputs to hiddens.
-P['inweights'] *= 15
+#P['inweights'] *= 15
 
 sparsify_columns(P['hiddenweights'], 15)
 
@@ -172,7 +193,8 @@ if optimizer == 'ksd':
     f_Hp = theano.function([par_sub, p, inpt, target], Hp,
                            givens=givens)
     opt = KrylovSubspaceDescent(
-        P.data, f, fprime, f_Hp, n_bases=30,
+            # 50 bases seems to work well
+        P.data, f, fprime, f_Hp, n_bases=50,
         args=args, logfunc=logfunc)
 elif optimizer == 'rprop':
     opt = Rprop(P.data, f, fprime, args=args, logfunc=logfunc)
@@ -199,7 +221,13 @@ for i, info in enumerate(opt):
     ax.plot(hiddens[:, 0, :])
     fig.savefig('%i.png' % i)
     ax.cla()
+    predictions = f_predict(P.data, TX[:, :, :])
+    errors = abs(predictions - TZ).mean(axis=1)
+    array2d_pil(errors, 'errors-%i.png' % i)
+    arr = np.hstack((predictions[:, n_samples / 2, :], TZ[:, n_samples / 2, :])).T
+    array2d_pil(arr, 'predictions-%i.png' % i)
+    print 'min max', predictions.min(), predictions.max()
 
     logfunc(info)
-    if i > 1000:
+    if i > 10000:
         break
