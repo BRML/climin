@@ -3,7 +3,7 @@ import itertools
 
 import numpy as np
 
-from climin import SMD
+from climin import Smd
 
 from losses import Quadratic, LogisticRegression, Rosenbrock
 
@@ -11,7 +11,7 @@ from losses import Quadratic, LogisticRegression, Rosenbrock
 def test_smd_quadratic():
     obj = Quadratic()
     # TODO: I don't know why these parameters work, but they do.
-    opt = SMD(obj.pars, obj.f, obj.fprime, obj.f_Hp, eta0=1e-1, mu=2e-4,
+    opt = Smd(obj.pars, obj.f, obj.fprime, obj.f_Hp, eta0=1e-1, mu=2e-4,
         lmbd=.5)
     for i, info in enumerate(opt):      
         print obj.pars
@@ -22,7 +22,7 @@ def test_smd_quadratic():
 
 def test_smd_rosen():
     obj = Rosenbrock()
-    opt = SMD(obj.pars, obj.f, obj.fprime, obj.f_Hp, eta0=2e-3, lmbd=0.9)
+    opt = Smd(obj.pars, obj.f, obj.fprime, obj.f_Hp, eta0=2e-3, lmbd=0.9)
     for i, info in enumerate(opt):      
         if i > 5000:
             break
@@ -32,7 +32,7 @@ def test_smd_rosen():
 def test_smd_lr():
     obj = LogisticRegression(seed=10101)
     args = itertools.repeat(((obj.X, obj.Z), {}))
-    opt = SMD(obj.pars, obj.f, obj.fprime, obj.f_Hp, args=args, eta0=0.1)
+    opt = Smd(obj.pars, obj.f, obj.fprime, obj.f_Hp, args=args, eta0=0.1)
     for i, info in enumerate(opt):      
         if i > 150:
             break

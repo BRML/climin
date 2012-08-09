@@ -3,14 +3,14 @@ import itertools
 import nose
 import numpy as np
 
-from climin import ASGD
+from climin import Asgd
 
 from losses import Quadratic, LogisticRegression, Rosenbrock
 
 
 def test_asgd_quadratic():
     obj = Quadratic()
-    opt = ASGD(obj.pars, obj.fprime, eta0=0.01, lmbd=0.2, t0=0.01)
+    opt = Asgd(obj.pars, obj.fprime, eta0=0.01, lmbd=0.2, t0=0.01)
     for i, info in enumerate(opt):
         if i > 10000:
             break
@@ -19,7 +19,7 @@ def test_asgd_quadratic():
 
 def test_asgd_rosen():
     obj = Rosenbrock()
-    opt = ASGD(obj.pars, obj.fprime, eta0=2e-3, t0=1)
+    opt = Asgd(obj.pars, obj.fprime, eta0=2e-3, t0=1)
     for i, info in enumerate(opt):      
         if i > 100000:
             break
@@ -29,7 +29,7 @@ def test_asgd_rosen():
 def test_asgd_lr():
     obj = LogisticRegression()
     args = itertools.repeat(((obj.X, obj.Z), {}))
-    opt = ASGD(obj.pars, obj.fprime, eta0=0.2, lmbd=1e-2, t0=0.1, args=args)
+    opt = Asgd(obj.pars, obj.fprime, eta0=0.2, lmbd=1e-2, t0=0.1, args=args)
     for i, info in enumerate(opt):      
         if i > 3000:
             break

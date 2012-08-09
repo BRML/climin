@@ -6,11 +6,11 @@ import itertools
 from base import Minimizer, repeat_or_iter
 
 
-class ASGD(Minimizer):
+class Asgd(Minimizer):
 
     def __init__(self, wrt, fprime, eta0=1e-5, lmbd=1e-4, alpha=0.75,
             t0=1e8, args=None, logfunc=None):
-        super(ASGD, self).__init__(
+        super(Asgd, self).__init__(
             wrt, args=args, logfunc=logfunc)
 
         self.fprime = fprime
