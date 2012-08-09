@@ -38,7 +38,6 @@ class ASGD(Minimizer):
 
             # use 'optimal' w for some time at the start
             if self.mu_t < 1:
-                print self.mu_t
                 step = self.mu_t*(self.w - self.wrt)
                 self.wrt += step
             else:
@@ -47,7 +46,6 @@ class ASGD(Minimizer):
 
             self.mu_t = 1./max(1, (i+1) - self.t0)
             self.eta_t = self.eta0/((1 + self.lmbd * self.eta0 * (i+1))**self.alpha)
-            print 'eta', self.eta_t
 
             yield dict(gradient=gradient, mu_t=self.mu_t, 
                     eta_t=self.eta_t, lmbda=self.lmbd,
