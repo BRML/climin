@@ -3,7 +3,7 @@ import itertools
 
 import numpy as np
 
-import nose.tools
+from nose.plugins.skip import SkipTest
 
 from climin import HessianFree
 from losses import Quadratic, LogisticRegression, Rosenbrock
