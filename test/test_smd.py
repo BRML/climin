@@ -10,9 +10,12 @@ from losses import Quadratic, LogisticRegression, Rosenbrock
 
 def test_smd_quadratic():
     obj = Quadratic()
-    opt = SMD(obj.pars, obj.f, obj.fprime, obj.f_Hp, eta0=1e-3)
+    # TODO: I don't know why these parameters work, but they do.
+    opt = SMD(obj.pars, obj.f, obj.fprime, obj.f_Hp, eta0=1e-1, mu=2e-4,
+        lmbd=.5)
     for i, info in enumerate(opt):      
-        if i > 750:
+        print obj.pars
+        if i > 100:
             break
     assert obj.solved(), 'did not find solution'
 
