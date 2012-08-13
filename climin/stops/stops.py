@@ -70,7 +70,7 @@ def rising(func, n=1, epsilon=0):
     return inner
 
 
-def and_(criterions):
+def all_(criterions):
     """Return a stop criterion that given a list `criterions` of stop criterions
     only returns True, if all of criterions return True.
 
@@ -78,6 +78,17 @@ def and_(criterions):
     """
     def inner(info):
         return all(c(info) for c in criterions)
+    return inner
+
+
+def any_(criterions):
+    """Return a stop criterion that given a list `criterions` of stop criterions
+    only returns True, if any of the criterions returns True.
+
+    This basically implements a logical OR for stop criterions.
+    """
+    def inner(info):
+        return any(c(info) for c in criterions)
     return inner
 
 
