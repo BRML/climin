@@ -8,7 +8,7 @@ from base import Minimizer, repeat_or_iter
 
 class GradientDescent(Minimizer):
 
-    def __init__(self, wrt, fprime, steprate, momentum=0.0, 
+    def __init__(self, wrt, fprime, steprate=0.1, momentum=0.0, 
                  args=None, logfunc=None):
         super(GradientDescent, self).__init__(
             wrt, args=args, logfunc=logfunc)
