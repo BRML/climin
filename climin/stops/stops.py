@@ -34,16 +34,21 @@ def time_elapsed(sec):
     return inner
 
 
-def converged(func, n=10, epsilon=1e-5):
-    """Return a stop criterion that remembers the last `n` return values of
-    `func`() and stops if the difference of their maximum and their minimum is
-    smaller than `epsilon`.
+def converged(func_or_key, n=10, epsilon=1e-5):
+    """Return a stop criterion that remembers the last `n` values of
+    `func_or_key`() and stops if the difference of their maximum and their
+    minimum is smaller than `epsilon`.
 
-    `func` needs to be a callable that returns a scalar value.
+    `func_or_key` needs to be a callable that returns a scalar value or a
+    string which is a key referring to an entry in the info dict it is given.
     """
     ringbuffer = [None for i in xrange(n)]
     def inner(info):
-        ringbuffer.append(func())
+        if isinstance(func_or_key, (str, unicode)):
+            val = info[func_or_key]
+        else:
+            val = func()
+        ringbuffer.append(val)
         ringbuffer.pop(0)
         if not None in ringbuffer:
             ret = max(ringbuffer) - min(ringbuffer) < epsilon
