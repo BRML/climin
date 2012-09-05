@@ -5,11 +5,14 @@ import numpy as np
 from base import Minimizer, is_nonzerofinite
 
 
-class SMD(Minimizer):
+class Smd(Minimizer):
+
+    # eta steprate
+    # gain
 
     def __init__(self, wrt, f, fprime, f_Hp, lmbd=0.99,
             mu=2e-2, eta0=5e-5, args=None, logfunc=None):
-        super(SMD, self).__init__(wrt, args=args, logfunc=logfunc)
+        super(Smd, self).__init__(wrt, args=args, logfunc=logfunc)
 
         self.f = f
         self.fprime = fprime
@@ -17,7 +20,6 @@ class SMD(Minimizer):
         self.lmbd = lmbd
         self.mu = mu
         self.eta0 =eta0
-
 
     def __iter__(self):
         p = np.size(self.wrt)
