@@ -47,7 +47,7 @@ def converged(func_or_key, n=10, epsilon=1e-5):
         if isinstance(func_or_key, (str, unicode)):
             val = info[func_or_key]
         else:
-            val = func()
+            val = func_or_key()
         ringbuffer.append(val)
         ringbuffer.pop(0)
         if not None in ringbuffer:
