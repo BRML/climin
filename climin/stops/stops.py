@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+import itertools
 import time
 
 # Stop criterions can be simple functions like the above one, but
@@ -34,16 +35,22 @@ def time_elapsed(sec):
     return inner
 
 
-def converged(func_or_key, n=10, epsilon=1e-5):
+def converged(func_or_key, n=10, epsilon=1e-5, patience=0):
     """Return a stop criterion that remembers the last `n` values of
     `func_or_key`() and stops if the difference of their maximum and their
     minimum is smaller than `epsilon`.
 
     `func_or_key` needs to be a callable that returns a scalar value or a
     string which is a key referring to an entry in the info dict it is given.
+
+    If `patience` is non zero, the first `patience` iterations are not checked
+    against the criterion.
     """
     ringbuffer = [None for i in xrange(n)]
+    counter = itertools.count()
     def inner(info):
+        if counter.next() <= patience:
+            return False
         if isinstance(func_or_key, (str, unicode)):
             val = info[func_or_key]
         else:
@@ -59,16 +66,23 @@ def converged(func_or_key, n=10, epsilon=1e-5):
     return inner
 
 
-def rising(func_or_key, n=1, epsilon=0):
+def rising(func_or_key, n=1, epsilon=0, patience=0):
     """Return a stop criterion that remembers the last `n` values of
     `func_or_key`() and returns True if the its return value rose at least by
     `epsilon` in the meantime.
-    
+
     `func_or_key` needs to be a callable that returns a scalar value or a
     string which is a key referring to an entry in the info dict it is given.
+
+    If `patience` is non zero, the first `patience` iterations are not checked
+    against the criterion.
     """
+    # TODO explain patience
     results = []
+    counter = itertools.count()
     def inner(info):
+        if counter.next() <= patience:
+            return False
         if isinstance(func_or_key, (str, unicode)):
             val = info[func_or_key]
         else:
