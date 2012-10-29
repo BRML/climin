@@ -10,6 +10,7 @@ from ksd import KrylovSubspaceDescent
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from rprop import Rprop
+from rmsprop import RmsProp
 from smd import Smd
 
 
@@ -73,6 +74,7 @@ def optimizer(identifier, wrt, *args, **kwargs):
         'ncg': NonlinearConjugateGradient,
         'rprop': Rprop,
         'smd': Smd,
+        'rmsprop': RmsProp,
         }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]

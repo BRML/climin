@@ -6,6 +6,7 @@ from ksd import KrylovSubspaceDescent
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from nes import Xnes
+from rmsprop import RmsProp
 from rprop import Rprop
 from sbfgs import Sbfgs
 from smd import Smd
