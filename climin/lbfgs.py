@@ -65,7 +65,7 @@ class Lbfgs(Minimizer):
         step_length = None
 
         # We need to keep track in which order the different statistics
-        # from different runs are saved. 
+        # from different runs are saved.
         #
         # Why?
         #
@@ -88,7 +88,7 @@ class Lbfgs(Minimizer):
                 sTgd = scipy.inner(step, grad_diff)
                 if sTgd > 1E-10:
                     # Don't do an update if this value is too small.
-                    # Determine index for the current update. 
+                    # Determine index for the current update.
                     if not idxs:
                         # First iteration.
                         this_idx = 0
@@ -105,7 +105,7 @@ class Lbfgs(Minimizer):
                     hessian_diag = sTgd / scipy.inner(grad_diff, grad_diff)
 
                 direction, info = self.find_direction(
-                    grad_diffs, steps, -grad, hessian_diag, idxs) 
+                    grad_diffs, steps, -grad, hessian_diag, idxs)
 
             if not is_nonzerofinite(direction):
                 self.logfunc(
