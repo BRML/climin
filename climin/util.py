@@ -6,6 +6,7 @@ import random
 
 from asgd import Asgd
 from gd import GradientDescent
+from ilne import Ilne
 from ksd import KrylovSubspaceDescent
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
@@ -68,14 +69,15 @@ def optimizer(identifier, wrt, *args, **kwargs):
     """
     klass_map = {
         'asgd': Asgd,
-        'ksd': KrylovSubspaceDescent,
         'gd': GradientDescent,
+        'ilne': Ilne,
+        'ksd': KrylovSubspaceDescent,
         'lbfgs': Lbfgs,
         'ncg': NonlinearConjugateGradient,
         'rprop': Rprop,
-        'smd': Smd,
         'rmsprop': RmsProp,
-        }
+        'smd': Smd,
+    }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]
     argspec = inspect.getargspec(klass.__init__)
