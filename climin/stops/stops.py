@@ -90,7 +90,7 @@ def rising(func_or_key, n=1, epsilon=0, patience=0):
         results.append(val)
         if len(results) < n + 1:
             return False
-        if results[-n - 1] + epsilon < results[-1]:
+        if results[-n - 1] + epsilon <= results[-1]:
             return True
         else:
             return False
