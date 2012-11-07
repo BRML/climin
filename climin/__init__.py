@@ -1,5 +1,6 @@
 from bfgs import Bfgs
 from cg import ConjugateGradient
+from ilne import Ilne
 from gd import GradientDescent
 from hf import HessianFree
 from ksd import KrylovSubspaceDescent
