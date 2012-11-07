@@ -133,7 +133,7 @@ class KrylovSubspaceDescent(Minimizer):
                 'args': args,
                 'kwargs': kwargs,
                 'step': step,
-                'grad': grad,
+                'gradient': grad,
                 'basis': self.basis,
                 'n_iter': i,
                 'coefficients': self.coefficients})
