@@ -3,6 +3,7 @@
 
 import inspect
 import random
+import warnings
 
 from asgd import Asgd
 from gd import GradientDescent
@@ -82,14 +83,21 @@ def optimizer(identifier, wrt, *args, **kwargs):
     klass = klass_map[identifier]
     argspec = inspect.getargspec(klass.__init__)
     if argspec.keywords is None:
-        # We need to filter stuff out.
-        kwargs = dict((k, v) for k, v in kwargs.items()
-                      if k in argspec.args)
+        # Issue a warning for each of the arguments that have been passed
+        # to this optimizer but were not used.
+        expected_keys = set(argspec.args)
+        given_keys = set(kwargs.keys())
+        unused_keys = given_keys - expected_keys
+        for i in unused_keys:
+            warnings.warn('Argument named %s is not expected by %s'
+                          % (i, klass))
 
+        # We need to filter stuff out.
+        used_keys = expected_keys & given_keys
+        kwargs = dict((k, kwargs[k]) for k in used_keys)
     try:
         opt = klass(wrt, *args, **kwargs)
     except TypeError:
         raise TypeError('required arguments for %s: %s' % (klass, argspec.args))
 
     return opt
-
