@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import itertools
-
 import scipy
 import scipy.linalg
 import scipy.optimize
@@ -63,6 +61,8 @@ class Lbfgs(Minimizer):
         steps = scipy.zeros(factor_shape)
         hessian_diag = self.initial_hessian_diag
         step_length = None
+        step = scipy.empty(grad.shape)
+        grad_diff = scipy.empty(grad.shape)
 
         # We need to keep track in which order the different statistics
         # from different runs are saved.
@@ -115,7 +115,7 @@ class Lbfgs(Minimizer):
             step_length = self.line_search.search(
                 direction, None, args, kwargs)
 
-            step = step_length * direction
+            step[:] = step_length * direction
             if step_length != 0:
                 self.wrt += step
             else:
@@ -132,6 +132,7 @@ class Lbfgs(Minimizer):
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
+                'loss': self.line_search.val,
                 'gradient': grad,
                 'gradient_m1': grad_m1,
             })

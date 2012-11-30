@@ -158,6 +158,7 @@ class WolfeLineSearch(LineSearch):
             self.c1, self.c2, self.typ, self.maxiter, self.min_step_length,
             f)
 
+        self.val = fstep
         self.grad = fprimestep
 
         return step

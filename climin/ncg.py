@@ -78,8 +78,8 @@ class NonlinearConjugateGradient(Minimizer):
 
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs
-            grad_m1[:], grad[:] = grad, self.fprime(self.wrt, *args, **kwargs)
-            loss_m1, loss = loss, self.f(self.wrt, *args, **kwargs)
+            grad_m1[:], grad[:] = grad, self.line_search.grad
+            loss_m1, loss = loss, self.line_search.val
 
             info.update({
                 'loss': loss,
