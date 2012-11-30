@@ -40,7 +40,7 @@ class BackTrack(LineSearch):
 
         self.tolerance = tolerance
 
-    def search(self, direction, initialization=1, args=None, kwargs=None, 
+    def search(self, direction, initialization=1, args=None, kwargs=None,
                loss0=None):
         # Recalculate the current loss if it has not been given.
         if loss0 is None:
@@ -129,8 +129,8 @@ class WolfeLineSearch(LineSearch):
         self.f = f
         self.fprime = fprime
         self.c1 = c1
-        self.c2= c2
-        self.maxiter = 30
+        self.c2 = c2
+        self.maxiter = maxiter
         self.min_step_length = min_step_length
         self.typ = typ
 
@@ -202,7 +202,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
             t = points[notMinPos, 0] -\
                     (points[notMinPos, 0] - points[minPos, 0]) * \
                     (
-                      (points[notMinPos, 2] + d2 - d1) / 
+                      (points[notMinPos, 2] + d2 - d1) /
                       (points[notMinPos, 2] - points[minPos, 2] + 2*d2)
                     )
             minPos = np.minimum(
@@ -223,7 +223,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         xmaxBound = xmax
     #
     #
-    # Collect constraints for parameter estimation 
+    # Collect constraints for parameter estimation
     A = np.zeros((2*nPoints, order+1))
     b = np.zeros((2*nPoints, 1))
     # Constraints based on available function values
@@ -268,11 +268,11 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
     From minFunc, without switches doPlot and debug.
     """
     alpha_c, _ = polyinterp(
-        points=np.array([[x0, f0, g0], [x1, f1, g1]]), 
+        points=np.array([[x0, f0, g0], [x1, f1, g1]]),
         xminBound=minStep, xmaxBound=maxStep)
     #
     alpha_s, _ = polyinterp(
-        points=np.array([[x0, f0, g0], [x1, 1j, g1]]), 
+        points=np.array([[x0, f0, g0], [x1, 1j, g1]]),
         xminBound=minStep, xmaxBound=maxStep)
     if alpha_c > minStep and abs(alpha_c - x1) < abs(alpha_s - x1):
         # Cubic Extrapolation
@@ -507,7 +507,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 # to Armijo line search
                 # no Hessian is computed!!
                 t, x_new, f_new, g_new, _fevals = armijobacktrack(
-                    x, t, d, f, f, g, gtd, c1, max(0, min(LS-2, 2)), tolX, 
+                    x, t, d, f, f, g, gtd, c1, max(0, min(LS-2, 2)), tolX,
                     funObj)
                 funEvals += _fevals
                 return t, f_new, g_new, funEvals
@@ -570,7 +570,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         #
         insufProgress = False
         # Next line needs a check!!!!!
-        Tpos = 1 
+        Tpos = 1
         LOposRemoved = False
         while not done and LSiter < maxLS:
             # Find high and low points in the bracket
@@ -578,7 +578,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
             f_LO = np.min(bracketFval)
             LOpos = np.argmin(bracketFval)
             HIpos = 1 - LOpos
-            # 
+            #
             # Compute new trial value
             if LS == 3 or not isLegal(bracketFval) or not isLegal(bracketGval):
                 # Bisecting

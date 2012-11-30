@@ -13,7 +13,7 @@ from linesearch import WolfeLineSearch
 
 class NonlinearConjugateGradient(Minimizer):
     """
-    Nonlinear Conjugate Gradient Method 
+    Nonlinear Conjugate Gradient Method
     """
 
     def __init__(self, wrt, f, fprime, epsilon=1e-6,
@@ -27,12 +27,12 @@ class NonlinearConjugateGradient(Minimizer):
         self.epsilon = epsilon
 
     def find_direction(self, grad_m1, grad, direction_m1):
-        # Computation of beta as a compromise between Fletcher-Reeves 
+        # Computation of beta as a compromise between Fletcher-Reeves
         # and Polak-Ribiere.
         grad_norm_m1 = scipy.dot(grad_m1, grad_m1)
         grad_diff = grad - grad_m1
         betaFR = scipy.dot(grad, grad) / grad_norm_m1
-        betaPR = scipy.dot(grad, grad_diff) / grad_norm_m1 
+        betaPR = scipy.dot(grad, grad_diff) / grad_norm_m1
         betaHS = scipy.dot(grad, grad_diff) / scipy.dot(direction_m1, grad_diff)
         beta = max(-betaFR, min(betaPR, betaFR))
 
@@ -52,9 +52,9 @@ class NonlinearConjugateGradient(Minimizer):
         loss_m1 = 0
 
         for i, (next_args, next_kwargs) in enumerate(self.args):
-            if i == 0:                  
+            if i == 0:
                 direction, info = -grad, {}
-            else:                
+            else:
                 direction, info = self.find_direction(grad_m1, grad, direction)
 
             if not is_nonzerofinite(direction):
