@@ -17,10 +17,9 @@ def test_murphy_example():
 
     wrt = np.zeros(w.shape)
     args = itertools.repeat(((X, Z), {}))
-    opt = Ista(wrt, f_loss, f_residual, f_prime, c_l1=1e-9, step_rate=0.1, args=args)
+    opt = Ista(wrt, f_loss, f_residual, f_prime, c_l1=1e-9, step_rate=0.1,
+               args=args)
     for info in opt:
-        import pprint
-        pprint.pprint(info)
         if info['n_iter'] == 50:
             break
 
