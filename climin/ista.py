@@ -14,18 +14,17 @@ def soft(a, b):
 
 class Ista(Minimizer):
 
-    def __init__(self, wrt, dictionary, target, c_l1, step_rate,
-                 max_fraction, max_bad_steps=5,
-                 min_step_rate=1e-8, max_step_rate=50):
-        super(Ista, self).__init__(wrt)
+    def __init__(self, wrt, f_loss, f_residual, f_prime, c_l1, step_rate,
+                 max_fraction=0.01, max_bad_steps=5,
+                 min_step_rate=1e-8, max_step_rate=50, args=None):
+        super(Ista, self).__init__(wrt, args=args)
 
         # For now, it only works with linear least squares. But that will
         # possible be dealt with.
-        self.f_predict = lambda wrt, x: np.dot(x, wrt)
-        self.f_prime = lambda wrt, x, y: np.dot(x.T, np.dot(x, wrt) - y) / y.shape[0]
+        self.f_loss = f_loss
+        self.f_residual = f_residual
+        self.f_prime = f_prime
 
-        self.dictionary = dictionary
-        self.target = target
         self.c_l1 = float(c_l1)
         self.step_rate = step_rate
         self.max_fraction = float(max_fraction)
@@ -43,18 +42,18 @@ class Ista(Minimizer):
         grad_diff = None
         iter_count = itertools.count()
 
-        # Some shortcuts to fields of the class.
-        D = self.dictionary
-        wrt = self.wrt
-        target = self.target
-        n_samples = target.shape[0]
-
         # We will need this in every iteration, but it is more efficient to
         # calculate it at its end, so we can report the loss with it. Thus
         # we have to do it once before we loop.
-        residual = self.f_predict(wrt, D) - target
+        (D, target), _ = self.args.next()
 
-        while True:
+        # Some shortcuts to fields of the class.
+        wrt = self.wrt
+        n_samples = target.shape[0]
+
+        residual = self.f_residual(wrt, D, target)
+
+        for (D, target), _ in self.args:
             correlation = np.dot(residual.T, D)
             greatest_correlation = abs(correlation).max()
             c_l1 = max(self.max_fraction * greatest_correlation,
@@ -79,10 +78,7 @@ class Ista(Minimizer):
                 wrt[:] = soft(update, threshold)
                 gradient_m1 = gradient
 
-                residual = self.f_predict(wrt, D) - target
-                l1_loss = self.c_l1 * abs(self.wrt).sum() / n_samples
-                rss = (residual**2).mean(axis=0).sum()
-                loss = rss + l1_loss
+                loss = self.f_loss(wrt, D, target)
 
                 yield {'loss': loss, 'n_iter': n_iter, 'step_rate': step_rate,
                        'update': update, 'c_l1': c_l1, 'gradient': gradient,
