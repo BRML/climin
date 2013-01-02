@@ -105,7 +105,7 @@ class Ista(Minimizer):
         residual = self.f_residual(wrt, D, target)
 
         for (D, target), _ in self.args:
-            correlation = np.dot(residual.T, D)
+            correlation = np.dot(residual, D.T)
             greatest_correlation = abs(correlation).max()
             c_l1 = max(self.max_fraction * greatest_correlation,
                        self.c_l1)
