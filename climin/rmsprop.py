@@ -18,17 +18,15 @@ class RmsProp(Minimizer):
         self.momentum = momentum
 
     def __iter__(self):
-        moving_mean_squared = None
+        moving_mean_squared = 1
         step_m1 = 0
 
         for i, (args, kwargs) in enumerate(self.args):
             gradient = self.fprime(self.wrt, *args, **kwargs)
-            if moving_mean_squared is None:
-                moving_mean_squared = gradient**2
             moving_mean_squared = (
                 self.decay * moving_mean_squared
                 + (1 - self.decay) * gradient**2)
-            step = self.steprate * gradient / np.sqrt(moving_mean_squared + 1e-8)
+            step = self.steprate * gradient / np.sqrt(moving_mean_squared + 1e-4)
             step += step_m1 * self.momentum
             self.wrt -= step
             step_m1 = step
