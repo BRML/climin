@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-import numpy as np
-
 from base import Minimizer
+from mathadapt import sqrt, ones_like
 
 
 class RmsProp(Minimizer):
@@ -37,12 +36,11 @@ class RmsProp(Minimizer):
     def __iter__(self):
         moving_mean_squared = 1
         step_m1 = 0
-        step_rate = np.empty(self.wrt.shape)
         step_rate = self.steprate
 
         # If we adapt step rates, we need one for each parameter.
         if self.step_adapt:
-            step_rate *= np.ones(self.wrt.shape)
+            step_rate *= ones_like(self.wrt)
 
         for i, (args, kwargs) in enumerate(self.args):
             # We use Nesterov momentum: first, we make a step according to the
@@ -56,7 +54,7 @@ class RmsProp(Minimizer):
                 self.decay * moving_mean_squared
                 + (1 - self.decay) * gradient**2)
             step2 = self.steprate * gradient
-            step2 /= np.sqrt(moving_mean_squared + 1e-8)
+            step2 /= sqrt(moving_mean_squared + 1e-8)
             self.wrt -= step2
 
             step = step1 + step2
@@ -64,7 +62,11 @@ class RmsProp(Minimizer):
             # Step rate adaption. If the current step and the momentum agree,
             # we slightly increase the step rate for that dimension.
             if self.step_adapt:
-                agree = (np.sign(step) == np.sign(step_m1)).astype('float32')
+                # This code might look weird, but it makes it work with both
+                # numpy and gnumpy.
+                step_non_negative = step >= 0
+                step_m1_non_negative = step_m1 >= 0
+                agree = (step_non_negative == step_m1_non_negative) * 1.
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 step_rate *= adapt
 
