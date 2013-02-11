@@ -119,3 +119,9 @@ def any_(criterions):
     return inner
 
 
+def not_better_than_after(minimal, n_iter):
+    """Return a stop criterion that returns True if the error is not less than
+    `minimal` after `n_iter` iterations."""
+    def inner(info):
+        return info['n_iter'] > n_iter and info['loss'] >= minimal
+    return inner
