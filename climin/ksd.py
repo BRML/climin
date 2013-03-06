@@ -17,7 +17,7 @@ class KrylovSubspaceDescent(Minimizer):
     """
 
     def __init__(
-        self, wrt, f, fprime, f_Hp, n_bases,
+        self, wrt, f, fprime, f_Hp, n_bases=10,
         args=None, hessian_args=None, krylov_args=None,
         floor_fisher=True, precond_hessian=True, floor_hessian=True,
         logfunc=None):
@@ -38,6 +38,8 @@ class KrylovSubspaceDescent(Minimizer):
         self.precond_hessian = precond_hessian
         self.floor_hessian = floor_hessian
         self.floor_eps = 1E-4
+
+        self.inv_hessian = None
 
     def _f_krylov(self, x, *args, **kwargs):
         wrt = self.wrt + scipy.dot(x, self.basis)
@@ -87,9 +89,10 @@ class KrylovSubspaceDescent(Minimizer):
                 w = scipy.clip(w, w_floor, w_max)
                 H = scipy.dot(v, scipy.dot(scipy.diag(w), v.T))
 
-            C = scipy.linalg.cholesky(H, lower=True)
-            Cinv = scipy.linalg.inv(C)
-            V[:] = scipy.dot(Cinv, V)
+            L = scipy.linalg.cholesky(H, lower=True)
+            L_inv = scipy.linalg.inv(L)
+            V[:] = scipy.dot(L_inv, V)
+            self.inv_hessian = scipy.dot(L_inv.T, L_inv)
 
         self.hessian = H
 
@@ -104,7 +107,11 @@ class KrylovSubspaceDescent(Minimizer):
             # Minimize subobjective.
             subargs, subkwargs = self.krylov_args.next()
 
-            initial_inv_hessian = scipy.linalg.inv(self.hessian)
+            if self.inv_hessian is None:
+                initial_inv_hessian = scipy.linalg.inv(self.hessian)
+            else:
+                initial_inv_hessian = self.inv_hessian
+
             subopt = Bfgs(self.coefficients,
                           self._f_krylov, self._f_krylov_prime,
                           initial_inv_hessian=initial_inv_hessian,
@@ -126,7 +133,7 @@ class KrylovSubspaceDescent(Minimizer):
                 'args': args,
                 'kwargs': kwargs,
                 'step': step,
-                'grad': grad,
+                'gradient': grad,
                 'basis': self.basis,
                 'n_iter': i,
                 'coefficients': self.coefficients})

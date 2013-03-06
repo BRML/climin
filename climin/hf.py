@@ -17,10 +17,12 @@ def relative_improvement_less_than(
 
     It is assumed that the loss is bounded by 0 from above.
     """
-    lookback = max(min_lookback, lookback_factor * len(losses))
+    lookback = int(max(min_lookback, lookback_factor * len(losses)))
     if lookback >= len(losses):
         return False
-    if (losses[-1] - losses[-lookback - 1] / losses[-1]) < atleast:
+    if losses[-1] > 0:
+        return False
+    if (losses[-1] - losses[-lookback - 1]) / losses[-1] < lookback * atleast:
         return True
 
 
@@ -33,6 +35,7 @@ class HessianFree(Minimizer):
                  cg_max_iter=250,
                  line_search=None,
                  precond=False,
+                 explicit_damping=False,
                  logfunc=None):
         super(HessianFree, self).__init__(wrt, args=args, logfunc=logfunc)
 
@@ -49,6 +52,7 @@ class HessianFree(Minimizer):
         self.cg_max_iter = cg_max_iter
 
         self.precond = precond
+        self.explicit_damping = explicit_damping
 
         if line_search is not None:
             self.line_search = line_search
@@ -61,6 +65,7 @@ class HessianFree(Minimizer):
         loss than `base_loss`."""
         for i, direction in enumerate(reversed(directions)):
             loss = self.f(self.wrt + direction, *args, **kwargs)
+            print 'backtracking through losses', loss
             if loss < base_loss:
                 break
         return len(directions) - i - 1, loss
@@ -68,21 +73,28 @@ class HessianFree(Minimizer):
     def get_preconditioner(self, grad, damping):
         # Preconditioning matrix.
         if self.precond == 'martens':
-            precond = (grad**2 + damping )**(0.75)
+            precond = (grad**2 + damping)**0.75
         elif not self.precond:
             precond = np.ones(grad.size)
         else:
             raise ValueError('unknown preconditioning: %s' % self.precond)
         return precond
 
-    def find_direction(self, loss, grad, direction_m1, damping, args, kwargs):
+    def find_direction(self, loss, grad, direction_m1, damping, 
+                       cg_args, cg_kwargs, bt_args, bt_kwargs):
         # Copy, because we will optimize this beast inplace.
-        direction = direction_m1.copy()             
+        direction = direction_m1 * 0.95
 
         # Define function for the Hessian vector product that 
         # includes damping.
-        def f_Hp(x):
-            return self.f_Hp(self.wrt, x, *args, **kwargs) + damping * x
+        if not self.explicit_damping:
+            def f_Hp(x):
+                return (self.f_Hp(self.wrt, x, *cg_args, **cg_kwargs) 
+                        + damping * x)
+        else:
+            def f_Hp(x):
+                return (self.f_Hp(self.wrt, x, damping, *cg_args, **cg_kwargs) 
+                        + damping * x)
 
         # Define short hand for the loss of the quadratic approximation.
         def f_q_loss(direction):
@@ -107,8 +119,6 @@ class HessianFree(Minimizer):
             logfunc=self.logfunc)
 
         for i, info in enumerate(opt):
-            self.logfunc(info)
-
             # Saving current direction for backtracking.
             if i == np.ceil(next_saving):
                 next_saving *= save_increase_factor
@@ -116,7 +126,10 @@ class HessianFree(Minimizer):
 
             q_losses.append(f_q_loss(direction))
 
-            # Stoping criterions.
+            info.update({'loss': q_losses[-1]})
+            self.logfunc(info)
+
+            # Stopping criterions.
             if relative_improvement_less_than(q_losses, 5e-4, 0.1, 10):
                 self.logfunc({
                     'message': 'stopping cg - stopping criterion'})
@@ -128,69 +141,85 @@ class HessianFree(Minimizer):
                 break
 
         # Check intermediate CG results for the best.
-        idx, loss = self.backtrack_cg(directions, loss, args, kwargs)
+        idx, loss = self.backtrack_cg(directions, loss, bt_args, bt_kwargs)
+        self.logfunc({'backtrack-idx': idx})
 
-        return directions[idx], loss, q_losses[idx]
+        return directions[idx], directions[-1], q_losses[idx]
 
     def __iter__(self):
         damping = self.initial_damping
-        direction_m1 = np.zeros(self.wrt.size)
+        cg_minimum = np.zeros(self.wrt.size)
+
         args, kwargs = self.args.next()
+        loss = self.f(self.wrt, *args, **kwargs)
+        grad = self.fprime(self.wrt, *args, **kwargs)
 
-        # Calculcate one loss before going into the loop.
-        loss_m1 = self.f(self.wrt, *args, **kwargs)
+        for i, (args, kwargs) in enumerate(self.args):
 
-        for i, (next_args, next_kwargs) in enumerate(self.args):
-            grad = self.fprime(self.wrt, *args, **kwargs)
+            # Get minibatches for cg and for backtracking.
+            cg_args, cg_kwargs = self.cg_args.next()
+            bt_args, bt_kwargs = self.cg_args.next()
 
             # Obtain search direction via cg.
-            cg_args, cg_kwargs = self.cg_args.next()
-            direction, _, q_loss = self.find_direction(
-                loss_m1, grad, direction_m1 * 0.95, damping, cg_args, cg_kwargs)
+            direction, cg_minimum, q_loss = self.find_direction(
+                loss, grad, cg_minimum, damping, 
+                cg_args, cg_kwargs, bt_args, bt_kwargs)
 
             if not is_nonzerofinite(direction):
                 self.logfunc({'message': 'invalid direction'})
                 break
 
-            # Obtain a steplength with a line search.
+            # Get minibatches for line search.
             ls_args, ls_kwargs = self.ls_args.next()
+            loss0 = self.f(self.wrt, *ls_args, **ls_kwargs)
+            # Obtain a step length with a line search.
             step_length = self.line_search.search(
-                direction, 1, ls_args, ls_kwargs, loss0=loss_m1)
-
-            # Update parameters.
-            step = step_length * direction
-            self.wrt += step
-
-            loss = self.f(self.wrt, *next_args, **next_kwargs)
+                direction, 1, ls_args, ls_kwargs, loss0=loss0)
 
             # Levenberg-Marquardt update of damping. First calculate the current
-            # value of the quadratic approximation with no damping, then see 
+            # value of the quadratic approximation with no damping, then see
             # how well it does compared to real loss.
-            Hp = self.f_Hp(self.wrt, direction, *cg_args, **cg_kwargs)
-            q_loss = 0.5 * np.inner(direction, Hp) - np.inner(-grad, direction)
-            ratio = (loss - loss_m1) / q_loss
+            ratio_args, ratio_kwargs = self.cg_args.next()
+
+            # Calculate update and loss reduction.
+            step = step_length * direction
+            r_loss_m1 = self.f(self.wrt, *ratio_args, **ratio_kwargs)
+            r_loss = self.f(self.wrt + cg_minimum, *ratio_args, **ratio_kwargs)
+
+            if self.explicit_damping:
+                Hp = self.f_Hp(self.wrt, cg_minimum, damping, 
+                               *ratio_args, **ratio_kwargs)
+            else:
+                Hp = self.f_Hp(self.wrt, cg_minimum,
+                               *ratio_args, **ratio_kwargs)
+
+            Hp += (damping * cg_minimum)
+            q_loss = 0.5 * np.inner(cg_minimum, Hp) - np.inner(-grad, cg_minimum)
+
+            self.wrt += step
+
+            ratio = (r_loss - r_loss_m1) / q_loss
             if ratio < 0.25:
                 damping *= 1.5
             elif ratio > 0.75:
                 damping *= 2. / 3
 
+            loss = self.f(self.wrt, *args, **kwargs)
+            grad = self.fprime(self.wrt, *args, **kwargs)
+
             info = {
                 'n_iter': i,
                 'loss': loss,
-                'loss_m1': loss_m1,
                 'gradient': grad,
                 'direction': direction,
-                'direction_m1': direction_m1,
+                'cg_minimum': cg_minimum,
                 'step_length': step_length,
                 'q_loss': q_loss,
                 'ratio': ratio,
+                'r_loss_m1': r_loss_m1,
+                'r_loss': r_loss,
                 'damping': damping,
                 'args': args,
                 'step': step,
                 'kwargs': kwargs}
             yield info
-
-            # Prepare for next loop.
-            args, kwargs = next_args, next_kwargs
-            loss_m1 = loss
-            direction_m1 = direction

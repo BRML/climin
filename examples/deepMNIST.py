@@ -118,17 +118,16 @@ def cross_entropy(a, b):
     epsilon = 0
     return -(a * T.log(b+epsilon)).mean()
 
-# Vector for the expression of the Hessian vector product, where this will
-# be the vector.
-p = T.vector('p')
-
 
 # The loss and its gradient.
 loss = cross_entropy(target, output)
 lossgrad = T.grad(loss, P.flat)
 
+zero_one_loss = (T.eq(T.argmax(target, axis=1), T.argmax(output, axis=1))
+                ).mean()
 
 # Expression for the Gauss-Newton matrix.
+p = T.vector('p')
 Jp = T.Rop(output_in, P.flat, p)
 HJp = T.grad(T.sum(T.grad(loss, output_in) * Jp),
              output_in, consider_constant=[Jp])
@@ -140,6 +139,8 @@ givens = {P.flat: par_sub}
 f = theano.function([par_sub, inpt, target], loss, givens=givens)
 fprime = theano.function([par_sub, inpt, target], lossgrad, givens=givens)
 f_Hp = theano.function([par_sub, p, inpt, target], Hp, givens=givens)
+f_01_loss = theano.function([par_sub, inpt, target], zero_one_loss, 
+                            givens=givens)
 f_predict = theano.function([par_sub, inpt], exprs['output'], givens=givens)
 
 # Build a dataset.
@@ -150,12 +151,20 @@ import cPickle, gzip
 with gzip.open('mnist.pkl.gz','rb') as MNISTfile:
     train_set, valid_set, test_set = cPickle.load(MNISTfile)
 
-X, labels = train_set
-N, _ = X.shape
-Y = np.zeros((N, 10))
-for i in range(N):
-    Y[i][labels[i]] = 1
 
+def make_ds(set_):
+    X, labels = set_
+    N, _ = X.shape
+    Z = np.zeros((N, 10))
+    for i in range(N):
+        Z[i][labels[i]] = 1
+    return X, Z
+
+X, Z = make_ds(train_set)
+VX, VZ = make_ds(valid_set)
+TX, TZ = make_ds(test_set)
+
+    
 #sparse initialization
 P['hiddenbias'][:] = scipy.zeros(n_hidden)
 P['outbias'][:] = scipy.zeros(n_output)
@@ -191,15 +200,15 @@ sparse_initialization( n_hidden, n_output, 'outweights')
 
 
 #minibatches for HF: whole dataset
-args = (([X, Y], {}) for _ in itertools.repeat(()))
+args = (([X, Z], {}) for _ in itertools.repeat(()))
 
 
 #minibatches for cg: 5000
 batchsize = 5000
-n_batches = N/batchsize
+n_batches = X.shape[0] / batchsize
 random_numbers = (random.randint(0, n_batches - 1) for _ in itertools.count())
 idxs = ((r * batchsize, (r + 1) * batchsize) for r in random_numbers)
-minibatches = ((X[lower:upper], Y[lower:upper]) for lower, upper in idxs)
+minibatches = ((X[lower:upper], Z[lower:upper]) for lower, upper in idxs)
 cg_args = ((m, {}) for m in minibatches)
 
 print '#pars:', P.data.size
@@ -207,7 +216,8 @@ print '#pars:', P.data.size
 
 import chopmunk
 
-ignore = ['args', 'kwargs', 'gradient', 'Hp']
+ignore = ['args', 'kwargs', 'gradient', 'Hp', 'direction', 'step',
+          'cg_minimum', 'basis', 'gradient_diff', 'coefficients', 'grad']
 console_sink = chopmunk.prettyprint_sink()
 console_sink = chopmunk.dontkeep(console_sink, ignore)
 
@@ -216,6 +226,7 @@ file_sink = chopmunk.jsonify(file_sink)
 file_sink = chopmunk.dontkeep(file_sink, ignore)
 
 logger = chopmunk.broadcast(console_sink, file_sink)
+logger = chopmunk.timify(logger)
 logfunc = logger.send
 
 optimizer = 'hf'
@@ -223,7 +234,7 @@ optimizer = 'hf'
 if optimizer == 'ksd':
     opt = KrylovSubspaceDescent(
         P.data, f, fprime, f_Hp, n_bases=10,
-        args=args, logfunc=logfunc)
+        args=args, krylov_args=cg_args, hessian_args=cg_args, logfunc=logfunc)
 elif optimizer == 'rprop':
     opt = Rprop(P.data, f, fprime, args=args, logfunc=logfunc)
 elif optimizer == 'hf':
@@ -238,19 +249,16 @@ with open("./MNISTlog", 'w') as fileLog:
     fileLog.write("")
 
 for i, info in enumerate(opt):
-    X, Y = info['args']
-    loss = f(P.data, X, Y)
-    print 'iteration', i
-    print 'loss', loss
-    lossTab[i] = loss
-    with open("./MNISTlog", 'a') as fileLog:
-        fileLog.write(str(loss))
-        fileLog.write("\n")
-    
+    info['test-loss'] = f(P.data, TX, TZ)
+    info['validate-loss'] = f(P.data, VX, VZ)
+    info['train-0-1-loss'] = f_01_loss(P.data, X, Z)
+    info['validate-0-1-loss'] = f_01_loss(P.data, VX, VZ)
+    info['test-0-1-loss'] = f_01_loss(P.data, TX, TZ)
+
     logfunc(info)
-    if i > 100:
+    if i >= 99:
         break
-    if info['step_length'] == 0 and (info['direction_m1'] == 0).all():
+    if info['step_length'] == 0 and (info['cg_minimum'] == 0).all():
         break
 
 pylab.plot(lossTab)

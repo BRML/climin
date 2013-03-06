@@ -6,11 +6,11 @@ import itertools
 from base import Minimizer, repeat_or_iter
 
 
-class ASGD(Minimizer):
+class Asgd(Minimizer):
 
     def __init__(self, wrt, fprime, eta0=1e-5, lmbd=1e-4, alpha=0.75,
             t0=1e8, args=None, logfunc=None):
-        super(ASGD, self).__init__(
+        super(Asgd, self).__init__(
             wrt, args=args, logfunc=logfunc)
 
         self.fprime = fprime
@@ -38,7 +38,6 @@ class ASGD(Minimizer):
 
             # use 'optimal' w for some time at the start
             if self.mu_t < 1:
-                print self.mu_t
                 step = self.mu_t*(self.w - self.wrt)
                 self.wrt += step
             else:
@@ -47,7 +46,6 @@ class ASGD(Minimizer):
 
             self.mu_t = 1./max(1, (i+1) - self.t0)
             self.eta_t = self.eta0/((1 + self.lmbd * self.eta0 * (i+1))**self.alpha)
-            print 'eta', self.eta_t
 
             yield dict(gradient=gradient, mu_t=self.mu_t, 
                     eta_t=self.eta_t, lmbda=self.lmbd,

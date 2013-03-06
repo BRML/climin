@@ -13,7 +13,7 @@ from losses import Quadratic, LogisticRegression, Rosenbrock
 
  
 def test_ksd_lr():
-    obj = LogisticRegression(seed=20101)
+    obj = LogisticRegression(n_inpt=15, seed=20101)
     args = itertools.repeat(((obj.X, obj.Z), {}))
     krylov_args = args
     hessian_args = args
