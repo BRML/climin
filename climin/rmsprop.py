@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+import numpy as np
+
 from base import Minimizer
 from mathadapt import sqrt, ones_like
 
@@ -8,7 +10,7 @@ from mathadapt import sqrt, ones_like
 class RmsProp(Minimizer):
 
     def __init__(self, wrt, fprime, steprate, decay=0.9, momentum=0,
-                 step_adapt=False,
+                 step_adapt=False, step_rate_min=0, step_rate_max=np.inf,
                  args=None, logfunc=None):
         """Create an RmsProp object.
 
@@ -32,6 +34,8 @@ class RmsProp(Minimizer):
         self.decay = decay
         self.momentum = momentum
         self.step_adapt = step_adapt
+        self.step_rate_min = step_rate_min
+        self.step_rate_max = step_rate_max
 
     def __iter__(self):
         moving_mean_squared = 1
@@ -64,11 +68,13 @@ class RmsProp(Minimizer):
             if self.step_adapt:
                 # This code might look weird, but it makes it work with both
                 # numpy and gnumpy.
-                step_non_negative = step >= 0
-                step_m1_non_negative = step_m1 >= 0
+                step_non_negative = step > 0
+                step_m1_non_negative = step_m1 > 0
                 agree = (step_non_negative == step_m1_non_negative) * 1.
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 step_rate *= adapt
+                step_rate = np.clip(step_rate,
+                                    self.step_rate_min, self.step_rate_max)
 
             step_m1 = step
             yield dict(args=args, kwargs=kwargs, gradient=gradient,
