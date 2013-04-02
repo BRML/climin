@@ -31,7 +31,7 @@ class BackTrack(LineSearch):
     than `tolerance`.
     """
 
-    def __init__(self, wrt, f, decay=None, max_iter=float('inf'),
+    def __init__(self, wrt, f, decay=0.9, max_iter=float('inf'),
                  tolerance=1E-20, logfunc=dummylogfunc):
         super(BackTrack, self).__init__(wrt, logfunc)
         self.f = f
@@ -42,15 +42,15 @@ class BackTrack(LineSearch):
 
     def search(self, direction, initialization=1, args=None, kwargs=None,
                loss0=None):
+        args = [] if args is None else args
+        kwargs = {} if kwargs is None else kwargs
+
         # Recalculate the current loss if it has not been given.
         if loss0 is None:
             loss0 = self.f(self.wrt, *args, **kwargs)
 
-        args = [] if args is None else args
-        kwargs = {} if kwargs is None else kwargs
-
         # Try out every point in the schedule until a reduction has been found.
-        schedule = (self.decay**i for i in itertools.count())
+        schedule = (self.decay**i * initialization for i in itertools.count())
         for i, s in enumerate(schedule):
             if i + 1 >= self.max_iter:
                 break
