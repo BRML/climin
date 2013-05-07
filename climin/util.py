@@ -8,6 +8,7 @@ import warnings
 from asgd import Asgd
 from gd import GradientDescent
 from ilne import Ilne
+from ksd import KrylovSubspaceDescent
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from rprop import Rprop
@@ -64,13 +65,14 @@ def optimizer(identifier, wrt, *args, **kwargs):
     will `not` throw an error, but pass silently.
 
     :param identifier: String identifying the optimizer to use. Can be either
-        ``asgd``, ``gd``, ``lbfgs``, ``ncg``, ``rprop`` or  ``smd``.
+        ``asgd``, ``ksd``, ``gd``, ``lbfgs``, ``ncg``, ``rprop`` or  ``smd``.
     :param wrt: Numpy array pointing to the data to optimize.
     """
     klass_map = {
         'asgd': Asgd,
         'gd': GradientDescent,
         'ilne': Ilne,
+        'ksd': KrylovSubspaceDescent,
         'lbfgs': Lbfgs,
         'ncg': NonlinearConjugateGradient,
         'rprop': Rprop,
