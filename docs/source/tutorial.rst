@@ -56,7 +56,7 @@ We then import climin and initialize our first optimizer, a ``GradientDescent``
 object::
 
     >>> import climin
-    >>> opt = climin.GradientDescent(wrt, loss_wrt)
+    >>> opt = climin.GradientDescent(wrt, loss_wrt_x)
 
 We created a new object called ``opt``. For initialization, we passed it two
 parameters. For all optimizers, the first parameter is `always` the parameter
