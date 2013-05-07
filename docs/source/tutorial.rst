@@ -63,6 +63,10 @@ parameters. For all optimizers, the first parameter is `always` the parameter
 numpy array. This one will be worked upon in place and will always contain the
 latest parameters found. 
 
+Another point is that we only supply the derivative to the optimizer. The reason
+is that plain gradient descent does not need to know the loss, it just moves
+along the gradient.
+
 
 Optimization as Iteration
 -------------------------
