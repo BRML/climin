@@ -11,3 +11,6 @@ from sbfgs import Sbfgs
 from smd import Smd
 from nesterov import Nesterov
 from asgd import Asgd
+from tonga import tonga
+from nn import NaturalNewton
+from nn_lowrank import NaturalNewtonLR
