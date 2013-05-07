@@ -2,8 +2,6 @@ from bfgs import Bfgs
 from cg import ConjugateGradient
 from ilne import Ilne
 from gd import GradientDescent
-from hf import HessianFree
-from ksd import KrylovSubspaceDescent
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from nes import Xnes
