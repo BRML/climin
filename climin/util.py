@@ -7,7 +7,6 @@ import warnings
 
 from asgd import Asgd
 from gd import GradientDescent
-from ilne import Ilne
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from rprop import Rprop
@@ -70,7 +69,6 @@ def optimizer(identifier, wrt, *args, **kwargs):
     klass_map = {
         'asgd': Asgd,
         'gd': GradientDescent,
-        'ilne': Ilne,
         'lbfgs': Lbfgs,
         'ncg': NonlinearConjugateGradient,
         'rprop': Rprop,
