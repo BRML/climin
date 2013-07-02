@@ -3,9 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>0ec7b37a-45af-4db0-a76e-a0e0ec18ac78</ProjectGuid>
+    <ProjectGuid>{1e8caaee-4a8c-48ad-aa51-f7f049f13552}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>climin.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +23,66 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="climin.py" />
+    <Folder Include="climin\" />
+    <Folder Include="climin\stops\" />
+    <Folder Include="examples\" />
+    <Folder Include="test\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="climin\asgd.py" />
+    <Compile Include="climin\base.py" />
+    <Compile Include="climin\bayesian.py" />
+    <Compile Include="climin\bfgs.py" />
+    <Compile Include="climin\cg.py" />
+    <Compile Include="climin\gd.py" />
+    <Compile Include="climin\hf.py" />
+    <Compile Include="climin\initialize.py" />
+    <Compile Include="climin\ksd.py" />
+    <Compile Include="climin\lbfgs.py" />
+    <Compile Include="climin\linesearch.py" />
+    <Compile Include="climin\ncg.py" />
+    <Compile Include="climin\nes.py" />
+    <Compile Include="climin\nesterov.py" />
+    <Compile Include="climin\nn.py" />
+    <Compile Include="climin\nn_lowrank.py" />
+    <Compile Include="climin\rprop.py" />
+    <Compile Include="climin\sbfgs.py" />
+    <Compile Include="climin\smd.py" />
+    <Compile Include="climin\stops\stops.py" />
+    <Compile Include="climin\stops\__init__.py" />
+    <Compile Include="climin\tonga.py" />
+    <Compile Include="climin\util.py" />
+    <Compile Include="climin\__init__.py" />
+    <Compile Include="examples\deepMNIST.py" />
+    <Compile Include="examples\long-term-rnn.py" />
+    <Compile Include="examples\nnlrMNIST.py" />
+    <Compile Include="examples\nnMNIST.py" />
+    <Compile Include="examples\numericalGradientChecker.py" />
+    <Compile Include="examples\stop_converged.py" />
+    <Compile Include="examples\stop_criterions.py" />
+    <Compile Include="examples\stop_iterations.py" />
+    <Compile Include="examples\stop_timeelapsed.py" />
+    <Compile Include="examples\tongaMNIST.py" />
+    <Compile Include="examples\tongaMNISTscript10.py" />
+    <Compile Include="test\losses.py" />
+    <Compile Include="test\test_asgd.py" />
+    <Compile Include="test\test_bayesian.py" />
+    <Compile Include="test\test_bfgs.py" />
+    <Compile Include="test\test_cg.py" />
+    <Compile Include="test\test_gd.py" />
+    <Compile Include="test\test_hf.py" />
+    <Compile Include="test\test_initialize.py" />
+    <Compile Include="test\test_ksd.py" />
+    <Compile Include="test\test_lbfgs.py" />
+    <Compile Include="test\test_linesearch.py" />
+    <Compile Include="test\test_ncg.py" />
+    <Compile Include="test\test_nes.py" />
+    <Compile Include="test\test_nesterov.py" />
+    <Compile Include="test\test_rprop.py" />
+    <Compile Include="test\test_sbfgs.py" />
+    <Compile Include="test\test_smd.py" />
+    <Compile Include="test\test_stops.py" />
+    <Compile Include="test\__init__.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 </Project>

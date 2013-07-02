@@ -40,3 +40,24 @@ def draw_mini_slices(n_samples, batch_size, with_replacement=False):
             random.shuffle(idxs)
             for i in idxs:
                 yield slices[i]
+
+def draw_mini_indices(n_samples, batch_size):
+    assert n_samples > batch_size
+    idxs = range(n_samples)
+    random.shuffle(idxs)
+    pos = 0
+
+    while True:
+        while pos + batch_size <= n_samples:
+             yield idxs[pos:pos + batch_size]
+             pos += batch_size
+        
+        batch = idxs[pos:]
+        needed = batch_size - len(batch)
+        random.shuffle(idxs)
+        batch += idxs[0:needed]
+        yield batch
+        pos = needed
+
+        
+
