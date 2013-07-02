@@ -31,31 +31,27 @@ class BackTrack(LineSearch):
     than `tolerance`.
     """
 
-    def __init__(self, wrt, f, schedule=None, decay=None, max_iter=float('inf'),
+    def __init__(self, wrt, f, decay=0.9, max_iter=float('inf'),
                  tolerance=1E-20, logfunc=dummylogfunc):
         super(BackTrack, self).__init__(wrt, logfunc)
         self.f = f
         self.max_iter = max_iter
-
-        if schedule is not None:
-            self.schedule = schedule
-        else:
-            self.decay = decay
-            self.schedule = (decay**i for i in itertools.count())
+        self.decay = decay
 
         self.tolerance = tolerance
 
-    def search(self, direction, initialization=1, args=None, kwargs=None, 
+    def search(self, direction, initialization=1, args=None, kwargs=None,
                loss0=None):
+        args = [] if args is None else args
+        kwargs = {} if kwargs is None else kwargs
+
         # Recalculate the current loss if it has not been given.
         if loss0 is None:
             loss0 = self.f(self.wrt, *args, **kwargs)
 
-        args = [] if args is None else args
-        kwargs = {} if kwargs is None else kwargs
-
         # Try out every point in the schedule until a reduction has been found.
-        for i, s in enumerate(self.schedule):
+        schedule = (self.decay**i * initialization for i in itertools.count())
+        for i, s in enumerate(schedule):
             if i + 1 >= self.max_iter:
                 break
             step = initialization * s * direction
@@ -64,11 +60,11 @@ class BackTrack(LineSearch):
                 break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
+            self.logfunc({'step_length': s, 'loss': loss})
             improvement = loss0 - loss
             if -(loss0 - loss) < 0:
                 # We check here for negative improvement to also not continue in
                 # the case of NaNs.
-                self.logfunc({'message': 'beating loss by %f' % (loss0 - loss)})
                 return s
 
         return 0
@@ -133,18 +129,19 @@ class WolfeLineSearch(LineSearch):
         self.f = f
         self.fprime = fprime
         self.c1 = c1
-        self.c2= c2
-        self.maxiter = 30
+        self.c2 = c2
+        self.maxiter = maxiter
         self.min_step_length = min_step_length
         self.typ = typ
 
         # TODO: find better API for this
         self.first_try = True
 
-    def search(self, direction, initialization=None, args=None, kwargs=None):
+    def search(self, direction, initialization=None, args=None, kwargs=None,
+               loss0=None):
         args = args if args is not None else ()
         kwargs = kwargs if kwargs is not None else {}
-        loss0 = self.f(self.wrt, *args, **kwargs)
+        loss0 = self.f(self.wrt, *args, **kwargs) if loss0 is None else loss0
         grad0 = self.fprime(self.wrt, *args, **kwargs)
         direct_deriv0 = scipy.inner(grad0, direction)
         f = lambda x: (self.f(x, *args, **kwargs),
@@ -161,6 +158,7 @@ class WolfeLineSearch(LineSearch):
             self.c1, self.c2, self.typ, self.maxiter, self.min_step_length,
             f)
 
+        self.val = fstep
         self.grad = fprimestep
 
         return step
@@ -204,7 +202,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
             t = points[notMinPos, 0] -\
                     (points[notMinPos, 0] - points[minPos, 0]) * \
                     (
-                      (points[notMinPos, 2] + d2 - d1) / 
+                      (points[notMinPos, 2] + d2 - d1) /
                       (points[notMinPos, 2] - points[minPos, 2] + 2*d2)
                     )
             minPos = np.minimum(
@@ -225,7 +223,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         xmaxBound = xmax
     #
     #
-    # Collect constraints for parameter estimation 
+    # Collect constraints for parameter estimation
     A = np.zeros((2*nPoints, order+1))
     b = np.zeros((2*nPoints, 1))
     # Constraints based on available function values
@@ -270,11 +268,11 @@ def mixedExtrap(x0, f0, g0, x1, f1, g1,
     From minFunc, without switches doPlot and debug.
     """
     alpha_c, _ = polyinterp(
-        points=np.array([[x0, f0, g0], [x1, f1, g1]]), 
+        points=np.array([[x0, f0, g0], [x1, f1, g1]]),
         xminBound=minStep, xmaxBound=maxStep)
     #
     alpha_s, _ = polyinterp(
-        points=np.array([[x0, f0, g0], [x1, 1j, g1]]), 
+        points=np.array([[x0, f0, g0], [x1, 1j, g1]]),
         xminBound=minStep, xmaxBound=maxStep)
     if alpha_c > minStep and abs(alpha_c - x1) < abs(alpha_s - x1):
         # Cubic Extrapolation
@@ -509,7 +507,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 # to Armijo line search
                 # no Hessian is computed!!
                 t, x_new, f_new, g_new, _fevals = armijobacktrack(
-                    x, t, d, f, f, g, gtd, c1, max(0, min(LS-2, 2)), tolX, 
+                    x, t, d, f, f, g, gtd, c1, max(0, min(LS-2, 2)), tolX,
                     funObj)
                 funEvals += _fevals
                 return t, f_new, g_new, funEvals
@@ -572,7 +570,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
         #
         insufProgress = False
         # Next line needs a check!!!!!
-        Tpos = 1 
+        Tpos = 1
         LOposRemoved = False
         while not done and LSiter < maxLS:
             # Find high and low points in the bracket
@@ -580,7 +578,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
             f_LO = np.min(bracketFval)
             LOpos = np.argmin(bracketFval)
             HIpos = 1 - LOpos
-            # 
+            #
             # Compute new trial value
             if LS == 3 or not isLegal(bracketFval) or not isLegal(bracketGval):
                 # Bisecting
