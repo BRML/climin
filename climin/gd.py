@@ -6,30 +6,6 @@ import itertools
 from base import Minimizer, repeat_or_iter
 
 
-def decaying(start, decay):
-    """Return an iterator that starts out with `start` and decays with
-    a factor of `decay`."""
-    return (start * decay**i for i in itertools.count(0))
-
-
-def linear_annealing(start, stop, n_steps):
-    """Return an iterator that starts out with `start`, anneals linearly
-    towards `stop` over `n_steps` iterations, and subsequently yields `stop`."""
-    inc = (stop - start) / n_steps
-    for i in range(n_steps):
-        yield start + i * inc
-    while True:
-        yield stop
-
-
-def repeater(iter, n):
-    """Return an iterator that repeats each element of `iter` exactly
-    `n` times before moving on to the next element."""
-    for i in iter:
-        for j in range(n):
-            yield i
-
-
 class GradientDescent(Minimizer):
 
     def __init__(self, wrt, fprime, steprate=0.1, momentum=0.0,
