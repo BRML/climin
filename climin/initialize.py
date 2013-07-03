@@ -8,10 +8,12 @@ import numpy as np
 def sparsify_columns(arr, n_non_zero):
     """Set all but `n_non_zero` entries to zero for each column of `arr`."""
     colsize = arr.shape[0]
+    mask = np.ones_like(arr.as_numpy_array())
     for i in range(arr.shape[1]):
         idxs = xrange(colsize)
         zeros = random.sample(idxs, colsize - n_non_zero)
-        arr[zeros, i] *= 0
+        mask[zeros, i] *= 0
+    arr *= mask
 
 
 def bound_spectral_radius(arr, bound=1.2):
