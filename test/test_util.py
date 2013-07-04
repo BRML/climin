@@ -7,8 +7,7 @@ from climin.util import optimizer
 
 
 def test_optimizer():
-    pairs = [('asgd', climin.Asgd), 
-             ('ksd', climin.KrylovSubspaceDescent),
+    pairs = [('asgd', climin.Asgd),
              ('gd', climin.GradientDescent),
              ('lbfgs', climin.Lbfgs),
              ('ncg', climin.NonlinearConjugateGradient),
