@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import itertools
-
-import scipy
+import mathadapt as ma
 
 from base import Minimizer, repeat_or_iter
-
 
 class Rprop(Minimizer):
 
@@ -23,8 +21,8 @@ class Rprop(Minimizer):
         self.changes_max = changes_max
 
     def __iter__(self):
-        grad_m1 = scipy.zeros(self.wrt.shape)
-        changes = scipy.random.random(self.wrt.shape) * self.changes_max
+        grad_m1 = ma.zeros(self.wrt.shape)
+        changes = ma.random.random(self.wrt.shape) * self.changes_max
 
         for i, (args, kwargs) in enumerate(self.args):
             grad = self.fprime(self.wrt, *args, **kwargs)
@@ -36,11 +34,11 @@ class Rprop(Minimizer):
             changes *= gradprod == 0
 
             # TODO actually, this should be done to changes
-            changes_min = scipy.clip(changes_min, self.min_step, self.max_step)
-            changes_max = scipy.clip(changes_max, self.min_step, self.max_step)
+            changes_min = ma.clip(changes_min, self.min_step, self.max_step)
+            changes_max = ma.clip(changes_max, self.min_step, self.max_step)
 
             changes += changes_min + changes_max
-            step = -changes * scipy.sign(grad)
+            step = -changes * ma.sign(grad)
             self.wrt += step
 
             grad_m1 = grad
