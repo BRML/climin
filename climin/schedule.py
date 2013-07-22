@@ -6,6 +6,9 @@ A schedule is implemented as an iterator.
 """
 
 import itertools
+import math
+
+import numpy as np
 
 
 def decaying(start, decay):
