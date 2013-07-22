@@ -56,6 +56,8 @@ def sign(x):
 
 
 def random_like(x):
+    """Return an array of the same shape as `x` filled with random numbers from
+    the interval [0, 1)."""
     if not isinstance(x, np.ndarray):
         return gp.rand(x.shape)
     else:
