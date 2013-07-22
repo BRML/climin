@@ -31,26 +31,29 @@
   <ItemGroup>
     <Compile Include="climin\asgd.py" />
     <Compile Include="climin\base.py" />
-    <Compile Include="climin\bayesian.py" />
     <Compile Include="climin\bfgs.py" />
     <Compile Include="climin\cg.py" />
     <Compile Include="climin\gd.py" />
-    <Compile Include="climin\hf.py" />
     <Compile Include="climin\initialize.py" />
-    <Compile Include="climin\ksd.py" />
     <Compile Include="climin\lbfgs.py" />
     <Compile Include="climin\linesearch.py" />
+    <Compile Include="climin\mathadapt.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="climin\ncg.py" />
     <Compile Include="climin\nes.py" />
     <Compile Include="climin\nesterov.py" />
-    <Compile Include="climin\nn.py" />
-    <Compile Include="climin\nn_lowrank.py" />
+    <Compile Include="climin\project.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="climin\rmsprop.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="climin\rprop.py" />
     <Compile Include="climin\sbfgs.py" />
     <Compile Include="climin\smd.py" />
     <Compile Include="climin\stops\stops.py" />
     <Compile Include="climin\stops\__init__.py" />
-    <Compile Include="climin\tonga.py" />
     <Compile Include="climin\util.py" />
     <Compile Include="climin\__init__.py" />
     <Compile Include="examples\deepMNIST.py" />
