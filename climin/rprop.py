@@ -21,8 +21,8 @@ class Rprop(Minimizer):
         self.changes_max = changes_max
 
     def __iter__(self):
-        grad_m1 = ma.zeros(self.wrt.shape)
-        changes = ma.random.random(self.wrt.shape) * self.changes_max
+        grad_m1 = ma.zero_like(self.wrt)
+        changes = ma.random_like(self.wrt) * self.changes_max
 
         for i, (args, kwargs) in enumerate(self.args):
             grad = self.fprime(self.wrt, *args, **kwargs)
@@ -43,6 +43,6 @@ class Rprop(Minimizer):
 
             grad_m1 = grad
 
-            yield dict(args=args, kwargs=kwargs, gradient=grad, 
+            yield dict(args=args, kwargs=kwargs, gradient=grad,
                        gradient_m1=grad_m1, n_iter=i,
                        step=step)
