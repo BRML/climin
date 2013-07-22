@@ -71,7 +71,6 @@ def draw_mini_indices(n_samples, batch_size):
         pos = needed
 
         
-
 def optimizer(identifier, wrt, *args, **kwargs):
     """Return an optimizer with the desired configuration.
 
