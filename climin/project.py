@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from mathadapt import sqrt
+
 
 def max_length_columns(arr, max_length):
     """Project the columns of an array below a certain length.
@@ -21,7 +23,7 @@ def max_length_columns(arr, max_length):
     if arr.ndim != 2:
         raise ValueError('only 2d arrays allowed')
 
-    lengths = np.sqrt((arr ** 2).sum(axis=0))
+    lengths = sqrt((arr ** 2).sum(axis=0))
     too_big_by = lengths / max_length
     divisor = too_big_by
     non_violated = lengths < max_length

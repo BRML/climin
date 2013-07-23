@@ -4,7 +4,7 @@
 import numpy as np
 
 from base import Minimizer
-from mathadapt import sqrt, ones_like
+from mathadapt import sqrt, ones_like, clip
 
 
 class RmsProp(Minimizer):
@@ -73,12 +73,13 @@ class RmsProp(Minimizer):
                 agree = (step_non_negative == step_m1_non_negative) * 1.
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 step_rate *= adapt
-                step_rate = np.clip(step_rate,
-                                    self.step_rate_min, self.step_rate_max)
+                step_rate = clip(
+                    step_rate, self.step_rate_min, self.step_rate_max)
 
             step_m1 = step
             yield dict(args=args, kwargs=kwargs, gradient=gradient,
                        n_iter=i,
+                       wrt=self.wrt,
                        moving_mean_squared=moving_mean_squared,
                        step=step_m1,
                        step_rate=step_rate)
