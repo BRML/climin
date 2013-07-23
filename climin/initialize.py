@@ -4,6 +4,8 @@ import random
 
 import numpy as np
 
+import climin.mathadapt as ma
+
 
 def sparsify_columns(arr, n_non_zero):
     """Set all but `n_non_zero` entries to zero for each column of `arr`."""
@@ -24,8 +26,15 @@ def sparsify_columns(arr, n_non_zero):
 
 def bound_spectral_radius(arr, bound=1.2):
     """Rescale the highest eigenvalue of the square matrix `arr` to `bound`."""
-    vals, vecs = np.linalg.eig(arr)
+    vals, vecs = np.linalg.eig(ma.assert_numpy(arr))
 
     vals /= abs(vals).max()
     vals *= 1.2
     arr[...] = np.dot(vecs, np.dot(np.diag(vals), np.linalg.inv(vecs)))
+
+
+def randomize_normal(arr, loc=0, scale=1):
+    """Populate an array with random numbers from a normal distribution with
+    mean `loc` and standard deviation `scale`."""
+    sample = random.normal(arr.shape, loc, scale)
+    arr[...] = sample

@@ -62,3 +62,12 @@ def random_like(x):
         return gp.rand(x.shape)
     else:
         return np.random.random(x.shape)
+
+
+def assert_numpy(x):
+    """Given a gnumpy or numpy array x, return an array with the same contents."""
+    if not isinstance(x, np.ndarray):
+        x = x.as_numpy_array()
+    else:
+        x = x.copy()
+    return x
