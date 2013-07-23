@@ -36,5 +36,5 @@ def bound_spectral_radius(arr, bound=1.2):
 def randomize_normal(arr, loc=0, scale=1):
     """Populate an array with random numbers from a normal distribution with
     mean `loc` and standard deviation `scale`."""
-    sample = random.normal(arr.shape, loc, scale)
+    sample = np.random.normal(arr.shape, loc, scale)
     arr[...] = sample
