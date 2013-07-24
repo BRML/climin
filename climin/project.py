@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from mathadapt import sqrt
+from mathadapt import sqrt, where
 
 
 def max_length_columns(arr, max_length):
@@ -23,10 +23,20 @@ def max_length_columns(arr, max_length):
     if arr.ndim != 2:
         raise ValueError('only 2d arrays allowed')
 
+    max_length = float(max_length)
+
     lengths = sqrt((arr ** 2).sum(axis=0))
     too_big_by = lengths / max_length
     divisor = too_big_by
     non_violated = lengths < max_length
-    divisor[np.where(non_violated)] = 1.
+
+    if isinstance(arr, np.ndarray):
+        divisor[np.where(non_violated)] = 1.
+    else:
+        # Gnumpy implementation.
+        # TODO: can this be done more efficiently?
+        for i, nv in enumerate(non_violated):
+            if nv:
+                divisor[i] = 1.
 
     arr /= divisor[np.newaxis]

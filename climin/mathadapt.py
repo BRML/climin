@@ -55,6 +55,14 @@ def sign(x):
         return np.sign(x)
 
 
+def where(x, *args):
+    """Delegate to gnumpy.where or numpy.where depending on the type of `x`."""
+    if not isinstance(x, np.ndarray):
+        return gp.where(x, *args)
+    else:
+        return np.where(x, *args)
+
+
 def random_like(x):
     """Return an array of the same shape as `x` filled with random numbers from
     the interval [0, 1)."""
@@ -71,3 +79,9 @@ def assert_numpy(x):
     else:
         x = x.copy()
     return x
+
+
+def scalar(x):
+    if not x.size == 1:
+        raise ValueError('size is %i instead of 1' % x.size)
+    return x.reshape((1,))[0]
