@@ -72,6 +72,15 @@ def random_like(x):
         return np.random.random(x.shape)
 
 
+def random_normal_like(x, loc, scale):
+    """Return an array of the same shape as `x` filled with random numbers from
+    the interval [0, 1)."""
+    if not isinstance(x, np.ndarray):
+        return gp.randn(*x.shape) * scale + loc
+    else:
+        return np.random.normal(loc, scale, x.shape)
+
+
 def assert_numpy(x):
     """Given a gnumpy or numpy array x, return an array with the same contents."""
     if not isinstance(x, np.ndarray):
