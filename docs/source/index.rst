@@ -13,6 +13,21 @@ Basics
    tutorial
    :maxdepth: 2
 
+Optimizer overview
+------------------
+
+.. toctree::
+   gd
+   :maxdepth: 1
+
+
+Convenience, Utilities
+----------------------
+
+.. toctree::
+   schedule
+   :maxdepth: 1
+
 
 
 
