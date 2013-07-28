@@ -26,6 +26,7 @@ Convenience, Utilities
 
 .. toctree::
    schedule
+   initialize
    :maxdepth: 1
 
 
