@@ -56,8 +56,8 @@ class RmsProp(Minimizer):
 
             moving_mean_squared = (
                 self.decay * moving_mean_squared
-                + (1 - self.decay) * gradient**2)
-            step2 = self.steprate * gradient
+                + (1 - self.decay) * gradient ** 2)
+            step2 = step_rate * gradient
             step2 /= sqrt(moving_mean_squared + 1e-8)
             self.wrt -= step2
 
