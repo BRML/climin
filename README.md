@@ -1,7 +1,35 @@
 climin
 ------
 
-Machine learning biased optimization.
+climin is a Python package for optimization, heavily biased to machine learning
+scenarios distributed under the BSD 3-cluase license. It works on top of numpy
+and (partially) gnumpy.
 
-This package focuses on the optimization of continuous problems typically found
-in machine learning.
+The project was started in winter 2011 by Christian Osendorfer and Justin Bayer.
+
+
+Important links
+---------------
+
+ - Official repository of source: http://github.com/BRML/climin
+ - Documentation: http://climin.readthedocs.orgo
+
+
+Dependencies
+------------
+
+The software is tested under Python 2.7 with numpy 1.8, scipy 0.13. The tests
+are run with nosetests.
+
+
+Installation
+------------
+
+Use git to clone the official repository; then run `pip install --user -e .`
+in the clone to intall in your local user space.
+
+
+Testing
+-------
+
+From the download directory run ``nosetests tests/``.
