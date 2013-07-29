@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""Module that contains projection operators."""
+
 
 import numpy as np
 
-from mathadapt import sqrt, where
+from mathadapt import sqrt
 
 
 def max_length_columns(arr, max_length):

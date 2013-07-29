@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+# TODO: document module
+
+
 import scipy
 import scipy.linalg
 import scipy.optimize
@@ -9,11 +12,13 @@ from linesearch import WolfeLineSearch
 
 
 class Lbfgs(Minimizer):
+    # TODO: document class
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
                  n_factors=10, line_search=None,
-                 args=None, logfunc=None):
-        super(Lbfgs, self).__init__(wrt, args=args, logfunc=logfunc)
+                 args=None):
+        # TODO: document method
+        super(Lbfgs, self).__init__(wrt, args=args)
 
         self.f = f
         self.fprime = fprime
@@ -108,8 +113,7 @@ class Lbfgs(Minimizer):
                     grad_diffs, steps, -grad, hessian_diag, idxs)
 
             if not is_nonzerofinite(direction):
-                self.logfunc(
-                    {'message': 'direction is invalid--need to bail out.'})
+                # TODO: inform user
                 break
 
             step_length = self.line_search.search(
@@ -119,7 +123,8 @@ class Lbfgs(Minimizer):
             if step_length != 0:
                 self.wrt += step
             else:
-                self.logfunc({'message': 'step length is 0.'})
+                # TODO inform user
+                pass
 
             # Prepare everything for the next loop.
             args, kwargs = next_args, next_kwargs

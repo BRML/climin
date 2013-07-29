@@ -83,11 +83,8 @@ class GradientDescent(Minimizer):
 
     def __init__(self, wrt, fprime, steprate=0.1, momentum=0.0,
                  momentum_type='standard',
-                 args=None, logfunc=None):
+                 args=None):
         """Create a GradientDescent object.
-
-        Gradient descent is a very simple optimizer that takes search directions
-
 
         Parameters
         ----------
@@ -119,12 +116,14 @@ class GradientDescent(Minimizer):
             case it will be done after the calculation of the gradient, in the
             latter before.
         """
-        super(GradientDescent, self).__init__(
-            wrt, args=args, logfunc=logfunc)
+        super(GradientDescent, self).__init__(wrt, args=args)
 
         self.fprime = fprime
         self.steprates = repeat_or_iter(steprate)
         self.momentums = repeat_or_iter(momentum)
+
+        if momentum_type not in ('nesterov', 'standard'):
+            raise ValueError('unknown momentum type')
         self.momentum_type = momentum_type
 
     def __iter__(self):

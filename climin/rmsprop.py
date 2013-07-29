@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# TODO document
+
 
 import numpy as np
 
@@ -9,9 +11,10 @@ from mathadapt import sqrt, ones_like, clip
 
 class RmsProp(Minimizer):
 
+    # TODO document
     def __init__(self, wrt, fprime, steprate, decay=0.9, momentum=0,
                  step_adapt=False, step_rate_min=0, step_rate_max=np.inf,
-                 args=None, logfunc=None):
+                 args=None):
         """Create an RmsProp object.
 
         :param wrt: Numpy array of the parameters to optimize.
@@ -27,7 +30,8 @@ class RmsProp(Minimizer):
             with.
         :param logfunc: Function that will be called to log messages.
         """
-        super(RmsProp, self).__init__(wrt, args=args, logfunc=logfunc)
+        # TODO Adapt documentation to numpydoc.
+        super(RmsProp, self).__init__(wrt, args=args)
 
         self.fprime = fprime
         self.steprate = steprate
@@ -77,9 +81,12 @@ class RmsProp(Minimizer):
                     step_rate, self.step_rate_min, self.step_rate_max)
 
             step_m1 = step
-            yield dict(args=args, kwargs=kwargs, gradient=gradient,
-                       n_iter=i,
-                       wrt=self.wrt,
-                       moving_mean_squared=moving_mean_squared,
-                       step=step_m1,
-                       step_rate=step_rate)
+            yield {
+                'n_iter': i,
+                'gradient': gradient,
+                'moving_mean_squared': moving_mean_squared,
+                'step': step_m1,
+                'args': args,
+                'kwargs': kwargs,
+                'step_rate': step_rate
+            }

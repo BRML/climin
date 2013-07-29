@@ -4,10 +4,10 @@
 #
 # Copyright (c) 2009, PyBrain-Developers
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
-# 
+#
 #     * Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above copyright notice,
@@ -16,7 +16,7 @@
 #     * Neither the name of PyBrain nor the names of its contributors
 #       may be used to endorse or promote products derived from this software
 #       without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37,8 +37,11 @@ from base import Minimizer
 
 class Xnes(Minimizer):
 
-    def __init__(self, wrt, f, args=None, logfunc=None):
-        super(Xnes, self).__init__(wrt, args=args, logfunc=logfunc)
+    # TODO: document class
+
+    def __init__(self, wrt, f, args=None):
+        # TODO: document method
+        super(Xnes, self).__init__(wrt, args=args)
         self._f = f
         # Set some default values.
         dim = self.wrt.shape[0]
@@ -64,7 +67,7 @@ class Xnes(Minimizer):
             # was found.
             samples = scipy.random.standard_normal((self.batch_size, dim))
             samples = scipy.dot(samples, A) + center
-            fitnesses = [self.f(samples[j], *args, **kwargs) 
+            fitnesses = [self.f(samples[j], *args, **kwargs)
                          for j in range(samples.shape[0])]
             fitnesses = scipy.array(fitnesses).flatten()
 
@@ -76,7 +79,7 @@ class Xnes(Minimizer):
             utilities = self.compute_utilities(fitnesses)
             center += scipy.dot(scipy.dot(utilities, samples), A)
             # TODO: vectorize this
-            cov_gradient = sum([u * (scipy.outer(s, s) - I) 
+            cov_gradient = sum([u * (scipy.outer(s, s) - I)
                                 for (s, u) in zip(samples, utilities)])
             update = scipy.linalg.expm2(A * cov_gradient * self.step_rate * 0.5)
             A[:] = scipy.dot(A, update)

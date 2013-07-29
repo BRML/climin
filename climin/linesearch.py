@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# TODO: this module needs lots of pep8 love.
+
 
 import itertools
 
@@ -7,14 +9,11 @@ import scipy.optimize
 import numpy as np
 import scipy as sp
 
-from base import dummylogfunc
-
 
 class LineSearch(object):
 
-    def __init__(self, wrt, logfunc=dummylogfunc):
+    def __init__(self, wrt):
         self.wrt = wrt
-        self.logfunc = logfunc
 
 
 class BackTrack(LineSearch):
@@ -32,8 +31,8 @@ class BackTrack(LineSearch):
     """
 
     def __init__(self, wrt, f, decay=0.9, max_iter=float('inf'),
-                 tolerance=1E-20, logfunc=dummylogfunc):
-        super(BackTrack, self).__init__(wrt, logfunc)
+                 tolerance=1E-20):
+        super(BackTrack, self).__init__(wrt)
         self.f = f
         self.max_iter = max_iter
         self.decay = decay
@@ -50,7 +49,7 @@ class BackTrack(LineSearch):
             loss0 = self.f(self.wrt, *args, **kwargs)
 
         # Try out every point in the schedule until a reduction has been found.
-        schedule = (self.decay**i * initialization for i in itertools.count())
+        schedule = (self.decay ** i * initialization for i in itertools.count())
         for i, s in enumerate(schedule):
             if i + 1 >= self.max_iter:
                 break
@@ -60,8 +59,6 @@ class BackTrack(LineSearch):
                 break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
-            self.logfunc({'step_length': s, 'loss': loss})
-            improvement = loss0 - loss
             if -(loss0 - loss) < 0:
                 # We check here for negative improvement to also not continue in
                 # the case of NaNs.
@@ -197,13 +194,13 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         f2 = points[notMinPos, 1]
 
         d1 = g1 + g2 - 3 * (f1 - f2) / (x1 - x2)
-        d2 = sp.sqrt(d1**2 - g1 * g2)
+        d2 = sp.sqrt(d1 ** 2 - g1 * g2)
         if np.isreal(d2):
             t = points[notMinPos, 0] -\
                     (points[notMinPos, 0] - points[minPos, 0]) * \
                     (
                       (points[notMinPos, 2] + d2 - d1) /
-                      (points[notMinPos, 2] - points[minPos, 2] + 2*d2)
+                      (points[notMinPos, 2] - points[minPos, 2] + 2 * d2)
                     )
             minPos = np.minimum(
                 np.maximum(t, points[minPos, 0]), points[notMinPos, 0])
@@ -224,18 +221,18 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     #
     #
     # Collect constraints for parameter estimation
-    A = np.zeros((2*nPoints, order+1))
-    b = np.zeros((2*nPoints, 1))
+    A = np.zeros((2 * nPoints, order + 1))
+    b = np.zeros((2 * nPoints, 1))
     # Constraints based on available function values
     for i in range(points.shape[0]):
         if np.isreal(points[i, 1]):
-            A[i] = [points[i, 0]**(order - j) for j in xrange(order+1)]
+            A[i] = [points[i, 0] ** (order - j) for j in xrange(order + 1)]
             b[i] = points[i, 1]
             points[i, 0], points[i, 1]
     # Constraints based on available derivatives
     for i, p in enumerate(points[:, 2]):
         if np.isreal(p):
-            A[nPoints + i] = [(order - j + 1) * points[i, 0]**(order - j)
+            A[nPoints + i] = [(order - j + 1) * points[i, 0] ** (order - j)
                               for j in xrange(1, order + 1)] + [0]
             b[nPoints + i] = points[i, 2]
     #
@@ -243,7 +240,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     params = np.linalg.lstsq(A, b)[0].flatten()
 
     # Compute critical points
-    dParams = [(order - j)*params[j] for j in xrange(order)]
+    dParams = [(order - j) * params[j] for j in xrange(order)]
 
     cp = [xminBound, xmaxBound] + list(points[:, 0])
     if not np.any(np.isinf(dParams)):
@@ -252,7 +249,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     # Test critical points
     fmin = np.inf
     # Default to bisection if no critical points are valid
-    minPos = (xminBound + xmaxBound)/2.
+    minPos = (xminBound + xmaxBound) / 2.
     for x in cp:
         if np.isreal(x) and x >= xminBound and x <= xmaxBound:
             fx = np.polyval(params, x)
@@ -262,8 +259,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     return minPos, fmin
 
 
-def mixedExtrap(x0, f0, g0, x1, f1, g1,
-        minStep, maxStep):
+def mixedExtrap(x0, f0, g0, x1, f1, g1, minStep, maxStep):
     """
     From minFunc, without switches doPlot and debug.
     """
@@ -324,10 +320,10 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
 
     # Evaluate objective and gradient at initial step
     # Hessian part missing here!
-    f_new, g_new = funObj(x + t*d)
+    f_new, g_new = funObj(x + t * d)
     funEvals = 1
 
-    while f_new > fr + c1*t*gtd or not isLegal(f_new):
+    while f_new > fr + c1 * t * gtd or not isLegal(f_new):
         # A comment here will be nice!
         temp = t
         # this could be nicer, if idea how to work out 'LS'
@@ -345,8 +341,8 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         else:
             # Backtracking with cubin interpolation
             # (no derviatives at new point available)
-            t, _ = polyinterp(np.array([[0, f, gtd],\
-                    [t, f_new, 1j], [t_prev, f_prev, 1j]]))
+            t, _ = polyinterp(
+                np.array([[0, f, gtd], [t, f_new, 1j], [t_prev, f_prev, 1j]]))
         #
         # Adjust if change in t is too small ...
         if t < 1e-3 * temp:
@@ -585,9 +581,10 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 t = np.mean(bracket)
             elif LS == 4:
                 # Grad cubic interpolation
-                t, _ = polyinterp(np.array(
-                    [[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],\
-                    [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
+                t, _ = polyinterp(
+                    np.array(
+                        [[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],
+                         [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
             else:
                 # Mixed case
                 # Is this correct ???????
@@ -596,8 +593,9 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                     oldLOval = bracket[nonTpos]
                     oldLOFval = bracketFval[nonTpos]
                     oldLOGval = bracketGval[nonTpos]
-                t = mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
-                        oldLOval, oldLOFval, oldLOGval)
+                t = mixedInterp(
+                        bracket, bracketFval, bracketGval, d, Tpos, oldLOval,
+                        oldLOFval, oldLOGval)
 
             #
             # Test that we are making sufficient progress
@@ -623,7 +621,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
             # Evaluate new point
             # no Hessian!
             t = scipy.real(t)
-            f_new, g_new = funObj(x + t*d)
+            f_new, g_new = funObj(x + t * d)
             funEvals += 1
             gtd_new = np.dot(g_new, d)
             LSiter += 1
@@ -636,7 +634,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 bracketGval[HIpos] = g_new
                 Tpos = HIpos
             else:
-                if np.abs(gtd_new) <= -c2*gtd:
+                if np.abs(gtd_new) <= -c2 * gtd:
                     # Wolfe conditions satisfied
                     done = True
                 elif gtd_new * (bracket[HIpos] - bracket[LOpos]) >= 0:
@@ -658,12 +656,12 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 bracketGval[LOpos] = g_new
                 Tpos = LOpos
 
-            if not done and np.abs(bracket[0] - bracket[1])*gtd_new < tolX:
+            if not done and np.abs(bracket[0] - bracket[1]) * gtd_new < tolX:
                 # Line search can not make further progress
                 break
         # while ...
 
-        # a comment here maybe nice
+        # TODO a comment here maybe nice
         if LSiter == maxLS:
             # could give info:
             # Line Search exceeded maximum line search iterations

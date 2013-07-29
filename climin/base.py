@@ -12,15 +12,10 @@ def repeat_or_iter(obj):
         return itertools.repeat(obj)
 
 
-def dummylogfunc(*args, **kwargs):
-    pass
-
-
 class Minimizer(object):
 
-    def __init__(self, wrt, args=None, logfunc=None):
+    def __init__(self, wrt, args=None):
         self.wrt = wrt
-        self.logfunc = logfunc if logfunc is not None else dummylogfunc
         if args is None:
             self.args = itertools.repeat(([], {}))
         else:
@@ -34,11 +29,11 @@ class Minimizer(object):
         to continue, True means to stop."""
         if not criterions:
             raise ValueError('need to supply at least one criterion')
-        
+
         # if criterions is a single criterion, wrap it in iterable list
         if not isinstance(criterions, collections.Iterable):
             criterions = [criterions]
-        
+
         info = {}
         for info in self:
             for criterion in criterions:

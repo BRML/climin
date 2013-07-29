@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import itertools
+# TODO: document module
+# TODO: check if gnumpy compatible
 
 import scipy
 import numpy as np
@@ -11,10 +12,12 @@ from linesearch import WolfeLineSearch
 
 
 class Bfgs(Minimizer):
+    # TODO: document class
 
     def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
-                 line_search=None, args=None, logfunc=None):
-        super(Bfgs, self).__init__(wrt, args=args, logfunc=logfunc)
+                 line_search=None, args=None):
+        # TODO: document method
+        super(Bfgs, self).__init__(wrt, args=args)
         self.f = f
         self.fprime = fprime
         self.inv_hessian = initial_inv_hessian
@@ -25,14 +28,13 @@ class Bfgs(Minimizer):
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
     def find_direction(self, grad_m1, grad, step, inv_hessian):
+        # TODO: document method
         H = self.inv_hessian
         grad_diff = grad - grad_m1
         ys = np.inner(grad_diff, step)
-        ss = np.inner(step, step)
-        yy = np.inner(grad_diff, grad_diff)
         Hy = np.dot(H, grad_diff)
         yHy = np.inner(grad_diff, Hy)
-        H += (ys + yHy) * np.outer(step, step) / ys**2 
+        H += (ys + yHy) * np.outer(step, step) / ys ** 2
         H -= (np.outer(Hy, step) + np.outer(step, Hy)) / ys
         direction = -np.dot(H, grad)
         return direction, {'gradient_diff': grad_diff}
@@ -53,8 +55,7 @@ class Bfgs(Minimizer):
                     grad_m1, grad, step, self.inv_hessian)
 
             if not is_nonzerofinite(direction):
-                self.logfunc(
-                    {'message': 'direction is invalid -- need to bail out.'})
+                # TODO: inform the user here.
                 break
 
             step_length = self.line_search.search(

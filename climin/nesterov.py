@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import itertools
+# TODO: document
 
+import itertools
 
 from base import Minimizer, repeat_or_iter
 
 
 class Nesterov(Minimizer):
+    # TODO: document
 
-    def __init__(self, wrt, fprime, steprate, args=None, logfunc=None):
-        super(Nesterov, self).__init__(
-            wrt, args=args, logfunc=logfunc)
+    def __init__(self, wrt, fprime, steprate, args=None):
+        # TODO: document
+        super(Nesterov, self).__init__(wrt, args=args)
 
         self.fprime = fprime
         self.steprates = repeat_or_iter(steprate)
@@ -25,16 +27,21 @@ class Nesterov(Minimizer):
         for i, j in enumerate(periterargs):
             steprate, (args, kwargs) = j
             if i > 0:
-                y = self.wrt + (i-1)/(i+2)*step_m1
+                y = self.wrt + (i - 1) / (i + 3) * step_m1
                 grad_y = self.fprime(y, *args, **kwargs)
 
-                step = (i-1)/(i+2)*step_m1 - steprate*grad_y
+                step = (i - 1) / (i + 2) * step_m1 - steprate * grad_y
                 self.wrt += step
             else:
                 grad = self.fprime(self.wrt, *args, **kwargs)
-                
-                step = -steprate*grad
+
+                step = -steprate * grad
                 self.wrt += step_m1
-            yield dict(step=step, steprate=steprate, 
-                       args=args, kwargs=kwargs, n_iter=i)
+            yield {
+                'step': step,
+                'steprate': steprate,
+                'args': args,
+                'kwargs': kwargs,
+                'n_iter': i
+            }
             step_m1 = step
