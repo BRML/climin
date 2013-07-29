@@ -13,9 +13,6 @@ from base import Minimizer, repeat_or_iter
 class GradientDescent(Minimizer):
     """Classic gradient descent optimizer.
 
-    Overview
-    --------
-
     Gradient descent works by iteratively performing updates solely based on
     the first derivative of a problem. The gradient is calculated and multiplied
     with a scalar (or component wise with a vector) to do a step in the problem
@@ -31,13 +28,6 @@ class GradientDescent(Minimizer):
     function. This might result from noise injected into it (e.g. in the case
     of denoising auto encoders) or because it is based on data samples (e.g. in
     the case of stochastic mini batches.)
-
-    Method
-    ------
-
-    Gradient descent is a very simple optimizer that calculates search
-    directions (e.g. via the gradient of the objective) and follows steps
-    in that direction. To speed up optimization, a momentum term can be used.
 
     Given a step rate :math:`\\alpha` and a function :math:`f'` to evaluate the
     search direction the current paramters :math:`\\theta_t` the following
@@ -70,24 +60,25 @@ class GradientDescent(Minimizer):
 
     Attributes
     ----------
-
     wrt : array_like
-        Current solution to the problem. Can be given as a first argument
-        to .fprime.
+        Current solution to the problem. Can be given as a first argument to \
+        ``.fprime``.
 
     fprime : Callable
-        First derivative of the objective function. Returns a
+        First derivative of the objective function. Returns an array of the \
+        same shape as ``.wrt``.
 
-    steprates : Iterable.
+    steprates : Iterable
         Iterable of step rates. Will be consumed over optimization.
 
-    momentums : Iterable.
+    momentums : Iterable
         Iterable of momentums. Will be consumed over optimization.
 
     momentum_type : string (either "standard" or "nesterov")
-        When to add the momentum term to the paramter vector; in the first
-        case it will be done after the calculation of the gradient, in the
+        When to add the momentum term to the parameter vector; in the first \
+        case it will be done after the calculation of the gradient, in the\
         latter before.
+
     """
 
     def __init__(self, wrt, fprime, steprate=0.1, momentum=0.0,
@@ -96,6 +87,7 @@ class GradientDescent(Minimizer):
         """Create a GradientDescent object.
 
         Gradient descent is a very simple optimizer that takes search directions
+
 
         Parameters
         ----------
