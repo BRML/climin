@@ -2,6 +2,8 @@
 
 # TODO document
 
+import warnings
+
 import numpy as np
 
 from base import Minimizer, is_nonzerofinite
@@ -35,7 +37,7 @@ class Smd(Minimizer):
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
             if not is_nonzerofinite(gradient):
-                # TODO inform user
+                warnings.warn('gradient is either zero, nan or inf')
                 break
 
             Hp = self.f_Hp(self.wrt, v, *args, **kwargs)

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import warnings
+
 import numpy as np
 import scipy.linalg
 import scipy.optimize
@@ -57,7 +59,7 @@ class NonlinearConjugateGradient(Minimizer):
                 direction, info = self.find_direction(grad_m1, grad, direction)
 
             if not is_nonzerofinite(direction):
-                # TODO: inform user
+                warnings.warn('gradient is either zero, nan or inf')
                 break
 
             # Line search minimization.
@@ -70,7 +72,7 @@ class NonlinearConjugateGradient(Minimizer):
             # If we don't bail out here, we will enter regions of numerical
             # instability.
             if (abs(grad) < self.epsilon).all():
-                # TODO: inform user
+                warnings.warn('gradient is too small')
                 break
 
             # Prepare everything for the next loop.

@@ -2,6 +2,7 @@
 
 # TODO: document module
 
+import warnings
 
 import scipy
 import scipy.linalg
@@ -113,7 +114,7 @@ class Lbfgs(Minimizer):
                     grad_diffs, steps, -grad, hessian_diag, idxs)
 
             if not is_nonzerofinite(direction):
-                # TODO: inform user
+                warnings.warn('search direction is either 0, nan or inf')
                 break
 
             step_length = self.line_search.search(
@@ -123,7 +124,7 @@ class Lbfgs(Minimizer):
             if step_length != 0:
                 self.wrt += step
             else:
-                # TODO inform user
+                warnings.warn('step length is 0')
                 pass
 
             # Prepare everything for the next loop.

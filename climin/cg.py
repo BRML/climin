@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import warnings
+
 import scipy
 import numpy as np
 import scipy.linalg
@@ -17,6 +19,7 @@ class ConjugateGradient(Minimizer):
 
     def __init__(self, wrt, H=None, b=None, f_Hp=None, epsilon=1e-14,
                  precond=None):
+        # TODO rename epsilon to sth sensible
         super(ConjugateGradient, self).__init__(
             wrt, args=None)
         self.f_Hp = f_Hp if f_Hp is not None else lambda p: np.dot(H, p)
@@ -43,7 +46,7 @@ class ConjugateGradient(Minimizer):
         # updates will lead to NaN errors because the direction will
         # be zero.
         if (grad == 0).all():
-            # TODO inform user
+            warnings.warn('gradient is 0')
             return
 
         for i in range(self.wrt.size):
@@ -68,7 +71,7 @@ class ConjugateGradient(Minimizer):
             # If we don't bail out here, we will enter regions of numerical
             # instability.
             if (abs(grad) < self.epsilon).all():
-                # TODO inform user
+                warnings.warn('gradient is below threshold')
                 break
 
             yield {
