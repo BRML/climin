@@ -57,6 +57,9 @@ class GradientDescent(Minimizer):
     which can be specified additionally by the initialization argument
     ``momentum_type``.
 
+    .. note::
+       Works with gnumpy.
+
 
     Attributes
     ----------
@@ -115,6 +118,10 @@ class GradientDescent(Minimizer):
             When to add the momentum term to the paramter vector; in the first
             case it will be done after the calculation of the gradient, in the
             latter before.
+
+        args : iterable
+            Iterator of arguments which ``fprime`` will be called
+            with.
         """
         super(GradientDescent, self).__init__(wrt, args=args)
 
