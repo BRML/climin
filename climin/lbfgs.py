@@ -76,7 +76,7 @@ class Lbfgs(Minimizer):
         # Why?
         #
         # Each iteration, we save statistics such as the difference between
-        # gradients and the actual steps taken. This are then later combined
+        # gradients and the actual steps taken. These are then later combined
         # into an approximation of the Hessian. We call them factors. Since we
         # don't want to create a new matrix of factors each iteration, we
         # instead keep track externally, which row of the matrix corresponds
