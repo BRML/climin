@@ -10,12 +10,11 @@ from base import Minimizer
 class Rprop(Minimizer):
     # TODO: document
 
-    def __init__(self, wrt, f, fprime, step_shrink=0.5, step_grow=1.2,
+    def __init__(self, wrt, fprime, step_shrink=0.5, step_grow=1.2,
                  min_step=1E-6, max_step=1, changes_max=0.1, args=None):
         super(Rprop, self).__init__(wrt, args=args)
         # TODO: document
 
-        self.f = f
         self.fprime = fprime
         self.step_shrink = step_shrink
         self.step_grow = step_grow
