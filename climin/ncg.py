@@ -16,8 +16,7 @@ class NonlinearConjugateGradient(Minimizer):
     """
     # TODO: document class
 
-    def __init__(self, wrt, f, fprime, epsilon=1e-6,
-                 args=None):
+    def __init__(self, wrt, f, fprime, epsilon=1e-6, args=None):
         # TODO: document method
         super(NonlinearConjugateGradient, self).__init__(wrt, args=args)
         self.f = f
