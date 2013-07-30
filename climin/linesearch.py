@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+"""Module containing various line searches.
+
+Line searches are at the heart of many optimizers. After finding a suitable
+search direction (e.g. the steepest descent direction) we are left with a
+one-dimensional optimization problem, which can then be solved by a line search.
+"""
+
 # TODO: this module needs lots of pep8 love.
 
 
@@ -15,23 +22,69 @@ class LineSearch(object):
     def __init__(self, wrt):
         self.wrt = wrt
 
+    def search(self, direction, initialization, args=None, kwargs=None):
+        raise NotImplemented()
+
 
 class BackTrack(LineSearch):
     """Class implementing a back tracking line search.
 
-    The idea is to try out jumps along the search direction until
-    one satisfies a condition. Jumps are done by multiplying the search
-    direction with a scalar. The field `schedule` holds an iterator which
-    successively yields those scalars.
+    The idea is to jump to a starting step length :math:`t` and then shrink that
+    step length by multiplying it with :math:`\\gamma` untile improve upon
+    the loss.
 
-    To not possibly iterate forever, the field `tolerance` holds a very small
+    At most ``max_iter`` attempts will be done. If the largest absolut value of
+    a component of the step falls below ``tolerance``, we stop as well. In both
+    cases, a step length of 0 is returned.
+
+
+    To not possibly iterate forever, the field `tolerance` holds a small
     value (1E-20 per default). As soon as the absolute value of every component
     of the step (direction multiplied with the scalar from `schedule`) is less
-    than `tolerance`.
+    than `tolerance`, we stop.
+
+
+    Attributes
+    ----------
+
+    wrt : array_like
+        Parameters over which the optimization is done.
+
+    f : Callable
+        Objective function.
+
+    decay : float
+        Factor to multiply trials for the step length with.
+
+    tolerance : float
+        Minimum absolute value of a component of the step without stopping the
+        line search.
     """
 
     def __init__(self, wrt, f, decay=0.9, max_iter=float('inf'),
                  tolerance=1E-20):
+        """Create BackTrack object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Parameters over which the optimization is done.
+
+        f : Callable
+            Objective function.
+
+        decay : float
+            Factor to multiply trials for the step length with.
+
+        max_iter : int, optional, default infinity
+            Number of step lengths to try.
+
+        tolerance : float
+            Minimum absolute value of a component of the step without stopping the
+            line search.
+        """
+
         super(BackTrack, self).__init__(wrt)
         self.f = f
         self.max_iter = max_iter
@@ -41,6 +94,31 @@ class BackTrack(LineSearch):
 
     def search(self, direction, initialization=1, args=None, kwargs=None,
                loss0=None):
+        """Return a step length ``t`` given a search direction.
+
+        Perform the line search along a direction. Search will start at
+        ``initialization`` and assume that the loss is ``loss0`` at ``t == 0``.
+
+        Parameters
+        ----------
+
+        direction : array_like
+            Has to be of the same size as .wrt. Points along that direction
+            will tried out to reduce the loss.
+
+        initialization : float
+            First attempt for a step size. Will be reduced by a factor of
+            ``.decay`` afterwards.
+
+        args : list, optional, default: None
+            list of optional arguments for ``.f``.
+
+        kwargs : dictionary, optional, default: None
+            list of optional keyword arguments for ``.f``.
+
+        loss0 : float, optional
+            Loss at the current parameters. Will be calculated of not given.
+        """
         args = [] if args is None else args
         kwargs = {} if kwargs is None else kwargs
 
@@ -77,6 +155,7 @@ class StrongWolfeBackTrack(BackTrack):
         self.c2 = c2
 
     def search(self, direction, args, kwargs, loss0=None):
+        # TODO: respect initialization
         # Recalculate the current loss if it has not been given.
         if loss0 is None:
             loss0 = self.f(self.wrt, *args, **kwargs)

@@ -65,6 +65,7 @@ Convenience, Utilities
 .. toctree::
    schedule
    initialize
+   linesearch
    :maxdepth: 1
 
 
