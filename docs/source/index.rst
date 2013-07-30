@@ -49,6 +49,7 @@ Optimizer overview
 .. toctree::
    gd
    rmsprop
+   rprop
    :maxdepth: 1
 
 
