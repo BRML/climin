@@ -21,17 +21,23 @@ that takes ages to run and might give you a good minimum of your training loss.
 Since this is not what you care about, climin takes you with you on its travel
 through the error landscape... in a classic for loop::
 
-   network = ...         # your neural network
-   training_data = ...   # your training data
-   validation_data = ... # your validation data
+   import climin
+
+   network = make_network()                 # your neural network
+   training_data = load_train_data()        # your training data
+   validation_data = load_validation_data() # your validation data
+   test_data = load_test_data()             # your testing data
 
    opt = climin.Lbfgs(network.parameters, 
                       network.loss, 
                       network.d_loss_d_parameters, 
-                      args=trainig_data)
+                      args=itertools.repeat((training_data, {})))
+
    for info in opt:
        validation_loss = network.loss(network.parameters, validation_data)
        print info['loss'], validation_loss
+
+   print network.loss(test_data)
 
 Climin works on the CPU (via numpy and scipy) and on the GPU (via gnumpy).
 
