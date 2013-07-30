@@ -1,12 +1,9 @@
-from bfgs import Bfgs
-from cg import ConjugateGradient
+from bfgs import Bfgs, Lbfgs, Sbfgs
+from cg import ConjugateGradient, NonlinearConjugateGradient
 from gd import GradientDescent
-from lbfgs import Lbfgs
-from ncg import NonlinearConjugateGradient
 from nes import Xnes
 from rmsprop import RmsProp
 from rprop import Rprop
-from sbfgs import Sbfgs
 from smd import Smd
 from nesterov import Nesterov
 from asgd import Asgd
