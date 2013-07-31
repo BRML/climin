@@ -6,7 +6,7 @@ Conjugate gradients is motivated from a first order Taylor expansion of the
 objective:
 
 .. math::
-   f(\\theta_t + \\alpha d_t) \\approx \\alpha_t f(\\theta_t) + d_t^Tf'(\\theta_t).
+   f(\\theta_t + \\alpha_t d_t) \\approx f(\\theta_t) + \\alpha_td_t^Tf'(\\theta_t).
 
 To locally decrease the objective, it is optimal to set
 :math:`d_t \propto -f'(\\theta_t)` and find :math:`\\alpha_t` with a line search
