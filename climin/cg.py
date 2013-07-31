@@ -1,5 +1,37 @@
 # -*- coding: utf-8 -*-
 
+"""Module containing functionality for conjugate gradients.
+
+Conjugate gradients is motivated from a first order Taylor expansion of the
+objective:
+
+.. math::
+   f(\\theta_t + \\alpha d_t) \\approx \\alpha_t f(\\theta_t) + d_t^Tf'(\\theta_t).
+
+To locally decrease the objective, it is optimal to set
+:math:`d_t \propto -f'(\\theta_t)` and find :math:`\\alpha_t` with a line search
+algorithm, which is known as steepest descent. Yet, a well known disadvantage
+of this approach is that directions found at :math:`t` will often interfere with
+directions found for :math:`t' \lt t`.
+
+The solution to this problem is to chose :math:`d_t` in a way that it does not
+interfere with previous updates. If the dimensions of our problem were
+independent, we could just move along these dimensions. If they were independent
+up to rotation, we would have to chose directions which are orthogonal to each
+other. This is exactly the case when the Hessian of the problem, :math:`A` is
+diagonal. If it is not diagonal, we have to move along directions which are
+called *conjugate* to each other with respect to the matrix :math:`A`.
+
+The conjugate gradients algorithms provide methods to do so efficiently. The
+linear conjugate gradients algorithm assumes that the objective is a quadratic
+and can thus determine :math:`\\alpha` exactly. Nonlinear conjugate gradients
+works on arbitrary functions (yet, the Taylor expansion assumption above has to
+be reasonable). Since the Hessian :math:`A` is not constant in this case, the
+previous directions (to which a new direction has to be conjugate) have to be
+reset from time to time. Additionally, we need to perform a line search to solve
+for :math:`\\alpha_t`.
+"""
+
 import warnings
 
 import scipy
@@ -12,20 +44,84 @@ from linesearch import WolfeLineSearch
 
 
 class ConjugateGradient(Minimizer):
-    """
-    Linear Conjugate Gradient Method for quadratic function :
-    f = 1/2 * xTAx -bx
-    fprime = Ax - b
+    """ConjugateGradient class.
+
+    Minimize a quadratic objective of the form
+
+    .. math::
+       f(\\theta) = {1 \over 2} \\theta^TA\\theta + \\theta^Tb + c.
+
+    The minimization will take place by moving along conjugate directions of
+    steepest decrease in the error. This will take at most as many steps as
+    the dimensionality of the problem.
+
+    .. note::
+       In most cases it is better to use ``scipy.optimize.solve``. Only use
+       this function if you want to monitor intermediate quantities and are
+       not entirely interested in optimization of a quadratic objective, but in
+       a different error measure. E.g. as in Hessian free optimization.
+
+
+    Attributes
+    ----------
+
+    wrt : array_like
+        Parameters of the problem.
+
+    H : array_like, 2 dimensional, square
+        Curvature term of the quadratic, the Hessian.
+
+    b : array_like
+        Linear term of the quadratic.
+
+    f_Hp : callable
+        Function to calculcate the dot product of a Hessian with an
+        arbitrary vector.
+
+    min_grad : float, optional, default: 1e-14
+        If all components of the gradient fall below this threshold,
+        stop optimization.
+
+    precond : array_like
+        Matrix to precondition the problem. If a vector, is taken to
+        represent a diagonal matrix.
+
     """
 
-    def __init__(self, wrt, H=None, b=None, f_Hp=None, epsilon=1e-14,
+    def __init__(self, wrt, H=None, b=None, f_Hp=None, min_grad=1e-14,
                  precond=None):
-        # TODO rename epsilon to sth sensible
+        """Create a ConjugateGradient object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Parameters of the problem.
+
+        H : array_like, 2 dimensional, square
+            Curvature term of the quadratic, the Hessian.
+
+        b : array_like
+            Linear term of the quadratic.
+
+        f_Hp : callable
+            Function to calculcate the dot product of a Hessian with an
+            arbitrary vector.
+
+        min_grad : float, optional, default: 1e-14
+            If all components of the gradient fall below this threshold,
+            stop optimization.
+
+        precond : array_like
+            Matrix to precondition the problem. If a vector, is taken to
+            represent a diagonal matrix.
+        """
+
         super(ConjugateGradient, self).__init__(
             wrt, args=None)
         self.f_Hp = f_Hp if f_Hp is not None else lambda p: np.dot(H, p)
         self.b = b
-        self.epsilon = epsilon
+        self.min_grad = min_grad
         self.precond = precond
 
     def solve(self, r):
@@ -71,7 +167,7 @@ class ConjugateGradient(Minimizer):
 
             # If we don't bail out here, we will enter regions of numerical
             # instability.
-            if (abs(grad) < self.epsilon).all():
+            if (abs(grad) < self.min_grad).all():
                 warnings.warn('gradient is below threshold')
                 break
 
@@ -86,21 +182,76 @@ class ConjugateGradient(Minimizer):
 
 class NonlinearConjugateGradient(Minimizer):
     """
-    Nonlinear Conjugate Gradient Method
-    """
-    # TODO: document class
+    NonlinearConjugateGradient optimizer.
 
-    def __init__(self, wrt, f, fprime, epsilon=1e-6, args=None):
-        # TODO: document method
+    NCG minimizes functions by following directions which are conjugate to each
+    other with respect to the Hessian. Since the curvature changes if the
+    objective is nonquadratic, the Hessian will not be accurate and thus the
+    conjugacy of successive search directions as well. Furthermore, the optimal
+    step length cannot be found in closed form and has to be obtained with a
+    line search.
+
+    During optimization, we sometimes perform a restart. That means we give up
+    on trying to find conjugate directions and use the gradient as a new search
+    direction. This is done whenever two successive directions are far from
+    orthogonal, an indicator that the quadratic assumption is either inaccurate
+    or the Hessian has changed too much lately.
+
+    Attributes
+    ----------
+
+    wrt : array_like
+        Array of parameters of the problem.
+
+    f : callable
+        Objective function.
+
+    fprime : callable
+        First derivative of the objective function.
+
+    min_grad : float
+        If all components of the gradient fall below this value, stop
+        minimization.
+
+    line_search : LineSearch object.
+        Line search object to perform line searches with.
+
+    args : iterable
+        Iterable of arguments passed on to the objective function and its
+        derivatives.
+    """
+
+    def __init__(self, wrt, f, fprime, min_grad=1e-6, args=None):
+        """Create a NonlinearConjugateGradient object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Array of parameters of the problem.
+
+        f : callable
+            Objective function.
+
+        fprime : callable
+            First derivative of the objective function.
+
+        min_grad : float
+            If all components of the gradient fall below this value, stop
+            minimization.
+
+        args : iterable, optional
+            Iterable of arguments passed on to the objective function and its
+            derivatives.
+        """
         super(NonlinearConjugateGradient, self).__init__(wrt, args=args)
         self.f = f
         self.fprime = fprime
 
         self.line_search = WolfeLineSearch(wrt, self.f, self.fprime, c2=0.2)
-        self.epsilon = epsilon
+        self.min_grad = min_grad
 
     def find_direction(self, grad_m1, grad, direction_m1):
-        # TODO: document method
         # Computation of beta as a compromise between Fletcher-Reeves
         # and Polak-Ribiere.
         grad_norm_m1 = np.dot(grad_m1, grad_m1)
@@ -144,7 +295,7 @@ class NonlinearConjugateGradient(Minimizer):
 
             # If we don't bail out here, we will enter regions of numerical
             # instability.
-            if (abs(grad) < self.epsilon).all():
+            if (abs(grad) < self.min_grad).all():
                 warnings.warn('gradient is too small')
                 break
 

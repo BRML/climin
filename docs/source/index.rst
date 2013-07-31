@@ -6,6 +6,9 @@
 climin: optimization, straight-forward
 ======================================
 
+introduction
+------------
+
 Optimization is a key ingredient in modern machine learning. While many models
 can be optimized in specific ways, several need very general gradient based
 techniques--e.g. neural networks. What's even worse is that you never know
@@ -39,7 +42,8 @@ through the error landscape... in a classic for loop::
 
    print network.loss(test_data)
 
-Climin works on the CPU (via numpy and scipy) and on the GPU (via gnumpy).
+Climin works on the CPU (via numpy and scipy) and in parts on the GPU (via
+gnumpy).
 
 
 Basics
@@ -56,6 +60,7 @@ Optimizer overview
    gd
    rmsprop
    rprop
+   cg
    :maxdepth: 1
 
 

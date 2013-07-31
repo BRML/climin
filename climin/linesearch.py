@@ -30,7 +30,7 @@ class BackTrack(LineSearch):
     """Class implementing a back tracking line search.
 
     The idea is to jump to a starting step length :math:`t` and then shrink that
-    step length by multiplying it with :math:`\\gamma` untile improve upon
+    step length by multiplying it with :math:`\\gamma` until we improve upon
     the loss.
 
     At most ``max_iter`` attempts will be done. If the largest absolut value of
@@ -146,10 +146,75 @@ class BackTrack(LineSearch):
 
 
 class StrongWolfeBackTrack(BackTrack):
+    """Class implementing a back tracking line search that finds points
+    satisfying the Strong Wolfe conditions.
 
-    def __init__(self, wrt, f, fprime, schedule=None, c1=1E-4, c2=.9,
+    The idea is to jump to a starting step length :math:`t` and then shrink that
+    step length by multiplying it with :math:`\\gamma` until the strong Wolfe
+    conditions are satisfied. That is the Armijo rule
+
+    .. math::
+       f(\\theta_t+ \\alpha_t d_t) & \\leq f(\\theta)+ c_1 \\alpha_t d_t^T f'(\\theta),
+
+    and the curvature condition
+
+    .. math::
+       \\big|d_k^TTf('\\theta_t+\\alpha_t d_t)\\big| & \\leq c_2 \\big|d_t^T f'(\\theta_t)\\big|.
+
+    At most ``max_iter`` attempts will be done. If the largest absolut value of
+    a component of the step falls below ``tolerance``, we stop as well. In both
+    cases, a step length of 0 is returned.
+
+    To not possibly iterate forever, the field `tolerance` holds a small
+    value (1E-20 per default). As soon as the absolute value of every component
+    of the step (direction multiplied with the scalar from `schedule`) is less
+    than `tolerance`, we stop.
+
+
+    Attributes
+    ----------
+
+    wrt : array_like
+        Parameters over which the optimization is done.
+
+    f : Callable
+        Objective function.
+
+    decay : float
+        Factor to multiply trials for the step length with.
+
+    tolerance : float
+        Minimum absolute value of a component of the step without stopping the
+        line search.
+
+    c1 : float
+        Constant in the strong Wolfe conditions.
+
+    c2 : float
+        Constant in the strong Wolfe conditions.
+    """
+
+    def __init__(self, wrt, f, fprime, decay=None, c1=1E-4, c2=.9,
                  tolerance=1E-20):
-        super(StrongWolfeBackTrack, self).__init__(wrt, f, schedule, tolerance)
+        """Create StrongWolfeBackTrack object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Parameters over which the optimization is done.
+
+        f : Callable
+            Objective function.
+
+        decay : float
+            Factor to multiply trials for the step length with.
+
+        tolerance : float
+            Minimum absolute value of a component of the step without stopping
+            the line search.
+        """
+        super(StrongWolfeBackTrack, self).__init__(wrt, f, decay, tolerance)
         self.fprime = fprime
         self.c1 = c1
         self.c2 = c2
@@ -183,6 +248,7 @@ class StrongWolfeBackTrack(BackTrack):
 
 
 class ScipyLineSearch(LineSearch):
+    """Wrapper around the scipy line search."""
 
     def __init__(self, wrt, f, fprime):
         super(ScipyLineSearch, self).__init__(wrt)
@@ -198,6 +264,7 @@ class ScipyLineSearch(LineSearch):
 
 
 class WolfeLineSearch(LineSearch):
+    """Port of Mark Schmidt's line search."""
 
     def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=25,
                  min_step_length=1E-9, typ=4):
