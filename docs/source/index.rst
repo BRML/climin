@@ -71,6 +71,7 @@ Optimizer overview
    rmsprop
    rprop
    cg
+   bfgs
    :maxdepth: 1
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""This module provides an implementation of Quasi-Newton methods 
+"""This module provides an implementation of Quasi-Newton methods
 (BFGS, sBFGS and l-BFGS).
 
 The Taylor expansion up to second order of a function :math:`f(\\theta_t)`
@@ -13,12 +13,23 @@ where the symmetric positive definite matrix :math:`H_t` is the Hessian at :math
 The minimizer :math:`d_t` of this convex quadratic model is:
 
     .. math::
-        d_t = -H^{-1}f'(\\theta_t)
+        d_t = -H^{-1}f'(\\theta_t).
 
 For large scale problems both computing/storing the Hessian and solving the above linear
 system is computationally demanding. Instead of recomputing the Hessian from scratch at every
 iteration, quasi-Newton methods utilize successive measurements of the gradient
-to build a sufficiently good quadratic model of the objective function.
+to build a sufficiently good quadratic model of the objective function. The above formula
+is then applied to yield a direction :math:`d_t`. The update done is then of the form
+
+    .. math::
+        \\theta_{t+1} = \\alpha_t d_t + \\theta_t
+
+where :math:`\\alpha_t` is obtained with a line search.
+
+.. note::
+    The classes presented here are not working with gnumpy.
+
+
 """
 
 import warnings
@@ -35,19 +46,15 @@ from linesearch import WolfeLineSearch
 class Bfgs(Minimizer):
     """BFGS (Broyden-Fletcher-Goldfarb-Shanno) is one of the most well-knwon
     quasi-Newton methods. The main idea is to iteratively construct an approximate inverse
-    Hessian :math:`H_t` by a rank-2 update:
+    Hessian :math:`B^{-1}_t` by a rank-2 update:
 
         .. math::
-            H_{t+1} = H_t + (1 + \\frac{y_t^TH_ty_t}{y_t^Ts_t})\\frac{s_ts_t^T}{s_t^Ty_t} - \\frac{s_ky_k^TH_k + H_ky_ks_k^T}{s_k^Ty_k},
- 
+            B^{-1}_{t+1} = B^{-1}_t + (1 + \\frac{y_t^TB^{-1}_ty_t}{y_t^Ts_t})\\frac{s_ts_t^T}{s_t^Ty_t} - \\frac{s_ty_t^TB^{-1}_t + H_ty_ts_t^T}{s_t^Ty_t},
+
     where :math:`y_t = f(\\theta_{t+1}) - f(\\theta_{t})` and :math:`s_t = \\theta_{t+1} - \\theta_t`.
 
-    The storage requirements for BFGS scale quadratically with the number of 
+    The storage requirements for BFGS scale quadratically with the number of
     variables. For detailed derivations, see [nocedal2006a]_, chapter 6.
-    
-    .. note::
-       Works with gnumpy.
-
 
     .. [nocedal2006a]  Nocedal, J. and Wright, S. (2006),
         Numerical Optimization, 2nd edition, Springer.
