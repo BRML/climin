@@ -166,12 +166,12 @@ def converged(func_or_key, n=10, epsilon=1e-5, patience=0):
 
 
 def rising(func_or_key, n=1, epsilon=0, patience=0):
-    """Return a stop criterion that remembers the last `n` values of
-    `func_or_key`() and returns True if the its return value rose at least by
+    """Return a stop criterion that remembers the last `n` values obtained via
+    `func_or_key` and returns True if the its return value rose at least by
     `epsilon` in the meantime.
 
-    `func_or_key` needs to be a callable that returns a scalar value or a
-    string which is a key referring to an entry in the info dict it is given.
+    `func_or_key` needs to be either a callable that returns a scalar value or
+    a string which is a key referring to an entry in the info dict it is given.
 
     If `patience` is non zero, the first `patience` iterations are not checked
     against the criterion.
