@@ -46,6 +46,16 @@ Climin works on the CPU (via numpy and scipy) and in parts on the GPU (via
 gnumpy).
 
 
+Starting points
+^^^^^^^^^^^^^^^
+
+If you want to see how climin works and use climin asap, check out the 
+:doc:`tutorial`. A list of the optimizers implemented can be found in the 
+overview below. If you want to understand the design decisions of climin,
+read the :doc:`manifest`.
+
+
+
 Basics
 ------
 
