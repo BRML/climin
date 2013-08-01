@@ -22,7 +22,7 @@ We found several requirements for a good optimization library.
  - Do one thing, and do that right: climin is independent of your models
    and the way you work with optimization. We have a simple protocol: loss
    functions (and their derivatives) and a parameter array. Also, we do not
-   force any framework on you on and come up with things that solve
+   force any framework on you on and come up with things that try to solve
    everything.
  - Most of the optimizers, i.e. those that do not rely on too much linear
    algebra such as matrix inversions, should not only work on the CPU via
@@ -38,11 +38,10 @@ We found several requirements for a good optimization library.
  - Make development of new optimizers straight forward. The implementation 
    of every optimizer has very little overhead, the most of it being assigning
 
-
 The main idea of climin is to treat optimizers as iterators. This allows
 to have the logic surrounding it right in the same scope and written code
 block as the optimization. Also, callbacks are really ugly! Python has better
 tools for that.
 
-
-.. [sparsefiltering] bla
+.. [sparsefiltering] Ngiam, Jiquan, et al. "Sparse filtering." Advances in
+   Neural Information Processing Systems. 2011.

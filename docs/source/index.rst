@@ -55,6 +55,15 @@ of the optimizers implemented can be found in the overview below. If
 you want to understand the design decisions of climin, read the
 :doc:`manifest`.
 
+Contact & Community
+^^^^^^^^^^^^^^^^^^^
+
+Climin was started by people from the `Biomimetic robotics and machine learning
+group <http://brml.de>`_ at the `Technische Universitaet Muenchen
+<http://tum.de>`. If you have any questions, there is a mailinglist at
+`climin@librelist.com <mailto:climin@librelist.com`_. Just send an email to
+subscribe or checkout the `archive <http://librelist.com/browser/climin/>`_.  
+
 
 Basics
 ------
