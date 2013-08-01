@@ -1,7 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# TODO: document module
-# TODO: check if gnumpy compatible
+"""This module provides an implementation of Quasi-Newton methods 
+(BFGS, sBFGS and l-BFGS).
+
+The Taylor expansion up to second order of a function :math:`f(\\theta_t)`
+allows a local quadratic approximiation of :math:`f(\\theta_t + d_t)`:
+
+    .. math::
+         f(\\theta_t + d_t) \\approx f(\\theta_t) + d_t^Tf'(\\theta_t) + \\frac{1}{2}d_t^TH_td_t
+
+where the symmetric positive definite matrix :math:`H_t` is the Hessian at :math:`\\theta_t`.
+The minimizer :math:`d_t` of this convex quadratic model is:
+
+    .. math::
+        d_t = -H^{-1}f'(\\theta_t)
+
+For large scale problems both computing/storing the Hessian and solving the above linear
+system is computationally demanding. Instead of recomputing the Hessian from scratch at every
+iteration, quasi-Newton methods utilize successive measurements of the gradient
+to build a sufficiently good quadratic model of the objective function.
+"""
 
 import warnings
 
@@ -15,11 +33,77 @@ from linesearch import WolfeLineSearch
 
 
 class Bfgs(Minimizer):
-    # TODO: document class
+    """BFGS (Broyden-Fletcher-Goldfarb-Shanno) is one of the most well-knwon
+    quasi-Newton methods. The main idea is to iteratively construct an approximate inverse
+    Hessian :math:`H_t` by a rank-2 update:
+
+        .. math::
+            H_{t+1} = H_t + (1 + \\frac{y_t^TH_ty_t}{y_t^Ts_t})\\frac{s_ts_t^T}{s_t^Ty_t} - \\frac{s_ky_k^TH_k + H_ky_ks_k^T}{s_k^Ty_k},
+ 
+    where :math:`y_t = f(\\theta_{t+1}) - f(\\theta_{t})` and :math:`s_t = \\theta_{t+1} - \\theta_t`.
+
+    The storage requirements for BFGS scale quadratically with the number of 
+    variables. For detailed derivations, see [nocedal2006a]_, chapter 6.
+    
+    .. note::
+       Works with gnumpy.
+
+
+    .. [nocedal2006a]  Nocedal, J. and Wright, S. (2006),
+        Numerical Optimization, 2nd edition, Springer.
+
+    Attributes
+    ----------
+    wrt : array_like
+        Current solution to the problem. Can be given as a first argument to \
+        ``.f`` and ``.fprime``.
+
+    f : Callable
+        The object function.
+
+    fprime : Callable
+        First derivative of the objective function. Returns an array of the \
+        same shape as ``.wrt``.
+
+    initial_inv_hessian : array_like
+        The initial estimate of the approximiate Hessian.
+
+    line_search : LineSearch object.
+        Line search object to perform line searches with.
+
+    args : iterable
+        Iterator over arguments which ``fprime`` will be called with.
+
+    """
 
     def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
                  line_search=None, args=None):
-        # TODO: document method
+        """Create a BFGS object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Array that represents the solution. Will be operated upon in
+            place.  ``f`` and ``fprime`` should accept this array as a first argument.
+
+        f : callable
+            The objective function.
+
+        fprime : callable
+            Callable that given a solution vector as first parameter and *args
+            and **kwargs drawn from the iterations ``args`` returns a
+            search direction, such as a gradient.
+
+        initial_inv_hessian : array_like
+            The initial estimate of the approximiate Hessian.
+
+        line_search : LineSearch object.
+            Line search object to perform line searches with.
+
+        args : iterable
+            Iterator over arguments which ``fprime`` will be called with.
+        """
         super(Bfgs, self).__init__(wrt, args=args)
         self.f = f
         self.fprime = fprime
@@ -31,7 +115,6 @@ class Bfgs(Minimizer):
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
     def find_direction(self, grad_m1, grad, step, inv_hessian):
-        # TODO: document method
         H = self.inv_hessian
         grad_diff = grad - grad_m1
         ys = np.inner(grad_diff, step)
@@ -112,12 +195,77 @@ class Sbfgs(Bfgs):
 
 
 class Lbfgs(Minimizer):
-    # TODO: document class
+    """l-BFGS (limited-memory BFGS) is a limited memory variation of the well-known
+    BFGS algorithm. The storage requirement for BFGS scale quadratically with the number of variables,
+    and thus it tends to be used only for smaller problems. Limited-memory BFGS reduces the
+    storage by only using the :math:`l` latest updates (factors) in computing the approximate Hessian inverse
+    and representing this approximation only implicitly. More specifically, it stores the last
+    :math:`l` BFGS update vectors :math:`y_t` and :math:`s_t` and uses these to implicitly perform
+    the matrix operations of BFGS (see [nocedal2006a]_).
+
+    .. note::
+       In order to handle simple box constraints, consider ``scipy.optimize.fmin_l_bfgs_b``.
+
+    Attributes
+    ----------
+    wrt : array_like
+        Current solution to the problem. Can be given as a first argument to \
+        ``.f`` and ``.fprime``.
+
+    f : Callable
+        The object function.
+
+    fprime : Callable
+        First derivative of the objective function. Returns an array of the \
+        same shape as ``.wrt``.
+
+    initial_hessian_diag : array_like
+        The initial estimate of the diagonal of the Hessian.
+
+    n_factors : int
+        The number of factors that should be used to implicitly represent the inverse Hessian.
+
+    line_search : LineSearch object.
+        Line search object to perform line searches with.
+
+    args : iterable
+        Iterator over arguments which ``fprime`` will be called with.
+
+    """
 
     def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
                  n_factors=10, line_search=None,
                  args=None):
-        # TODO: document method
+        """
+        Create an Lbfgs object.
+
+        Attributes
+        ----------
+        wrt : array_like
+            Current solution to the problem. Can be given as a first argument to \
+            ``.f`` and ``.fprime``.
+
+        f : Callable
+            The object function.
+
+        fprime : Callable
+            First derivative of the objective function. Returns an array of the \
+            same shape as ``.wrt``.
+
+        initial_hessian_diag : array_like
+            The initial estimate of the diagonal of the Hessian.
+
+        n_factors : int
+            The number of factors that should be used to implicitly represent the inverse Hessian.
+
+        line_search : LineSearch object.
+            Line search object to perform line searches with.
+
+        args : iterable
+            Iterator over arguments which ``fprime`` will be called with.
+
+        """
+
         super(Lbfgs, self).__init__(wrt, args=args)
 
         self.f = f

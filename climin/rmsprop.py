@@ -49,7 +49,7 @@ class RmsProp(Minimizer):
        Works with gnumpy.
 
     .. [tieleman2012rmsprop]  Tieleman, T. and Hinton, G. (2012),
-       Lecture 6.5 - rmsprop, cOURSERA: Neural Networks for Machine Learning
+       Lecture 6.5 - rmsprop, COURSERA: Neural Networks for Machine Learning
 
 
     Attributes
