@@ -68,6 +68,13 @@ The software is hosted over at our
 our `issue tracker <http://github.com/BRML/climin/issues>`_.
 
 
+Meta
+----
+
+.. toctree::
+   manifest
+   installation
+
 Basics
 ------
 
