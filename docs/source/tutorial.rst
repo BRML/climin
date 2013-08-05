@@ -57,7 +57,9 @@ the parameters we define the following function:
        b = pars[n_inpt * n_output:].reshape((1, n_output))
        return w, b
 
-Given some input We can then make predictions with the following function:
+We assume that inputs to our model will be an array of size ``(n, d)``, where 
+``n`` refers to the number of samples and ``d`` to the dimensionality. Given
+some input we can then make predictions with the following function:
 
 .. testcode:: [tutorial]
 
@@ -120,7 +122,7 @@ minimum. Climin offers convenience functions in its ``initialize`` module:
    climin.initialize.randomize_normal(wrt, 0, 1)
 
 This will populated the parameters with values drawn from
-:math:`\mathcal{N}(0, 1)`.
+:math:`\\mathcal{N}(0, 1)`.
 
 
 Using data
@@ -130,9 +132,10 @@ Now that we have set up our model and loss and initialized the parameters,
 we need to manage the data.
 
 In climin, we will always look at streams of data. Even if we do batch
-learning, the recommended way of doing so is a repeating stream of the same
-data. How does that stream look? In Python, we have a convenient data structure
-which is the iterator. It can be thought of as a lazy list of infinite length.
+learning (as we do here), the recommended way of doing so is a repeating stream
+of the same data. How does that stream look? In Python, we have a convenient
+data structure which is the iterator. It can be thought of as a lazy list of
+infinite length.
 
 The climin API expects that the loss function (and the gradient function) will
 accept the parameter array as the first argument. All further arguments can be
@@ -198,7 +201,7 @@ optimizer, a ``GradientDescent`` object:
 .. testcode:: [tutorial]
 
    import climin
-   opt = climin.GradientDescent(parameters, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
+   opt = climin.GradientDescent(wrt, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
 
 We created a new object called ``opt``. For initialization, we passed it
 several parameters:
