@@ -242,7 +242,7 @@ def minibatches(arr, batch_size, d=0):
     mini_batches : list
         Each item of the list is a view of ``arr``. Views are ordered.
     """
-    n_batches, rest = divmod(arr.shape[d], batchsize)
+    n_batches, rest = divmod(arr.shape[d], batch_size)
     if rest != 0:
         n_batches += 1
 
@@ -260,7 +260,7 @@ def minibatches(arr, batch_size, d=0):
 
 def iter_minibatches(lst, batch_size, dims):
     """Return an iterator that successively yields tuples containing aligned
-    minibatches of size `batchsize` from slicable objects given in `lst`, in
+    minibatches of size `batch_size` from slicable objects given in `lst`, in
     random order without replacement.
 
     Because different containers might require slicing over different
@@ -290,7 +290,7 @@ def iter_minibatches(lst, batch_size, dims):
         Infinite iterator of mini batches in random order (without
         replacement).
     """
-    batches = [minibatches(i, batchsize, d) for i, d in zip(lst, dims)]
+    batches = [minibatches(i, batch_size, d) for i, d in zip(lst, dims)]
     if len(batches) > 1:
         if any(len(i) != len(batches[0]) for i in batches[1:]):
             raise ValueError("containers to be batched have different lengths")
