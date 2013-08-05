@@ -25,12 +25,12 @@ class Rprop(Minimizer):
     .. math::
        \\alpha_i \\leftarrow
        \\begin{cases}
-           \\alpha_i \\cdot \\eta_{\\text{grow}} ~\\text{if}~ f'(\\theta_t)_i \\cdot f'(\\theta_{t-1})_i \\gt 0 \\\\
-           \\alpha_i \\cdot \\eta_{\\text{shrink}} ~\\text{if}~ f'(\\theta_t)_i \\cdot f'(\\theta_{t-1})_i \\lt 0 \\\\
+           \\alpha_i \\cdot \\eta_{\\text{grow}} ~\\text{if}~ f'(\\theta_t)_i \\cdot f'(\\theta_{t-1})_i > 0 \\\\
+           \\alpha_i \\cdot \\eta_{\\text{shrink}} ~\\text{if}~ f'(\\theta_t)_i \\cdot f'(\\theta_{t-1})_i < 0 \\\\
            \\alpha_i
        \\end{cases}
 
-    where :math:`0 \\lt \\eta_{\\text{shrink}} \\lt 1 \\lt \\eta_{\\text{grow}}`
+    where :math:`0 < \\eta_{\\text{shrink}} < 1 < \\eta_{\\text{grow}}`
     specifies the shrink and growth rates of the step rates. Typically, we will
     threshold the step rates at minimum and maximum values.
 

@@ -12,7 +12,7 @@ To locally decrease the objective, it is optimal to set
 :math:`d_t \propto -f'(\\theta_t)` and find :math:`\\alpha_t` with a line search
 algorithm, which is known as steepest descent. Yet, a well known disadvantage
 of this approach is that directions found at :math:`t` will often interfere with
-directions found for :math:`t' \lt t`.
+directions found for :math:`t' < t`.
 
 The solution to this problem is to chose :math:`d_t` in a way that it does not
 interfere with previous updates. If the dimensions of our problem were
