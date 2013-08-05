@@ -49,6 +49,7 @@ weight matrix (or coefficients) and the bias (or intercept). To unpack
 the parameters we define the following function:
 
 .. testcode:: [tutorial]
+
    import numpy as np
 
    def unpack_parameters(pars):
@@ -59,6 +60,7 @@ the parameters we define the following function:
 Given some input We can then make predictions with the following function:
 
 .. testcode:: [tutorial]
+
    def predict(parameters, inpt):
        w, b = unpack_parameters(parameters)
        before_softmax = np.dot(inpt, w) + b
@@ -68,6 +70,7 @@ Given some input We can then make predictions with the following function:
 For multiclass classification, we use the cross entropy loss:
 
 .. testcode:: [tutorial]
+
    def loss(parameters, inpt, targets):
        predictions = predict(parameters, inpt)
        loss = -np.log(predictions) * targets
@@ -80,7 +83,8 @@ which is why we concatenate them into a big array after we flattened out the
 weight matrix:
 
 .. testcode:: [tutorial]
-   def f_d_loss_wrt_pars(parameters, inpt, targets):
+
+   def d_loss_wrt_pars(parameters, inpt, targets):
        p = predict(parameters, inpt)
        g_w = np.dot(inpt.T, p - targets) / inpt.shape[0]
        g_b = (p - targets).mean(axis=0)
@@ -100,6 +104,7 @@ solution will always be in the array we created. This lets the user control as
 much as possible. We create an empty array for our solution:
 
 .. testcode:: [tutorial]
+
    import numpy as np
    wrt = np.empty(7850)
 
@@ -110,6 +115,7 @@ convexity of logistic regressions guarantees that we will always find the
 minimum. Climin offers convenience functions in its ``initialize`` module:
 
 .. testcode:: [tutorial]
+
    import climin.initialize
    climin.initialize.randomize_normal(wrt, 0, 1)
 
@@ -154,12 +160,12 @@ which is what our loss functions expect::
 
     def one_hot(arr):
         result = np.zeros((arr.shape[0], 10))
-        result[xrange(n), array] = 1.
+        result[xrange(arr.shape[0]), arr] = 1.
         return result
 
-    Z = one_hot(Z, 10)
-    VZ = one_hot(VZ, 10)
-    TZ = one_hot(TZ, 10)
+    Z = one_hot(Z)
+    VZ = one_hot(VZ)
+    TZ = one_hot(TZ)
 
 .. testcode:: [tutorial]
    :hide:
@@ -171,6 +177,7 @@ which is what our loss functions expect::
 To create our data stream, we will just repeat the training data ``(X, Z)``:
 
 .. testcode:: [tutorial]
+
    import itertools
    args = itertools.repeat(([X, Z], {}))
 
@@ -189,6 +196,7 @@ Now that we have set everything up, we are ready to create our first
 optimizer, a ``GradientDescent`` object:
 
 .. testcode:: [tutorial]
+
    import climin
    opt = climin.GradientDescent(parameters, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
 

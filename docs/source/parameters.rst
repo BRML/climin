@@ -58,6 +58,7 @@ important because climin expects derivatives to be flat as well, nicely aligned
 with the parameter array:
 
 .. testcode:: [parameters]
+
    def f_d_loss_wrt_pars(parameters, inpt, targets):
        p = predict(parameters, inpt)
        d_flat, d_w, d_b = climin.util.empty_with_views(tmpl)
@@ -87,6 +88,7 @@ want to populate an array with random numbers or zeros. Of course it is easy to
 do so by hand:
 
 .. testcode:: [parameters]
+
    flat[...] = np.random.normal(0, 0.1, flat.shape)
 
 We found this quite tedious to write though; especially as soon as flat becomes
@@ -94,6 +96,7 @@ the field of a nested object. Thus, we have a short hand in the initialize
 module which does exaclty that:
  
 .. testcode:: [parameters]
+
    import climin.initialize
    climin.initialize.randomize_normal(flat, 0, 0.1)
 
