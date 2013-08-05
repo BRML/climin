@@ -8,8 +8,8 @@ import warnings
 import numpy as np
 
 from gd import GradientDescent
-from lbfgs import Lbfgs
-from ncg import NonlinearConjugateGradient
+from bfgs import Lbfgs
+from cg import NonlinearConjugateGradient
 from rprop import Rprop
 from rmsprop import RmsProp
 

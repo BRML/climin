@@ -5,5 +5,4 @@ from nes import Xnes
 from rmsprop import RmsProp
 from rprop import Rprop
 from smd import Smd
-from nesterov import Nesterov
 from asgd import Asgd
