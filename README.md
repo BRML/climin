@@ -12,7 +12,8 @@ Important links
 ---------------
 
  - Official repository of source: http://github.com/BRML/climin
- - Documentation: http://climin.readthedocs.orgo
+ - Documentation: http://climin.readthedocs.org
+ - Mailing list: climin@librelist.com (archive: http://librelist.com/browser/climin/)
 
 
 Dependencies
