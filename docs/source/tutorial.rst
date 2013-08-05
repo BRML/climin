@@ -231,11 +231,11 @@ This will result in an infinite loop. Climin does not handle stopping from
 within optimizer objects; instead, you will have to do it manually, since you
 know it much better. Let's iterate for a fixed number of iterations, say 100::
 
-    print loss(paramters, VX, VZ)   # prints something like 2.49771627484
+    print loss(parameters, VX, VZ)   # prints something like 2.49771627484
     for info in opt:
         if info['n_iter'] >= 100:
             break
-    print loss(paramters, VX, VZ)   # prints something like 0.324243334583
+    print loss(parameters, VX, VZ)   # prints something like 0.324243334583
 
 When we iteratore over the optimizer, we iterate over dictionaries. Each
 of these contains various information about the current state of the
@@ -244,16 +244,37 @@ the last step, gradient, etc. Here, we check the number of iterations that
 have already been performed. 
 
 
+Using different optimizers
+--------------------------
+
+The whole point of climin is to use different optimizers. How that goes, we will
+explain now.
+We have already seen :doc:`gd`. Furthermore, there are :doc:`bfgs`, :doc:`cg`,
+:doc:`rprop` and :doc:`rmsprop`. Let's see how we can use each of them.
+
+L-BFGS, RPROP and nonlinear conjugate Gradients all have the benefit that they
+work reasonably well without too much tuning of their hyper parameters. We can
+thus construct optimizers like this:
+
+.. testcode:: [tutorial]
+   
+   ncg = climin.NonlinearConjugateGradient(wrt, loss, d_loss_wrt_pars, args=args)
+   lbfgs = climin.Lbfgs(wrt, loss, d_loss_wrt_pars, args=args)
+   rprop = climin.Rprop(wrt, d_loss_wrt_pars, args=args)
+   rmsprop = climin.RmsProp(wrt, d_loss_wrt_pars, steprate=1e-4, decay=0.9, args=args)
+
+As you can see, we now need to specify the loss function itself in case of
+``Lbfgs`` and ``NonlinearConjugateGradient``. That is because both utilize a 
+line search after finding a search direction.
+``climin.RmsProp`` has more hyper parameters and needs more fine grained tuning.
+Yet, ``climin.GradientDescent`` and ``climin.RmsProp`` work naturally with so a
+stochastic estimate of the objective and work very well with mini batches. For
+more details, see :doc:`data`.
+
+
 Conclusion and Next Steps
 -------------------------
 
 This tutorial explained the basic functionality of climin. There is a lot
-more to explore to fully leverage the functionality of this library:
-
- - Different optimizers,
- - Schedules of step rates and momentum for gradient descent,
- - Specialized initializations,
- - Advanced data streams,
- - Criteria to check for convergence.
-
-We hope to hear from you!
+more to explore to fully leverage the functionality of this library. Check the
+table of contents and the examples directory of your climin checkout.
