@@ -49,7 +49,7 @@ class Bfgs(Minimizer):
     Hessian :math:`B^{-1}_t` by a rank-2 update:
 
         .. math::
-            B^{-1}_{t+1} = B^{-1}_t + (1 + \\frac{y_t^TB^{-1}_ty_t}{y_t^Ts_t})\\frac{s_ts_t^T}{s_t^Ty_t} - \\frac{s_ty_t^TB^{-1}_t + H_ty_ts_t^T}{s_t^Ty_t},
+            B^{-1}_{t+1} = B^{-1}_t + (1 + \\frac{y_t^TB^{-1}_ty_t}{y_t^Ts_t})\\frac{s_ts_t^T}{s_t^Ty_t} - \\frac{s_ty_t^TB^{-1}_t + B^{-1}_ty_ts_t^T}{s_t^Ty_t},
 
     where :math:`y_t = f(\\theta_{t+1}) - f(\\theta_{t})` and :math:`s_t = \\theta_{t+1} - \\theta_t`.
 
