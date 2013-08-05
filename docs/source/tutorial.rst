@@ -46,41 +46,45 @@ calculations much easier and also more efficient.
 
 Logistic regression has commonly two different parameter sets, the
 weight matrix (or coefficients) and the bias (or intercept). To unpack
-the parameters we define the following function::
+the parameters we define the following function:
 
-    import numpy as np
+.. testcode:: [tutorial]
+   import numpy as np
 
-    def unpack_parameters(pars):
-        w = pars[:n_inpt * n_output].reshape((n_inpt, n_output))
-        b = pars[n_inpt * n_output:].reshape((1, n_output))
-        return w, b
+   def unpack_parameters(pars):
+       w = pars[:n_inpt * n_output].reshape((n_inpt, n_output))
+       b = pars[n_inpt * n_output:].reshape((1, n_output))
+       return w, b
 
-Given some input We can then make predictions with the following function::
+Given some input We can then make predictions with the following function:
 
-    def predict(parameters, inpt):
-        w, b = unpack_parameters(parameters)
-        before_softmax = np.dot(inpt, w) + b
-        softmaxed = np.exp(before_softmax - before_softmax.max(axis=1)[:, np.newaxis])
-        return softmaxed / softmaxed.sum(axis=1)[:, np.newaxis]
+.. testcode:: [tutorial]
+   def predict(parameters, inpt):
+       w, b = unpack_parameters(parameters)
+       before_softmax = np.dot(inpt, w) + b
+       softmaxed = np.exp(before_softmax - before_softmax.max(axis=1)[:, np.newaxis])
+       return softmaxed / softmaxed.sum(axis=1)[:, np.newaxis]
 
-For multiclass classification, we use the cross entropy loss::
+For multiclass classification, we use the cross entropy loss:
 
-    def loss(parameters, inpt, targets):
-        predictions = predict(parameters, inpt)
-        loss = -np.log(predictions) * targets
-        return loss.sum(axis=1).mean()
+.. testcode:: [tutorial]
+   def loss(parameters, inpt, targets):
+       predictions = predict(parameters, inpt)
+       loss = -np.log(predictions) * targets
+       return loss.sum(axis=1).mean()
 
 Gradient-based optimization requires not only the loss but also the
 first derivative with respect to the parameters.
 That gradient function has to return the gradients aligned with the parameters,
 which is why we concatenate them into a big array after we flattened out the
-weight matrix::
+weight matrix:
 
-    def f_d_loss_wrt_pars(parameters, inpt, targets):
-        p = predict(parameters, inpt)
-        g_w = np.dot(inpt.T, p - targets) / inpt.shape[0]
-        g_b = (p - targets).mean(axis=0)
-        return np.concatenate([g_w.flatten(), g_b])
+.. testcode:: [tutorial]
+   def f_d_loss_wrt_pars(parameters, inpt, targets):
+       p = predict(parameters, inpt)
+       g_w = np.dot(inpt.T, p - targets) / inpt.shape[0]
+       g_b = (p - targets).mean(axis=0)
+       return np.concatenate([g_w.flatten(), g_b])
 
 Although this implementation can be optimized with no doubt, it suffices for this
 tutorial.
@@ -93,18 +97,21 @@ First we will need to allocate a region of memory where our parameters live.
 Climin tries to allocate as little additional memory as possible and will thus 
 work inplace most of the time. After each optimization iteration, the current
 solution will always be in the array we created. This lets the user control as
-much as possible. We create an empty array for our solution::
+much as possible. We create an empty array for our solution:
 
-    wrt = np.empty(7850)
+.. testcode:: [tutorial]
+   import numpy as np
+   wrt = np.empty(7850)
 
 where the ``7850`` refers to the dimensionality of our problem. We picked this
 number because we will be tackling the MNIST data set. It makes sense to
 initialize the parameters randomly (depending on the problem), even though the
 convexity of logistic regressions guarantees that we will always find the
-minimum. Climin offers convenience functions in its ``initialize`` module::
+minimum. Climin offers convenience functions in its ``initialize`` module:
 
-    import climin.initialize
-    climin.initialize.randomize_normal(wrt, 0, 1)
+.. testcode:: [tutorial]
+   import climin.initialize
+   climin.initialize.randomize_normal(wrt, 0, 1)
 
 This will populated the parameters with values drawn from
 :math:`\mathcal{N}(0, 1)`.
@@ -130,7 +137,7 @@ can be specified. This is expected to be an iterator which yields pairs of
 derivative.
 
 We will be using the MNIST data set , which can be downloaded from
-`here http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz.`_.
+`here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
 We will first load it and convert the target variables to a one-of-k representation,
 which is what our loss functions expect::
 
@@ -154,10 +161,18 @@ which is what our loss functions expect::
     VZ = one_hot(VZ, 10)
     TZ = one_hot(TZ, 10)
 
-To create our data stream, we will just repeat the training data ``(X, Z)``::
+.. testcode:: [tutorial]
+   :hide:
 
-    import itertools
-    args = itertools.repeat(([X, Z], {}))
+   import numpy as np
+   X, Z = np.empty((50000, 784)), np.empty((50000, 10))
+
+
+To create our data stream, we will just repeat the training data ``(X, Z)``:
+
+.. testcode:: [tutorial]
+   import itertools
+   args = itertools.repeat(([X, Z], {}))
 
 This certainly seems like overkill for logistic regression. Yet, even this
 simple model can often be sped up by estimating the gradients on "mini
@@ -171,10 +186,11 @@ Creating an Optimizer
 ---------------------
 
 Now that we have set everything up, we are ready to create our first
-optimizer, a ``GradientDescent`` object::
+optimizer, a ``GradientDescent`` object:
 
-    import climin
-    opt = climin.GradientDescent(parameters, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
+.. testcode:: [tutorial]
+   import climin
+   opt = climin.GradientDescent(parameters, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
 
 We created a new object called ``opt``. For initialization, we passed it
 several parameters:

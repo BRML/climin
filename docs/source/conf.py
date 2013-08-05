@@ -90,7 +90,6 @@ pygments_style = 'sphinx'
 # -- Options for HTML output ---------------------------------------------------
 
 sys.path.append(os.path.abspath('_themes'))
-print sys.path
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'flask'

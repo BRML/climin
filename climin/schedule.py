@@ -23,11 +23,12 @@ def decaying(start, decay):
     Examples
     --------
 
+    >>> from climin.schedule import decaying
     >>> s = decaying(10, .9)
     >>> [s.next() for i in range(5)]
-    [10.0, 9.0, 8.1000000000000014, 7.2900000000000009, 6.5609999999999999]
+    [10.0, 9.0, 8.100000000000001, 7.290000000000001, 6.561]
     """
-    return (start * decay**i for i in itertools.count(0))
+    return (start * decay ** i for i in itertools.count(0))
 
 
 def linear_annealing(start, stop, n_steps):
@@ -39,6 +40,7 @@ def linear_annealing(start, stop, n_steps):
     Examples
     --------
 
+    >>> from climin.schedule import linear_annealing
     >>> s = linear_annealing(1, 0, 4)
     >>> [s.next() for i in range(10)]
     [1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -58,6 +60,7 @@ def repeater(iter, n):
     Examples
     --------
 
+    >>> from climin.schedule import repeater
     >>> s = repeater([1, 2, 3], 2)
     >>> [s.next() for i in range(6)]
     [1, 1, 2, 2, 3, 3]
@@ -74,9 +77,10 @@ def sutskever_blend(max_momentum, stretch=250):
     Examples
     --------
 
+    >>> from climin.schedule import sutskever_blend
     >>> s = sutskever_blend(0.9, 2)
     >>> [s.next() for i in range(10)]
-    [0.5, 0.75, 0.75, 0.83333333333333326, 0.83333333333333326, 0.875, 0.875, 0.90000000000000002, 0.90000000000000002, 0.90000000000000002]
+    [0.5, 0.75, 0.75, 0.8333333333333333, 0.8333333333333333, 0.875, 0.875, 0.9, 0.9, 0.9]
 
     .. [sutskever2013importance] On the importance of initialization and
        momentum in deep learning, Sutskever et al (ICML 2013)

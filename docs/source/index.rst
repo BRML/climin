@@ -60,9 +60,12 @@ Contact & Community
 
 Climin was started by people from the `Biomimetic robotics and machine learning
 group <http://brml.de>`_ at the `Technische Universitaet Muenchen
-<http://tum.de>`. If you have any questions, there is a mailinglist at
-`climin@librelist.com <mailto:climin@librelist.com`_. Just send an email to
-subscribe or checkout the `archive <http://librelist.com/browser/climin/>`_.  
+<http://tum.de>`_. If you have any questions, there is a mailinglist at
+`climin@librelist.com <mailto:climin@librelist.com>`_. Just send an email to
+subscribe or checkout the `archive <http://librelist.com/browser/climin/>`_.
+The software is hosted over at our 
+`github repository <http://github.com/BRML/climin>`_, where you can also find
+our `issue tracker <http://github.com/BRML/climin/issues>`_.
 
 
 Basics
@@ -70,10 +73,16 @@ Basics
 
 .. toctree::
    tutorial
+   parameters
+   data
    :maxdepth: 2
 
+
+Reference
+---------
+
 Optimizer overview
-------------------
+^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    gd
@@ -85,12 +94,13 @@ Optimizer overview
 
 
 Convenience, Utilities
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    schedule
    initialize
    linesearch
+   utilities
    :maxdepth: 1
 
 

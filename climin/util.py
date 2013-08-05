@@ -5,13 +5,13 @@ import inspect
 import random
 import warnings
 
-from asgd import Asgd
+import numpy as np
+
 from gd import GradientDescent
 from lbfgs import Lbfgs
 from ncg import NonlinearConjugateGradient
 from rprop import Rprop
 from rmsprop import RmsProp
-from smd import Smd
 
 
 def coroutine(f):
@@ -62,7 +62,7 @@ def draw_mini_indices(n_samples, batch_size):
         while pos + batch_size <= n_samples:
              yield idxs[pos:pos + batch_size]
              pos += batch_size
-        
+
         batch = idxs[pos:]
         needed = batch_size - len(batch)
         random.shuffle(idxs)
@@ -70,7 +70,7 @@ def draw_mini_indices(n_samples, batch_size):
         yield batch
         pos = needed
 
-        
+
 def optimizer(identifier, wrt, *args, **kwargs):
     """Return an optimizer with the desired configuration.
 
@@ -86,13 +86,11 @@ def optimizer(identifier, wrt, *args, **kwargs):
     :param wrt: Numpy array pointing to the data to optimize.
     """
     klass_map = {
-        'asgd': Asgd,
         'gd': GradientDescent,
         'lbfgs': Lbfgs,
         'ncg': NonlinearConjugateGradient,
         'rprop': Rprop,
         'rmsprop': RmsProp,
-        'smd': Smd,
     }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]
@@ -117,3 +115,188 @@ def optimizer(identifier, wrt, *args, **kwargs):
 
     return opt
 
+
+def shaped_from_flat(flat, shapes):
+    """Given a one dimensional array ``flat``, return a list of views of shapes
+    ``shapes`` on that array.
+
+    Each view will point to a distinct memory region, consecutively allocated
+    in flat.
+
+    Parameters
+    ----------
+
+    flat : array_like
+        Array of one dimension.
+
+    shapes : list of tuples of ints
+        Each entry of this list specifies the shape of the corresponding view
+        into ``flat``.
+
+    Returns
+    -------
+
+    views : list of arrays
+        Each entry has the shape given in ``shapes`` and points as a view into
+        ``flat``.
+    """
+    shapes = [(i,) if isinstance(i, int) else i for i in shapes]
+    sizes = [np.prod(i) for i in shapes]
+
+    n_used = 0
+    views = []
+    for size, shape in zip(sizes, shapes):
+        this = flat[n_used:n_used + size]
+        n_used += size
+        this.shape = shape
+        views.append(this)
+
+    return views
+
+
+def empty_with_views(shapes, empty_func=np.empty):
+    """Create an array and views shaped according to ``shapes``.
+
+    The ``shapes`` parameter is a list of tuples of ints.  Each tuple
+    represents a desired shape for an array which will be allocated in a bigger
+    memory region. This memory region will be represented by an array as well.
+
+    For example, the shape speciciation ``[2, (3, 2)]`` will create an array
+    ``flat`` of size 8. The first view will have a size of ``(2,)`` and point
+    to the first two entries, i.e. ``flat`[:2]`, while the second array will
+    have a shape of ``(3, 2)`` and point to the elements ``flat[2:8]``.
+
+
+    Parameters
+    ----------
+
+    spec : list of tuples of ints
+        Specification of the desired shapes.
+
+    empty_func : callable
+        function that returns a memory region given an integer of the desired
+        size. (Examples include ``numpy.empty``, which is the default,
+        ``gnumpy.empty`` and ``theano.tensor.empty``.
+
+
+    Returns
+    -------
+
+    flat : array_like (depending on ``empty_func``)
+        Memory region containing all the views.
+
+    views : list of array_like
+        Variable number of results. Each contains a view into the array
+        ``flat``.
+
+
+    Examples
+    --------
+
+    >>> from climin.util import empty_with_views
+    >>> flat, (w, b) = empty_with_views([(3, 2), 2])
+    >>> w[...] = 1
+    >>> b[...] = 2
+    >>> flat
+    array([ 1.,  1.,  1.,  1.,  1.,  1.,  2.,  2.])
+    >>> flat[0] = 3
+    >>> w
+    array([[ 3.,  1.],
+           [ 1.,  1.],
+           [ 1.,  1.]])
+
+    """
+    shapes = [(i,) if isinstance(i, int) else i for i in shapes]
+    sizes = [np.prod(i) for i in shapes]
+    n_pars = sum(sizes)
+    flat = empty_func(n_pars)
+
+    views = shaped_from_flat(flat, shapes)
+
+    return flat, views
+
+
+def minibatches(arr, batch_size, d=0):
+    """Return a list of views of the given arr.
+
+    Each view represents a mini bach of the data.
+
+    Parameters
+    ----------
+
+    arr : array_like
+        Array to obtain batches from. Practically, anything that accepts slicing
+        can be used.
+
+    batch_size : int
+        Size of a batch. Last batch might be smaller if ``batch_size`` is not a
+        divisor of ``arr``.
+
+    d : int, optional, default: 0
+        Dimension along which the data samples are separated and thus slicing
+        should be done.
+
+    Returns
+    -------
+
+    mini_batches : list
+        Each item of the list is a view of ``arr``. Views are ordered.
+    """
+    n_batches, rest = divmod(arr.shape[d], batchsize)
+    if rest != 0:
+        n_batches += 1
+
+    slices = (slice(i * batch_size, (i + 1) * batch_size)
+              for i in range(n_batches))
+    if d == 0:
+        res = [arr[i] for i in slices]
+    elif d == 1:
+        res = [arr[:, i] for i in slices]
+    elif d == 2:
+        res = [arr[:, :, i] for i in slices]
+
+    return res
+
+
+def iter_minibatches(lst, batch_size, dims):
+    """Return an iterator that successively yields tuples containing aligned
+    minibatches of size `batchsize` from slicable objects given in `lst`, in
+    random order without replacement.
+
+    Because different containers might require slicing over different
+    dimensions, the dimension of each container has to be givens as a list
+    `dims`.
+
+
+    Parameters
+    ----------
+
+    lst : list of array_like
+        Each item of the list will be sliced into mini batches in alignemnt with
+        the others.
+
+    batch_size : int
+        Size of each batch. Last batch might be smaller.
+
+    dims : list
+        Aligned with ``lst``, gives the dimension along which the data samples
+        are separated.
+
+
+    Returns
+    -------
+
+    batches : iterator
+        Infinite iterator of mini batches in random order (without
+        replacement).
+    """
+    batches = [minibatches(i, batchsize, d) for i, d in zip(lst, dims)]
+    if len(batches) > 1:
+        if any(len(i) != len(batches[0]) for i in batches[1:]):
+            raise ValueError("containers to be batched have different lengths")
+    while True:
+        indices = [i for i, _ in enumerate(batches[0])]
+        while True:
+            random.shuffle(indices)
+            for i in indices:
+                yield tuple(b[i] for b in batches)

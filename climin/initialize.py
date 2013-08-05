@@ -28,9 +28,11 @@ def sparsify_columns(arr, n_non_zero):
     Examples
     --------
 
+    >>> import numpy as np
+    >>> from climin.initialize import sparsify_columns
     >>> arr = np.arange(9).reshape((3, 3))
     >>> sparsify_columns(arr, 1)
-    >>> arr
+    >>> arr                                         # doctest: +SKIP
     array([[0, 0, 0],
            [0, 4, 5],
            [6, 0, 0]])
@@ -68,9 +70,11 @@ def bound_spectral_radius(arr, bound=1.2):
     Examples
     --------
 
+    >>> import numpy as np
+    >>> from climin.initialize import bound_spectral_radius
     >>> arr = np.arange(9).reshape((3, 3)).astype('float64')
     >>> bound_spectral_radius(arr, 1.1)
-    >>> arr
+    >>> arr                                 # doctest: +SKIP
     array([[ -7.86816957e-17,   8.98979486e-02,   1.79795897e-01],
            [  2.69693846e-01,   3.59591794e-01,   4.49489743e-01],
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
@@ -101,14 +105,16 @@ def randomize_normal(arr, loc=0, scale=1):
     Examples
     --------
 
+    >>> import numpy as np
+    >>> from climin.initialize import randomize_normal
     >>> arr = np.empty((3, 3))
     >>> randomize_normal(arr)
-    >>> arr
+    >>> arr                                 # doctest: +SKIP
     array([[ 0.18076413,  0.60880657,  1.20855691],
            [ 1.7799948 , -0.82565481,  0.53875307],
            [-0.67056028, -1.46257419,  1.17033425]])
     >>> randomize_normal(arr, 10, 0.1)
-    >>> arr
+    >>> arr                                 # doctest: +SKIP
     array([[ 10.02221481,  10.0982449 ,  10.02495358],
           [  9.99867829,   9.99410111,   9.8242318 ],
           [  9.9383779 ,   9.94880091,  10.03179085]])
