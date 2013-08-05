@@ -6,6 +6,8 @@ scenarios distributed under the BSD 3-cluase license. It works on top of numpy
 and (partially) gnumpy.
 
 The project was started in winter 2011 by Christian Osendorfer and Justin Bayer.
+Since then, Sarah Diot-Girard, Thomas Rueckstiess and Sebastian Urban have 
+contributed.
 
 
 Important links
