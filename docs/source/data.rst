@@ -37,6 +37,29 @@ along axis ``1`` in the target data.
 External memory
 ---------------
 
+What is nice about ``climin.util.iter_minibatches`` is that it needs only slices
+as a requirement for its arguments. We therefore only need to pass it a data
+structure which reads data from disk as soon as it is needed and disposes of it
+as soon as it is not any more.
+
+HDF5 and its python package `h5py <http://www.h5py.org/>`_ are a perfect match
+for this. We have managed to use 6+ GB sized image data sets on GPUs with less
+than 2 GB of RAM with this simple recipe::
+
+    import climin.util
+    import gnumpy
+    import h5py
+
+    f = h5py.File('data.h5')
+    ds = f['inpts']
+    args = climin.util.iter_minibatches([ds], 100, [0])
+    args = (gnumpy.garray(i) for i in args)
+
+    # ...
+
+This is in general not restricted by the size of the data set; it just show that
+going beyond the GPU RAM limit is achieved very naturally in climin.
+
 
 Further usages
 --------------
