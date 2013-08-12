@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+"""Module containing various line searches.
+
+Line searches are at the heart of many optimizers. After finding a suitable
+search direction (e.g. the steepest descent direction) we are left with a
+one-dimensional optimization problem, which can then be solved by a line search.
+"""
+
+# TODO: this module needs lots of pep8 love.
+
 
 import itertools
 
@@ -7,33 +16,76 @@ import scipy.optimize
 import numpy as np
 import scipy as sp
 
-from base import dummylogfunc
-
 
 class LineSearch(object):
 
-    def __init__(self, wrt, logfunc=dummylogfunc):
+    def __init__(self, wrt):
         self.wrt = wrt
-        self.logfunc = logfunc
+
+    def search(self, direction, initialization, args=None, kwargs=None):
+        raise NotImplemented()
 
 
 class BackTrack(LineSearch):
     """Class implementing a back tracking line search.
 
-    The idea is to try out jumps along the search direction until
-    one satisfies a condition. Jumps are done by multiplying the search
-    direction with a scalar. The field `schedule` holds an iterator which
-    successively yields those scalars.
+    The idea is to jump to a starting step length :math:`t` and then shrink that
+    step length by multiplying it with :math:`\\gamma` until we improve upon
+    the loss.
 
-    To not possibly iterate forever, the field `tolerance` holds a very small
+    At most ``max_iter`` attempts will be done. If the largest absolut value of
+    a component of the step falls below ``tolerance``, we stop as well. In both
+    cases, a step length of 0 is returned.
+
+
+    To not possibly iterate forever, the field `tolerance` holds a small
     value (1E-20 per default). As soon as the absolute value of every component
     of the step (direction multiplied with the scalar from `schedule`) is less
-    than `tolerance`.
+    than `tolerance`, we stop.
+
+
+    Attributes
+    ----------
+
+    wrt : array_like
+        Parameters over which the optimization is done.
+
+    f : Callable
+        Objective function.
+
+    decay : float
+        Factor to multiply trials for the step length with.
+
+    tolerance : float
+        Minimum absolute value of a component of the step without stopping the
+        line search.
     """
 
     def __init__(self, wrt, f, decay=0.9, max_iter=float('inf'),
-                 tolerance=1E-20, logfunc=dummylogfunc):
-        super(BackTrack, self).__init__(wrt, logfunc)
+                 tolerance=1E-20):
+        """Create BackTrack object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Parameters over which the optimization is done.
+
+        f : Callable
+            Objective function.
+
+        decay : float
+            Factor to multiply trials for the step length with.
+
+        max_iter : int, optional, default infinity
+            Number of step lengths to try.
+
+        tolerance : float
+            Minimum absolute value of a component of the step without stopping the
+            line search.
+        """
+
+        super(BackTrack, self).__init__(wrt)
         self.f = f
         self.max_iter = max_iter
         self.decay = decay
@@ -42,6 +94,31 @@ class BackTrack(LineSearch):
 
     def search(self, direction, initialization=1, args=None, kwargs=None,
                loss0=None):
+        """Return a step length ``t`` given a search direction.
+
+        Perform the line search along a direction. Search will start at
+        ``initialization`` and assume that the loss is ``loss0`` at ``t == 0``.
+
+        Parameters
+        ----------
+
+        direction : array_like
+            Has to be of the same size as .wrt. Points along that direction
+            will tried out to reduce the loss.
+
+        initialization : float
+            First attempt for a step size. Will be reduced by a factor of
+            ``.decay`` afterwards.
+
+        args : list, optional, default: None
+            list of optional arguments for ``.f``.
+
+        kwargs : dictionary, optional, default: None
+            list of optional keyword arguments for ``.f``.
+
+        loss0 : float, optional
+            Loss at the current parameters. Will be calculated of not given.
+        """
         args = [] if args is None else args
         kwargs = {} if kwargs is None else kwargs
 
@@ -50,7 +127,7 @@ class BackTrack(LineSearch):
             loss0 = self.f(self.wrt, *args, **kwargs)
 
         # Try out every point in the schedule until a reduction has been found.
-        schedule = (self.decay**i * initialization for i in itertools.count())
+        schedule = (self.decay ** i * initialization for i in itertools.count())
         for i, s in enumerate(schedule):
             if i + 1 >= self.max_iter:
                 break
@@ -60,8 +137,6 @@ class BackTrack(LineSearch):
                 break
             candidate = self.wrt + step
             loss = self.f(candidate, *args, **kwargs)
-            self.logfunc({'step_length': s, 'loss': loss})
-            improvement = loss0 - loss
             if -(loss0 - loss) < 0:
                 # We check here for negative improvement to also not continue in
                 # the case of NaNs.
@@ -71,15 +146,81 @@ class BackTrack(LineSearch):
 
 
 class StrongWolfeBackTrack(BackTrack):
+    """Class implementing a back tracking line search that finds points
+    satisfying the Strong Wolfe conditions.
 
-    def __init__(self, wrt, f, fprime, schedule=None, c1=1E-4, c2=.9,
+    The idea is to jump to a starting step length :math:`t` and then shrink that
+    step length by multiplying it with :math:`\\gamma` until the strong Wolfe
+    conditions are satisfied. That is the Armijo rule
+
+    .. math::
+       f(\\theta_t+ \\alpha_t d_t) & \\leq f(\\theta)+ c_1 \\alpha_t d_t^T f'(\\theta),
+
+    and the curvature condition
+
+    .. math::
+       \\big|d_k^TTf('\\theta_t+\\alpha_t d_t)\\big| & \\leq c_2 \\big|d_t^T f'(\\theta_t)\\big|.
+
+    At most ``max_iter`` attempts will be done. If the largest absolut value of
+    a component of the step falls below ``tolerance``, we stop as well. In both
+    cases, a step length of 0 is returned.
+
+    To not possibly iterate forever, the field `tolerance` holds a small
+    value (1E-20 per default). As soon as the absolute value of every component
+    of the step (direction multiplied with the scalar from `schedule`) is less
+    than `tolerance`, we stop.
+
+
+    Attributes
+    ----------
+
+    wrt : array_like
+        Parameters over which the optimization is done.
+
+    f : Callable
+        Objective function.
+
+    decay : float
+        Factor to multiply trials for the step length with.
+
+    tolerance : float
+        Minimum absolute value of a component of the step without stopping the
+        line search.
+
+    c1 : float
+        Constant in the strong Wolfe conditions.
+
+    c2 : float
+        Constant in the strong Wolfe conditions.
+    """
+
+    def __init__(self, wrt, f, fprime, decay=None, c1=1E-4, c2=.9,
                  tolerance=1E-20):
-        super(StrongWolfeBackTrack, self).__init__(wrt, f, schedule, tolerance)
+        """Create StrongWolfeBackTrack object.
+
+        Parameters
+        ----------
+
+        wrt : array_like
+            Parameters over which the optimization is done.
+
+        f : Callable
+            Objective function.
+
+        decay : float
+            Factor to multiply trials for the step length with.
+
+        tolerance : float
+            Minimum absolute value of a component of the step without stopping
+            the line search.
+        """
+        super(StrongWolfeBackTrack, self).__init__(wrt, f, decay, tolerance)
         self.fprime = fprime
         self.c1 = c1
         self.c2 = c2
 
     def search(self, direction, args, kwargs, loss0=None):
+        # TODO: respect initialization
         # Recalculate the current loss if it has not been given.
         if loss0 is None:
             loss0 = self.f(self.wrt, *args, **kwargs)
@@ -107,6 +248,7 @@ class StrongWolfeBackTrack(BackTrack):
 
 
 class ScipyLineSearch(LineSearch):
+    """Wrapper around the scipy line search."""
 
     def __init__(self, wrt, f, fprime):
         super(ScipyLineSearch, self).__init__(wrt)
@@ -122,6 +264,7 @@ class ScipyLineSearch(LineSearch):
 
 
 class WolfeLineSearch(LineSearch):
+    """Port of Mark Schmidt's line search."""
 
     def __init__(self, wrt, f, fprime, c1=1E-4, c2=0.9, maxiter=25,
                  min_step_length=1E-9, typ=4):
@@ -197,13 +340,13 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         f2 = points[notMinPos, 1]
 
         d1 = g1 + g2 - 3 * (f1 - f2) / (x1 - x2)
-        d2 = sp.sqrt(d1**2 - g1 * g2)
+        d2 = sp.sqrt(d1 ** 2 - g1 * g2)
         if np.isreal(d2):
             t = points[notMinPos, 0] -\
                     (points[notMinPos, 0] - points[minPos, 0]) * \
                     (
                       (points[notMinPos, 2] + d2 - d1) /
-                      (points[notMinPos, 2] - points[minPos, 2] + 2*d2)
+                      (points[notMinPos, 2] - points[minPos, 2] + 2 * d2)
                     )
             minPos = np.minimum(
                 np.maximum(t, points[minPos, 0]), points[notMinPos, 0])
@@ -224,18 +367,18 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     #
     #
     # Collect constraints for parameter estimation
-    A = np.zeros((2*nPoints, order+1))
-    b = np.zeros((2*nPoints, 1))
+    A = np.zeros((2 * nPoints, order + 1))
+    b = np.zeros((2 * nPoints, 1))
     # Constraints based on available function values
     for i in range(points.shape[0]):
         if np.isreal(points[i, 1]):
-            A[i] = [points[i, 0]**(order - j) for j in xrange(order+1)]
+            A[i] = [points[i, 0] ** (order - j) for j in xrange(order + 1)]
             b[i] = points[i, 1]
             points[i, 0], points[i, 1]
     # Constraints based on available derivatives
     for i, p in enumerate(points[:, 2]):
         if np.isreal(p):
-            A[nPoints + i] = [(order - j + 1) * points[i, 0]**(order - j)
+            A[nPoints + i] = [(order - j + 1) * points[i, 0] ** (order - j)
                               for j in xrange(1, order + 1)] + [0]
             b[nPoints + i] = points[i, 2]
     #
@@ -243,7 +386,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     params = np.linalg.lstsq(A, b)[0].flatten()
 
     # Compute critical points
-    dParams = [(order - j)*params[j] for j in xrange(order)]
+    dParams = [(order - j) * params[j] for j in xrange(order)]
 
     cp = [xminBound, xmaxBound] + list(points[:, 0])
     if not np.any(np.isinf(dParams)):
@@ -252,7 +395,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     # Test critical points
     fmin = np.inf
     # Default to bisection if no critical points are valid
-    minPos = (xminBound + xmaxBound)/2.
+    minPos = (xminBound + xmaxBound) / 2.
     for x in cp:
         if np.isreal(x) and x >= xminBound and x <= xmaxBound:
             fx = np.polyval(params, x)
@@ -262,8 +405,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     return minPos, fmin
 
 
-def mixedExtrap(x0, f0, g0, x1, f1, g1,
-        minStep, maxStep):
+def mixedExtrap(x0, f0, g0, x1, f1, g1, minStep, maxStep):
     """
     From minFunc, without switches doPlot and debug.
     """
@@ -324,10 +466,10 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
 
     # Evaluate objective and gradient at initial step
     # Hessian part missing here!
-    f_new, g_new = funObj(x + t*d)
+    f_new, g_new = funObj(x + t * d)
     funEvals = 1
 
-    while f_new > fr + c1*t*gtd or not isLegal(f_new):
+    while f_new > fr + c1 * t * gtd or not isLegal(f_new):
         # A comment here will be nice!
         temp = t
         # this could be nicer, if idea how to work out 'LS'
@@ -345,8 +487,8 @@ def armijobacktrack(x, t, d, f, fr, g, gtd, c1, LS, tolX, funObj):
         else:
             # Backtracking with cubin interpolation
             # (no derviatives at new point available)
-            t, _ = polyinterp(np.array([[0, f, gtd],\
-                    [t, f_new, 1j], [t_prev, f_prev, 1j]]))
+            t, _ = polyinterp(
+                np.array([[0, f, gtd], [t, f_new, 1j], [t_prev, f_prev, 1j]]))
         #
         # Adjust if change in t is too small ...
         if t < 1e-3 * temp:
@@ -585,9 +727,10 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 t = np.mean(bracket)
             elif LS == 4:
                 # Grad cubic interpolation
-                t, _ = polyinterp(np.array(
-                    [[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],\
-                    [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
+                t, _ = polyinterp(
+                    np.array(
+                        [[bracket[0], bracketFval[0], np.dot(bracketGval[0], d)],
+                         [bracket[1], bracketFval[1], np.dot(bracketGval[1], d)]]))
             else:
                 # Mixed case
                 # Is this correct ???????
@@ -596,8 +739,9 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                     oldLOval = bracket[nonTpos]
                     oldLOFval = bracketFval[nonTpos]
                     oldLOGval = bracketGval[nonTpos]
-                t = mixedInterp(bracket, bracketFval, bracketGval, d, Tpos,
-                        oldLOval, oldLOFval, oldLOGval)
+                t = mixedInterp(
+                        bracket, bracketFval, bracketGval, d, Tpos, oldLOval,
+                        oldLOFval, oldLOGval)
 
             #
             # Test that we are making sufficient progress
@@ -623,7 +767,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
             # Evaluate new point
             # no Hessian!
             t = scipy.real(t)
-            f_new, g_new = funObj(x + t*d)
+            f_new, g_new = funObj(x + t * d)
             funEvals += 1
             gtd_new = np.dot(g_new, d)
             LSiter += 1
@@ -636,7 +780,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 bracketGval[HIpos] = g_new
                 Tpos = HIpos
             else:
-                if np.abs(gtd_new) <= -c2*gtd:
+                if np.abs(gtd_new) <= -c2 * gtd:
                     # Wolfe conditions satisfied
                     done = True
                 elif gtd_new * (bracket[HIpos] - bracket[LOpos]) >= 0:
@@ -658,12 +802,12 @@ def wolfe_line_search(x, t, d, f, g, gtd,
                 bracketGval[LOpos] = g_new
                 Tpos = LOpos
 
-            if not done and np.abs(bracket[0] - bracket[1])*gtd_new < tolX:
+            if not done and np.abs(bracket[0] - bracket[1]) * gtd_new < tolX:
                 # Line search can not make further progress
                 break
         # while ...
 
-        # a comment here maybe nice
+        # TODO a comment here maybe nice
         if LSiter == maxLS:
             # could give info:
             # Line Search exceeded maximum line search iterations

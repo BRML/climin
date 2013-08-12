@@ -1,16 +1,66 @@
 # -*- coding: utf-8 -*-
 
+"""Module that contains functionality to monitor stopping.
+
+
+Rationale
+---------
+
+In machine learning, optimization is usually not performed until the objective
+is minimized; instead, if this is the case, the true objective (to which the
+loss function being minimized is often just a proxy) is what is more important.
+
+To achieve good results, several heuristics have been proposed to monitor for
+convergence. This module collects some of these.
+
+
+Usage
+-----
+
+A stopping criterion is a function  which takes a climin ``info`` dictionary as
+its only argument. It the returns ``True`` if the stopping criterion is
+fulfilled, that is if we should stop. The functions in this module are mostly
+functions which create these functions. The idea behind this is that we have
+a common API with functions which are supposed to have a state, which can be
+realized by generator functions or objects with a ``__call__`` magic method.
+"""
+
 
 import itertools
 import time
 
-# Stop criterions can be simple functions like the above one, but
-# most of the following functions are actually stop criterion
-# factories, that return a stop criterion upon initialization.
-
 
 def after_n_iterations(n):
-    """Return a stop criterion that stops after `n` iterations. """
+    """Return a stop criterion that stops after `n` iterations.
+
+    Internally, the ``n_iter`` field of the climin info dictionary is
+    inspected; if the value in there exceeds ``n`` by one, the criterion
+    returns ``True``.
+
+    Parameters
+    ----------
+
+    n : int
+      Number of iterations to perform.
+
+
+    Returns
+    -------
+
+    f : function
+      Stopping criterion function.
+
+
+    Examples
+    --------
+
+    >>> S.after_n_iterations(10)({'n_iter': 10})
+    True
+    >>> S.after_n_iterations(10)({'n_iter': 5})
+    False
+    >>> S.after_n_iterations(10)({'n_iter': 9})
+    True
+    """
     def inner(info):
         return info['n_iter'] >= n - 1
     return inner
@@ -19,7 +69,32 @@ def after_n_iterations(n):
 def modulo_n_iterations(n):
     """Return a stop criterion that stops at each `n`-th iteration.
 
-    E.g.  for n=5, stops at n_iter = 0, 5, 10, 15, ...
+    This is useful if one wants a regular pause in optimization, e.g. to save
+    data to disk or give feedback to the user.
+
+    Parameters
+    ----------
+
+    n : int
+      Number of iterations to perform between pauses.
+
+
+    Returns
+    -------
+
+    f : function
+      Stopping criterion function.
+
+
+    Examples
+    --------
+
+    >>> S.modulo_n_iterations(10)({'n_iter': 9})
+    False
+    >>> S.modulo_n_iterations(10)({'n_iter': 10})
+    True
+    >>> S.modulo_n_iterations(10)({'n_iter': 11})
+    False
     """
     def inner(info):
         return info['n_iter'] % n == 0
@@ -28,7 +103,31 @@ def modulo_n_iterations(n):
 
 def time_elapsed(sec):
     """Return a stop criterion that stops after `sec` seconds after
-    initializing."""
+    initializing.
+
+    Parameters
+    ----------
+
+    sec : float
+      Number of seconds until the criterion returns True.
+
+
+    Returns
+    -------
+
+    f : function
+      Stopping criterion function.
+
+
+    Examples
+    --------
+
+    >>> stop = S.time_elapsed(.5); stop({})
+    False
+    >>> time.sleep(0.5)
+    >>> stop({})
+    True
+    """
     start = time.time()
     def inner(info):
         return time.time() - start > sec
@@ -67,12 +166,12 @@ def converged(func_or_key, n=10, epsilon=1e-5, patience=0):
 
 
 def rising(func_or_key, n=1, epsilon=0, patience=0):
-    """Return a stop criterion that remembers the last `n` values of
-    `func_or_key`() and returns True if the its return value rose at least by
+    """Return a stop criterion that remembers the last `n` values obtained via
+    `func_or_key` and returns True if the its return value rose at least by
     `epsilon` in the meantime.
 
-    `func_or_key` needs to be a callable that returns a scalar value or a
-    string which is a key referring to an entry in the info dict it is given.
+    `func_or_key` needs to be either a callable that returns a scalar value or
+    a string which is a key referring to an entry in the info dict it is given.
 
     If `patience` is non zero, the first `patience` iterations are not checked
     against the criterion.
