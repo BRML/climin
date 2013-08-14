@@ -177,7 +177,7 @@ class RmsProp(Minimizer):
                 # This code might look weird, but it makes it work with both
                 # numpy and gnumpy.
                 step_non_negative = step > 0
-                step_m1_non_negative = step_m1 > 0
+                step_m1_non_negative = self.step_m1 > 0
                 agree = (step_non_negative == step_m1_non_negative) * 1.
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 self.step_rate *= adapt
