@@ -13,6 +13,11 @@ from cg import NonlinearConjugateGradient
 from rprop import Rprop
 from rmsprop import RmsProp
 
+try:
+    from sklearn.grid_search import ParameterSampler
+except ImportError:
+    pass
+
 
 def coroutine(f):
     """Turn a generator function into a coroutine by calling .next() once."""
@@ -300,3 +305,34 @@ def iter_minibatches(lst, batch_size, dims):
             random.shuffle(indices)
             for i in indices:
                 yield tuple(b[i] for b in batches)
+
+
+class OptimizerDistribution(object):
+    """OptimizerDistribution class.
+
+    Can be used for specifying optimizers in scikit-learn's randomized parameter
+    search.
+
+    Attributes
+    ----------
+
+    options : dict
+        Maps an optimizer key to a grid to sample from.
+    """
+
+    def __init__(self, **options):
+        """Create an OptimizerDistribution object.
+
+        Parameters
+        ----------
+
+        options : dict
+            Maps an optimizer key to a grid to sample from.
+        """
+        self.options = options
+
+    def rvs(self):
+        opt = random.choice(self.options.keys())
+        grid = self.options[opt]
+        sample = list(ParameterSampler(grid, n_iter=1))[0]
+        return opt, sample
