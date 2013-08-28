@@ -144,7 +144,6 @@ class Rprop(Minimizer):
                 'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
-
                 'gradient': gradient,
                 'gradient_m1': gradient_m1,
                 'step': step,
