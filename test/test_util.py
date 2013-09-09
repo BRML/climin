@@ -5,6 +5,8 @@ import numpy as np
 import climin
 from climin.util import optimizer, OptimizerDistribution
 
+from nose.plugins.skip import SkipTest
+
 
 def test_optimizer():
     pairs = [('gd', climin.GradientDescent),
@@ -20,7 +22,12 @@ def test_optimizer():
         assert isinstance(opt, klass), 'wrong class for %s: %s' % (ident, type(opt))
 
 
+
 def test_optimizer_distribution():
+    try:
+        import sklearn
+    except ImportError:
+        raise SkipTest()
     rv = OptimizerDistribution(gd={'steprate': [.1, .2],
                                    'momentum': [.9, .99]})
     opt = rv.rvs()
