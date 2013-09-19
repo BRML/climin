@@ -224,3 +224,73 @@ def not_better_than_after(minimal, n_iter):
     def inner(info):
         return info['n_iter'] > n_iter and info['loss'] >= minimal
     return inner
+
+
+def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
+             threshold=1e-4):
+    """Return a stop criterion inspired by Bengio's patience method.
+
+    The idea is to increase the number of iterations until stopping by
+    a multiplicative and/or additive constant once a new best candidate is
+    found.
+
+    Parameters
+    ----------
+
+    func_or_key : function, hashable
+        Either a function or a hashable object. In the first case, the function
+        will be called to get the latest loss. In the second case, the loss
+        will be obtained from the in the corresponding field of the ``info``
+        dictionary.
+
+    initial : int
+        Initial patience. Lower bound on the number of iterations.
+
+    grow_factor : float
+        Everytime we find a sufficiently better candidate (determined by
+        ``threshold``) we increase the patience multiplicatively by
+        ``grow_factor``.
+
+    grow_offset : float
+        Everytime we find a sufficiently better candidate (determined by
+        ``threshold``) we increase the patience additively by ``grow_offset``.
+
+    threshold : float, optional, default: 1e-4
+        A loss of a is assumed to be a better candidate than b, if a is larger
+        than b by a margin of ``threshold``.
+
+    Returns
+    -------
+
+    func : callable
+        Function that expects a single info dictionary as its only argument.
+    """
+    if grow_factor == 1 and grow_offset == 0:
+        raise ValueError('need to specify either grow_factor != 1'
+                         'or grow_offset != 0)')
+    # This is in a dict to compensate for Python's lookup of local variables.
+    state  = {
+        'patience': initial,
+        'best_iter': 0,
+        'best_loss': float('inf')
+    }
+    count = itertools.count()
+    def inner(info):
+        i = count.next()
+        if isinstance(func_or_key, (str, unicode)):
+            loss = info[func_or_key]
+        else:
+            loss = func_or_key()
+
+        if loss < state['best_loss']:
+            if (state['best_loss'] - loss) > threshold and i > 0:
+                state['patience'] = max(i * grow_factor + grow_offset,
+                                        state['patience'])
+            state['best_iter'] = i
+            state['best_loss'] = loss
+
+        print state
+
+        return i >= state['patience']
+
+    return inner
