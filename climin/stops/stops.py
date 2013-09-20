@@ -289,8 +289,6 @@ def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
             state['best_iter'] = i
             state['best_loss'] = loss
 
-        print state
-
         return i >= state['patience']
 
     return inner
