@@ -23,10 +23,11 @@ to a template:
 
 .. testcode:: [parameters]
 
+   import numpy as np
    import climin.util
 
    tmpl = [(784, 10), 10]          # w is matrix and b a vector
-   flat, w, b = climin.util.empty_with_views(tmpl)
+   flat, (w, b) = climin.util.empty_with_views(tmpl)
 
 Now, ``flat`` is a one dimensional array. ``w`` and ``b`` are a two dimensional
 and a one dimensional array respectively. They share memory with ``flat``, so 
