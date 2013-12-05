@@ -2,6 +2,7 @@
 
 
 import inspect
+import itertools
 import random
 import warnings
 
@@ -263,7 +264,7 @@ def minibatches(arr, batch_size, d=0):
     return res
 
 
-def iter_minibatches(lst, batch_size, dims):
+def iter_minibatches(lst, batch_size, dims, n_cycles=False):
     """Return an iterator that successively yields tuples containing aligned
     minibatches of size `batch_size` from slicable objects given in `lst`, in
     random order without replacement.
@@ -287,6 +288,10 @@ def iter_minibatches(lst, batch_size, dims):
         Aligned with ``lst``, gives the dimension along which the data samples
         are separated.
 
+    n_cycles : int or False, optional [default: False]
+        Number of cycles after which to stop the iterator. If ``False``, will
+        yield forever.
+
 
     Returns
     -------
@@ -299,12 +304,16 @@ def iter_minibatches(lst, batch_size, dims):
     if len(batches) > 1:
         if any(len(i) != len(batches[0]) for i in batches[1:]):
             raise ValueError("containers to be batched have different lengths")
+    counter = itertools.count()
     while True:
         indices = [i for i, _ in enumerate(batches[0])]
         while True:
             random.shuffle(indices)
             for i in indices:
                 yield tuple(b[i] for b in batches)
+            count = counter.next()
+            if n_cycles and count >= n_cycles:
+                raise StopIteration()
 
 
 class OptimizerDistribution(object):
