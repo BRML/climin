@@ -8,7 +8,10 @@ import numpy as np
 from mathadapt import sqrt
 
 def project_to_simplex(v, scale=1.):
-    """ The orthogonal projection of v into the simplex is of form sum(non_negative_part(v-a)) for some a. The function a->sum(non_negative_part(v-a)) is decreasing and convex. Then we can use a newton's iteration, and piecewise linearity give finite convergence. This is faster than the O(n log(n)) using binary search, and there exist more complicated O(n) algorithms.
+    """ Project v into the probability simplex, return the result. If a different sum is desired for the entries, use scale.
+
+    The orthogonal projection of v into the simplex is of form non_negative_part(v-a) for some a. The function a->sum(non_negative_part(v-a)) is decreasing and convex. Then we can use a newton's iteration, and piecewise linearity give finite convergence. This is faster than the O(n log(n)) using binary search, and there exist more complicated O(n) algorithms.
+
     """
     a = min(v) - scale
     f = sum(non_negative_part(v - a)) - scale
