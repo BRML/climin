@@ -6,4 +6,4 @@ Schedules
 .. autofunction:: climin.schedule.decaying
 .. autofunction:: climin.schedule.linear_annealing
 .. autofunction:: climin.schedule.repeater
-.. autofunction:: climin.schedule.sutskever_blend
+.. autoclass:: climin.schedule.SutskeverBlend

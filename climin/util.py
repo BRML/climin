@@ -2,6 +2,7 @@
 
 
 import inspect
+import itertools
 import random
 import warnings
 
@@ -12,6 +13,11 @@ from bfgs import Lbfgs
 from cg import NonlinearConjugateGradient
 from rprop import Rprop
 from rmsprop import RmsProp
+
+try:
+    from sklearn.grid_search import ParameterSampler
+except ImportError:
+    pass
 
 
 def coroutine(f):
@@ -258,7 +264,7 @@ def minibatches(arr, batch_size, d=0):
     return res
 
 
-def iter_minibatches(lst, batch_size, dims):
+def iter_minibatches(lst, batch_size, dims, n_cycles=False):
     """Return an iterator that successively yields tuples containing aligned
     minibatches of size `batch_size` from slicable objects given in `lst`, in
     random order without replacement.
@@ -282,6 +288,10 @@ def iter_minibatches(lst, batch_size, dims):
         Aligned with ``lst``, gives the dimension along which the data samples
         are separated.
 
+    n_cycles : int or False, optional [default: False]
+        Number of cycles after which to stop the iterator. If ``False``, will
+        yield forever.
+
 
     Returns
     -------
@@ -294,9 +304,44 @@ def iter_minibatches(lst, batch_size, dims):
     if len(batches) > 1:
         if any(len(i) != len(batches[0]) for i in batches[1:]):
             raise ValueError("containers to be batched have different lengths")
+    counter = itertools.count()
     while True:
         indices = [i for i, _ in enumerate(batches[0])]
         while True:
             random.shuffle(indices)
             for i in indices:
                 yield tuple(b[i] for b in batches)
+            count = counter.next()
+            if n_cycles and count >= n_cycles:
+                raise StopIteration()
+
+
+class OptimizerDistribution(object):
+    """OptimizerDistribution class.
+
+    Can be used for specifying optimizers in scikit-learn's randomized parameter
+    search.
+
+    Attributes
+    ----------
+
+    options : dict
+        Maps an optimizer key to a grid to sample from.
+    """
+
+    def __init__(self, **options):
+        """Create an OptimizerDistribution object.
+
+        Parameters
+        ----------
+
+        options : dict
+            Maps an optimizer key to a grid to sample from.
+        """
+        self.options = options
+
+    def rvs(self):
+        opt = random.choice(self.options.keys())
+        grid = self.options[opt]
+        sample = list(ParameterSampler(grid, n_iter=1))[0]
+        return opt, sample

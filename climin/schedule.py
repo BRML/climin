@@ -70,21 +70,27 @@ def repeater(iter, n):
             yield i
 
 
-def sutskever_blend(max_momentum, stretch=250):
-    """Return a schedule that step-wise increases from zero to a maximum value,
-    as described in [sutskever2013importance]_.
+class SutskeverBlend(object):
+    """Class representing a schedule that step-wise increases from zero to a
+    maximum value, as described in [sutskever2013importance]_.
 
     Examples
     --------
 
-    >>> from climin.schedule import sutskever_blend
-    >>> s = sutskever_blend(0.9, 2)
+    >>> from climin.schedule import SutskeverBlend
+    >>> s = iter(SutskeverBlend(0.9, 2))
     >>> [s.next() for i in range(10)]
     [0.5, 0.75, 0.75, 0.8333333333333333, 0.8333333333333333, 0.875, 0.875, 0.9, 0.9, 0.9]
 
     .. [sutskever2013importance] On the importance of initialization and
        momentum in deep learning, Sutskever et al (ICML 2013)
     """
-    for i in itertools.count(1):
-        m = 1 - (2 ** (-1 - math.log(np.floor_divide(i, stretch) + 1, 2)))
-        yield min(m, max_momentum)
+
+    def __init__(self, max_momentum, stretch=250):
+        self.max_momentum = max_momentum
+        self.stretch = stretch
+
+    def __iter__(self):
+        for i in itertools.count(1):
+            m = 1 - (2 ** (-1 - math.log(np.floor_divide(i, self.stretch) + 1, 2)))
+            yield min(m, self.max_momentum)
