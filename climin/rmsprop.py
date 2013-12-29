@@ -125,15 +125,16 @@ class RmsProp(Minimizer):
         super(RmsProp, self).__init__(wrt, args=args)
 
         self.fprime = fprime
-        self._steprate = steprate
         self.decay = decay
         self.momentum = momentum
         self.step_adapt = step_adapt
         self.step_rate_min = step_rate_min
         self.step_rate_max = step_rate_max
+        self.steprate = steprate
 
     @property
     def steprate(self):
+        """Step rate to use during optimization"""
         return self._steprate
 
     @steprate.setter
@@ -145,15 +146,13 @@ class RmsProp(Minimizer):
         if self.step_adapt:
             self.step_rate *= ones_like(self.wrt)
 
-    def __iter__(self):
+    def reset(self):
+        """Resets the momentum and the current estimate of the gradient."""
         self.moving_mean_squared = 1
         self.step_m1 = 0
-        self.step_rate = self._steprate
 
-        # If we adapt step rates, we need one for each parameter.
-        if self.step_adapt:
-            self.step_rate *= ones_like(self.wrt)
-
+    def __iter__(self):
+        self.reset()
         for i, (args, kwargs) in enumerate(self.args):
             # We use Nesterov momentum: first, we make a step according to the
             # momentum and then we calculate the gradient.
