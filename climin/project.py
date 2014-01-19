@@ -4,7 +4,6 @@
 
 
 import numpy as np
-from numpy import sum, min
 
 from mathadapt import sqrt
 
@@ -25,33 +24,33 @@ def project_to_simplex(v, scale=1.):
 
     The orthogonal projection of v into the simplex is of form
 
-       non_negative_part(v-a)
+       non_negative_part(v-adjustment)
 
     for some a (see)
 
-    The function a->sum(non_negative_part(v-a)) is decreasing and convex.
-    Then we can use a newton's iteration, and piecewise linearity give
+    The function adjustment->sum(non_negative_part(v-adjustment)) is decreasing and convex.
+    Then we can use a newton's iteration, and piecewise linearity gives
     finite convergence.
-    This is faster than the O(n log(n)) using binary search,
+    This is faster than the O(n log(1/epsilon)) using binary search,
     and there exist more complicated O(n) algorithms.
 
     """
-    a = min(v) - scale
-    f = sum(non_negative_part(v - a)) - scale
+    adjustment = np.min(v) - scale
+    sum_deviation = np.sum(non_negative_part(v - adjustment)) - scale
 
-    while f > 1e-8:
-        diff = v - a
-        f = non_negative_part(diff).sum() - scale
+    while sum_deviation > 1e-8:
+        diff = v - adjustment
+        sum_deviation = non_negative_part(diff).sum() - scale
         df = (1.0 * (diff > 0)).sum()
         #print((a, f, df))
-        a += f / (df + 1e-6)
+        adjustment += sum_deviation / (df + 1e-6)
 
-    return non_negative_part(v - a)
+    return non_negative_part(v - adjustment)
 
 
 def non_negative_part(v):
     """ A copy of v with negative entries replaced by zero. """
-    return (v + abs(v)) / 2
+    return (v + np.abs(v)) / 2
 
 
 def max_length_columns(arr, max_length):
