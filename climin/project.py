@@ -4,19 +4,30 @@
 
 
 import numpy as np
+from numpy import sum, min
 
 from mathadapt import sqrt
 
 
 def project_to_simplex(v, scale=1.):
-    """ Project v into the probability simplex, return the result.
-    If a different sum is desired for the entries, use scale.
+    """ Project a vector into the probability simplex, return the result.
+
+    The result is the closest non-negative vector whose elements sum to scale.
+
+    Parameters
+    ----------
+    v : np.array((n))
+        The vector in R^n to project onto probability simplex
+
+    scale : the sum of the elements in the result will be scale.
+
+    If a different sum is desired for the entries, set scale accordingly.
 
     The orthogonal projection of v into the simplex is of form
 
        non_negative_part(v-a)
 
-    for some a.
+    for some a (see)
 
     The function a->sum(non_negative_part(v-a)) is decreasing and convex.
     Then we can use a newton's iteration, and piecewise linearity give
