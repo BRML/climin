@@ -10,7 +10,7 @@ import numpy as np
 import climin.mathadapt as ma
 
 
-def sparsify_columns(arr, n_non_zero):
+def sparsify_columns(arr, n_non_zero, keep_diagonal=False):
     """Set all but ``n_non_zero`` entries to zero for each column of ``arr``.
 
     This is a common technique to find better starting points for learning
@@ -24,6 +24,9 @@ def sparsify_columns(arr, n_non_zero):
 
     n_non_zero : integer
       Amount of non zero entries to keep.
+
+    keep_diagonal : boolean, optional [default: False]
+      If set to True and ``arr`` is square, do keep the diagonal.
 
     Examples
     --------
@@ -48,6 +51,9 @@ def sparsify_columns(arr, n_non_zero):
         idxs = xrange(colsize)
         zeros = random.sample(idxs, colsize - n_non_zero)
         mask[zeros, i] *= 0
+
+    if keep_diagonal and arr.shape[0] == arr.shape[1]:
+        mask += np.eye(arr.shape[0])
 
     arr *= mask
 
