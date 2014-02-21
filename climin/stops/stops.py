@@ -276,7 +276,7 @@ def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
     }
     count = itertools.count()
     def inner(info):
-        i = count.next()
+        i = info['n_iter']
         if isinstance(func_or_key, (str, unicode)):
             loss = info[func_or_key]
         else:
