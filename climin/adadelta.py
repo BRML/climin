@@ -8,7 +8,9 @@ from mathadapt import sqrt, ones_like, clip
 
 
 class Adadelta(Minimizer):
-    def __init__(self, wrt, fprime, decay=0.9, offset=1e-2, args=None):
+
+    def __init__(self, wrt, fprime, steprate=1, decay=0.9, momentum=0, offset=1e-2,
+                 args=None):
         """Create an Adadelta object.
 
         Parameters
@@ -17,6 +19,10 @@ class Adadelta(Minimizer):
         wrt : array_like
             Array that represents the solution. Will be operated upon in
             place.  ``fprime`` should accept this array as a first argument.
+
+        steprate : scalar or array_like
+            Value to multiply steps with before they are applied to the
+            parameter vector.
 
         fprime : callable
             Callable that given a solution vector as first parameter and *args
@@ -37,27 +43,38 @@ class Adadelta(Minimizer):
         super(Adadelta, self).__init__(wrt, args=args)
 
         self.fprime = fprime
+        self.steprate = steprate
         self.decay = decay
         self.offset = offset
+        self.momentum = momentum
 
     def __iter__(self):
         gms = 0     # running average of the squared gradients
         sms = 0     # running average of the squared updates
         d = self.decay
         o = self.offset
+        m = self.momentum
+        step_m1 = 0
 
         for i, (args, kwargs) in enumerate(self.args):
+            step1 = step_m1 * m * self.steprate
+            self.wrt -= step1
+
             gradient = self.fprime(self.wrt, *args, **kwargs)
+
             gms = (d * gms) + (1 - d) * gradient ** 2
-            step = sqrt(sms + o) / sqrt(gms + o) * gradient
-            sms = (d * sms) + (1 - d) * step ** 2
-            self.wrt -= step
+            step2 = sqrt(sms + o) / sqrt(gms + o) * gradient * self.steprate
+            self.wrt -= step2
+
+            step_m1 = step1 + step2
+            sms = (d * sms) + (1 - d) * step_m1 ** 2
 
             yield {
                 'n_iter': i,
                 'gradient': gradient,
                 'gms': gms,
-                'step': sms,
+                'sms': sms,
+                'step_m1': step_m1,
                 'args': args,
                 'kwargs': kwargs,
             }

@@ -13,6 +13,7 @@ from bfgs import Lbfgs
 from cg import NonlinearConjugateGradient
 from rprop import Rprop
 from rmsprop import RmsProp
+from adadelta import Adadelta
 
 try:
     from sklearn.grid_search import ParameterSampler
@@ -88,7 +89,8 @@ def optimizer(identifier, wrt, *args, **kwargs):
     will `not` throw an error, but pass silently.
 
     :param identifier: String identifying the optimizer to use. Can be either
-        ``asgd``, ``gd``, ``lbfgs``, ``ncg``, ``rprop`` or  ``smd``.
+        ``asgd``, ``gd``, ``lbfgs``, ``ncg``, ``rprop``, ``adadelta`` or
+        ``smd``.
     :param wrt: Numpy array pointing to the data to optimize.
     """
     klass_map = {
@@ -97,6 +99,7 @@ def optimizer(identifier, wrt, *args, **kwargs):
         'ncg': NonlinearConjugateGradient,
         'rprop': Rprop,
         'rmsprop': RmsProp,
+        'adadelta': Adadelta,
     }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]
