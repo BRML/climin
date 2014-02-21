@@ -80,9 +80,8 @@ def bound_spectral_radius(arr, bound=1.2):
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
     """
     vals, vecs = np.linalg.eig(ma.assert_numpy(arr))
-
     vals /= abs(vals).max()
-    vals *= 1.2
+    vals *= bound
     arr[...] = np.dot(vecs, np.dot(np.diag(vals), np.linalg.inv(vecs)))
 
 
