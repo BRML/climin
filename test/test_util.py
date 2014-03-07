@@ -3,9 +3,18 @@
 import numpy as np
 
 import climin
-from climin.util import optimizer, OptimizerDistribution
+from climin.util import optimizer, OptimizerDistribution, minibatches
 
 from nose.plugins.skip import SkipTest
+
+
+def test_minibatches():
+    """Test if minibatches are correctly generated if given a size."""
+    D = np.random.random((13, 5))
+    batches = minibatches(D, batch_size=5)
+    assert batches[0].shape[0] == 5
+    assert batches[1].shape[0] == 5
+    assert batches[2].shape[0] == 3
 
 
 def test_optimizer():
