@@ -159,7 +159,6 @@ class RmsProp(Minimizer):
             # momentum and then we calculate the gradient.
             step1 = self.step_m1 * self.momentum
             self.wrt -= step1
-
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
             self.moving_mean_squared = (

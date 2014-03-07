@@ -10,7 +10,7 @@ import numpy as np
 import climin.mathadapt as ma
 
 
-def sparsify_columns(arr, n_non_zero):
+def sparsify_columns(arr, n_non_zero, keep_diagonal=False):
     """Set all but ``n_non_zero`` entries to zero for each column of ``arr``.
 
     This is a common technique to find better starting points for learning
@@ -24,6 +24,9 @@ def sparsify_columns(arr, n_non_zero):
 
     n_non_zero : integer
       Amount of non zero entries to keep.
+
+    keep_diagonal : boolean, optional [default: False]
+      If set to True and ``arr`` is square, do keep the diagonal.
 
     Examples
     --------
@@ -48,6 +51,9 @@ def sparsify_columns(arr, n_non_zero):
         idxs = xrange(colsize)
         zeros = random.sample(idxs, colsize - n_non_zero)
         mask[zeros, i] *= 0
+
+    if keep_diagonal and arr.shape[0] == arr.shape[1]:
+        mask += np.eye(arr.shape[0])
 
     arr *= mask
 
@@ -80,9 +86,8 @@ def bound_spectral_radius(arr, bound=1.2):
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
     """
     vals, vecs = np.linalg.eig(ma.assert_numpy(arr))
-
     vals /= abs(vals).max()
-    vals *= 1.2
+    vals *= bound
     arr[...] = np.dot(vecs, np.dot(np.diag(vals), np.linalg.inv(vecs)))
 
 
