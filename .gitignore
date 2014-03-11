@@ -2,3 +2,5 @@
 *.egg-info
 *.suo
 docs/build/*
+.idea/workspace.xml
+
