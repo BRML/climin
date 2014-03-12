@@ -2,11 +2,42 @@
 
 """This module provides an implementation of rmsprop."""
 
-
 import numpy as np
 
 from base import Minimizer
 from mathadapt import sqrt, ones_like, clip
+
+
+class State(object):
+
+    def __init__(self, step_rate, step_adapt, wrt_shape):
+        self._step_rate = step_rate
+        self._wrt_shape = wrt_shape
+        self._step_adapt = step_adapt
+
+        self.moving_mean_squared = None
+        self.step_m1 = None
+        self.n_iter = None
+        self.reset()
+
+    def reset(self):
+        """Resets the current state of the optimizer."""
+        self.moving_mean_squared = 1
+        self.step_m1 = 0
+        self.n_iter = 0
+
+    @property
+    def step_rate(self):
+        """Step rate to use during optimization"""
+        return self._step_rate
+
+    @step_rate.setter
+    def step_rate(self, step_rate):
+        self._step_rate = step_rate
+
+        # If we adapt step rates, we need one for each parameter.
+        if self._step_adapt:
+            self._step_rate *= ones_like(self._wrt_shape)
 
 
 class RmsProp(Minimizer):
@@ -131,41 +162,24 @@ class RmsProp(Minimizer):
         self.step_rate_min = step_rate_min
         self.step_rate_max = step_rate_max
         self.steprate = steprate
-
-    @property
-    def steprate(self):
-        """Step rate to use during optimization"""
-        return self._steprate
-
-    @steprate.setter
-    def steprate(self, steprate):
-        self._steprate = steprate
-        self.step_rate = self._steprate
-
-        # If we adapt step rates, we need one for each parameter.
-        if self.step_adapt:
-            self.step_rate *= ones_like(self.wrt)
-
-    def reset(self):
-        """Resets the momentum and the current estimate of the gradient."""
-        self.moving_mean_squared = 1
-        self.step_m1 = 0
+        self.state = State(steprate, step_adapt, self.wrt.shape)
 
     def __iter__(self):
-        self.reset()
-        for i, (args, kwargs) in enumerate(self.args):
+        for args, kwargs in self.args:
+            st = self.state
+
             # We use Nesterov momentum: first, we make a step according to the
             # momentum and then we calculate the gradient.
-            step1 = self.step_m1 * self.momentum
+            step1 = st.step_m1 * self.momentum
             self.wrt -= step1
 
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
-            self.moving_mean_squared = (
-                self.decay * self.moving_mean_squared
+            st.moving_mean_squared = (
+                self.decay * st.moving_mean_squared
                 + (1 - self.decay) * gradient ** 2)
-            step2 = self.step_rate * gradient
-            step2 /= sqrt(self.moving_mean_squared + 1e-8)
+            step2 = st.step_rate * gradient
+            step2 /= sqrt(st.moving_mean_squared + 1e-8)
             self.wrt -= step2
 
             step = step1 + step2
@@ -176,22 +190,22 @@ class RmsProp(Minimizer):
                 # This code might look weird, but it makes it work with both
                 # numpy and gnumpy.
                 step_non_negative = step > 0
-                step_m1_non_negative = self.step_m1 > 0
+                step_m1_non_negative = st.step_m1 > 0
                 agree = (step_non_negative == step_m1_non_negative) * 1.
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
-                self.step_rate *= adapt
-                self.step_rate = clip(
-                    self.step_rate, self.step_rate_min, self.step_rate_max)
+                st.step_rate *= adapt
+                st.step_rate = clip(
+                    st.step_rate, self.step_rate_min, self.step_rate_max)
 
-            self.step_m1 = step
+            st.step_m1 = step
             yield {
-                'n_iter': i,
+                'n_iter': st.n_iter,
                 'gradient': gradient,
-                'moving_mean_squared': self.moving_mean_squared,
-                'step': self.step_m1,
+                'moving_mean_squared': st.moving_mean_squared,
+                'step': st.step_m1,
                 'args': args,
                 'kwargs': kwargs,
-                'step_rate': self.step_rate
+                'step_rate': st.step_rate
             }
-
+            st.n_iter += 1
 
