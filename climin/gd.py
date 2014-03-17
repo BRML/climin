@@ -4,10 +4,7 @@
 """This module provides an implementation of gradient descent."""
 
 
-import itertools
-
-
-from base import Minimizer, repeat_or_iter
+from base import Minimizer
 
 
 class GradientDescent(Minimizer):
@@ -71,20 +68,29 @@ class GradientDescent(Minimizer):
         First derivative of the objective function. Returns an array of the \
         same shape as ``.wrt``.
 
-    steprates : Iterable
-        Iterable of step rates. Will be consumed over optimization.
+    steprate : float or array_like
+        Step rate to multiply the gradients with.
 
-    momentums : Iterable
-        Iterable of momentums. Will be consumed over optimization.
+    momentums : float or array_like
+        Momentum to multiply previous steps with.
 
     momentum_type : string (either "standard" or "nesterov")
         When to add the momentum term to the parameter vector; in the first \
         case it will be done after the calculation of the gradient, in the\
         latter before.
-
     """
 
-    def __init__(self, wrt, fprime, steprate=0.1, momentum=0.0,
+    @property
+    def momentum_type(self):
+        return self._momentum_type
+
+    @momentum_type.setter
+    def momentum_type(self, value):
+        if value not in ('nesterov', 'standard'):
+            raise ValueError('unknown momentum type')
+        self._momentum_type = value
+
+    def __init__(self, wrt, fprime, step_rate=0.1, momentum=0.0,
                  momentum_type='standard',
                  args=None):
         """Create a GradientDescent object.
@@ -126,35 +132,52 @@ class GradientDescent(Minimizer):
         super(GradientDescent, self).__init__(wrt, args=args)
 
         self.fprime = fprime
-        self.steprates = repeat_or_iter(steprate)
-        self.momentums = repeat_or_iter(momentum)
 
-        if momentum_type not in ('nesterov', 'standard'):
-            raise ValueError('unknown momentum type')
+        self.step_rate = step_rate
+        self.momentum = momentum
+
+        self._momentum_type = None
         self.momentum_type = momentum_type
 
+        self.step_m1 = 0
+        self.n_iter = 0
+
+    def set_from_info(self, info):
+        self.step_rate = info['step_rate']
+        self.momentum = info['momentum']
+        self.momentum_type = info['momentum_type']
+        self.step_m1 = info['step_m1']
+        self.n_iter = info['n_iter']
+
     def __iter__(self):
-        step_m1 = 0
-        periterargs = itertools.izip(self.steprates, self.momentums, self.args)
-        for i, j in enumerate(periterargs):
-            steprate, momentum, (args, kwargs) = j
+        for args, kwargs in self.args:
+            step_rate = self.step_rate
+            momentum = self.momentum
+            step_m1 = self.step_m1
 
             if self.momentum_type == 'standard':
                 gradient = self.fprime(self.wrt, *args, **kwargs)
-                step = gradient * steprate + momentum * step_m1
+                step = gradient * step_rate + momentum * step_m1
                 self.wrt -= step
             elif self.momentum_type == 'nesterov':
                 big_jump = momentum * step_m1
                 self.wrt -= big_jump
 
                 gradient = self.fprime(self.wrt, *args, **kwargs)
-                correction = steprate * gradient
+                correction = step_rate * gradient
                 self.wrt -= correction
 
                 step = big_jump + correction
 
-            yield dict(gradient=gradient, steprate=steprate,
-                       args=args, kwargs=kwargs, n_iter=i,
-                       momentum=momentum, step=step)
-
-            step_m1 = step
+            self.step_m1 = step
+            self.n_iter += 1
+            yield {
+                'n_iter': self.n_iter,
+                'step_rate': step_rate,
+                'momentum': momentum,
+                'momentum_type': self.momentum_type,
+                'step_m1': step,
+                'gradient': gradient,
+                'args': args,
+                'kwargs': kwargs
+            }

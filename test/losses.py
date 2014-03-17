@@ -52,7 +52,7 @@ class LogisticRegression(object):
         prediction = self.predict(wrt, inpt)
         d_f_d_W = np.dot(inpt.T, target - prediction)
         d_f_d_b = (target - prediction).sum(axis=0)
-    
+
         d_f_d_all = np.concatenate((d_f_d_W.flatten(), d_f_d_b))
 
         return d_f_d_all / prediction.shape[0]
@@ -63,8 +63,11 @@ class LogisticRegression(object):
         offseted = self.fprime(pars + p * eps, inpt, target)
         return (offseted - deriv) / eps
 
+    def score(self):
+        return self.f(self.pars, self.X, self.Z)
+
     def solved(self, tolerance=0.1):
-        return self.f(self.pars, self.X, self.Z) - tolerance < 0
+        return self.score() - tolerance < 0
 
 
 class Quadratic(object):
