@@ -62,7 +62,7 @@ class RmsProp(Minimizer):
         First derivative of the objective function. Returns an array of the \
         same shape as ``.wrt``.
 
-    steprate : float or array_like
+    step_rate : float or array_like
         Step rate of the optimizer. If an array, means that per parameter step
         rates are used.
 
@@ -80,7 +80,19 @@ class RmsProp(Minimizer):
         When adapting step rates, do not move above this value.
     """
 
-    def __init__(self, wrt, fprime, steprate, decay=0.9, momentum=0,
+    @property
+    def step_rate(self):
+        return self._step_rate
+
+    @step_rate.setter
+    def step_rate(self, value):
+        self._step_rate = value
+
+        # If we adapt step rates, we need one for each parameter.
+        if self.step_adapt:
+            self._step_rate *= ones_like(self.wrt)
+
+    def __init__(self, wrt, fprime, step_rate, decay=0.9, momentum=0,
                  step_adapt=False, step_rate_min=0, step_rate_max=np.inf,
                  args=None):
         """Create an RmsProp object.
@@ -97,7 +109,7 @@ class RmsProp(Minimizer):
             and **kwargs drawn from the iterations ``args`` returns a
             search direction, such as a gradient.
 
-        steprate : float or array_like
+        step_rate : float or array_like
             Step rate to use during optimization. Can be given as a single
             scalar value or as an array for a different step rate of each
             parameter of the problem.
@@ -125,36 +137,31 @@ class RmsProp(Minimizer):
         super(RmsProp, self).__init__(wrt, args=args)
 
         self.fprime = fprime
-        self._steprate = steprate
         self.decay = decay
         self.momentum = momentum
         self.step_adapt = step_adapt
         self.step_rate_min = step_rate_min
         self.step_rate_max = step_rate_max
 
-    @property
-    def steprate(self):
-        return self._steprate
+        # Call here since setter depends on existence of step_adapt.
+        self.step_rate = step_rate
 
-    @steprate.setter
-    def steprate(self, steprate):
-        self._steprate = steprate
-        self.step_rate = self._steprate
-
-        # If we adapt step rates, we need one for each parameter.
-        if self.step_adapt:
-            self.step_rate *= ones_like(self.wrt)
-
-    def __iter__(self):
         self.moving_mean_squared = 1
         self.step_m1 = 0
-        self.step_rate = self._steprate
 
-        # If we adapt step rates, we need one for each parameter.
-        if self.step_adapt:
-            self.step_rate *= ones_like(self.wrt)
+    def set_from_info(self, info):
+        self.n_iter = info['n_iter']
+        self.decay = info['decay']
+        self.momentum = info['momentum']
+        self.step_adapt = info['step_adapt']
+        self.step_rate_min = info['step_rate_min']
+        self.step_rate_max = info['step_rate_max']
+        self.step_rate = info['step_rate']
+        self.moving_mean_squared = info['moving_mean_squared']
+        self.step_m1 = info['step']
 
-        for i, (args, kwargs) in enumerate(self.args):
+    def __iter__(self):
+        for args, kwargs in self.args:
             # We use Nesterov momentum: first, we make a step according to the
             # momentum and then we calculate the gradient.
             step1 = self.step_m1 * self.momentum
@@ -184,14 +191,21 @@ class RmsProp(Minimizer):
                     self.step_rate, self.step_rate_min, self.step_rate_max)
 
             self.step_m1 = step
+            self.n_iter += 1
             yield {
-                'n_iter': i,
-                'gradient': gradient,
+                'n_iter': self.n_iter,
+                'decay': self.decay,
+                'momentum': self.momentum,
+                'step_adapt': self.step_adapt,
+                'step_rate_min': self.step_rate_min,
+                'step_rate_max': self.step_rate_max,
+                'step_rate': self.step_rate,
                 'moving_mean_squared': self.moving_mean_squared,
                 'step': self.step_m1,
+
+                'gradient': gradient,
                 'args': args,
                 'kwargs': kwargs,
-                'step_rate': self.step_rate
             }
 
 
