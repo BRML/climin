@@ -21,6 +21,8 @@ class Minimizer(object):
         else:
             self.args = args
 
+        self.n_iter = 0
+
     def minimize_until(self, criterions):
         """Minimize until one of the supplied `criterions` is met.
 

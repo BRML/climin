@@ -140,7 +140,6 @@ class GradientDescent(Minimizer):
         self.momentum_type = momentum_type
 
         self.step_m1 = 0
-        self.n_iter = 0
 
     def set_from_info(self, info):
         self.step_rate = info['step_rate']
