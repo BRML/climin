@@ -76,6 +76,9 @@ class Rprop(Minimizer):
         Maximum step rate.
     """
 
+    state_fields = ('n_iter step_shrink step_grow min_step max_step '
+                    'changes gradient').split()
+
     def __init__(self, wrt, fprime, step_shrink=0.5, step_grow=1.2,
                  min_step=1E-6, max_step=1, changes_max=0.1, args=None):
         """Create an Rprop object.
@@ -117,34 +120,30 @@ class Rprop(Minimizer):
         self.max_step = max_step
         self.changes_max = changes_max
 
-    def __iter__(self):
-        gradient_m1 = ma.zero_like(self.wrt)
-        changes = ma.random_like(self.wrt) * self.changes_max
+        self.gradient = ma.zero_like(self.wrt)
+        self.changes = ma.zero_like(self.wrt)
 
-        for i, (args, kwargs) in enumerate(self.args):
-            gradient = self.fprime(self.wrt, *args, **kwargs)
-            changes_min = changes * self.step_grow
-            changes_max = changes * self.step_shrink
-            gradprod = gradient_m1 * gradient
+    def _iterate(self):
+        for args, kwargs in self.args:
+            gradient_m1 = self.gradient
+            self.gradient = self.fprime(self.wrt, *args, **kwargs)
+            changes_min = self.changes * self.step_grow
+            changes_max = self.changes * self.step_shrink
+            gradprod = gradient_m1 * self.gradient
             changes_min *= gradprod > 0
             changes_max *= gradprod < 0
-            changes *= gradprod == 0
+            self.changes *= gradprod == 0
 
             # TODO actually, this should be done to changes
             changes_min = ma.clip(changes_min, self.min_step, self.max_step)
             changes_max = ma.clip(changes_max, self.min_step, self.max_step)
 
-            changes += changes_min + changes_max
-            step = -changes * ma.sign(gradient)
+            self.changes += changes_min + changes_max
+            step = -self.changes * ma.sign(self.gradient)
             self.wrt += step
 
-            gradient_m1 = gradient
-
             yield {
-                'n_iter': i,
                 'args': args,
                 'kwargs': kwargs,
-                'gradient': gradient,
-                'gradient_m1': gradient_m1,
                 'step': step,
             }

@@ -1,11 +1,11 @@
-import itertools
+# -*- coding: utf-8 -*-
 
-import nose
-import numpy as np
+import itertools
 
 from climin import RmsProp
 
-from losses import Quadratic, LogisticRegression, Rosenbrock
+from losses import LogisticRegression
+from common import continuation
 
 
 def test_rmsprop_lr():
@@ -17,3 +17,14 @@ def test_rmsprop_lr():
         if i > 3000:
             break
     assert obj.solved(0.15), 'did not find solution'
+
+
+
+def test_rmsprop_continue():
+    obj = LogisticRegression(n_inpt=2, n_classes=2)
+    args = itertools.repeat(((obj.X, obj.Z), {}))
+    opt = RmsProp(
+        obj.pars, obj.fprime, step_rate=0.01, momentum=.9, decay=0.9,
+        args=args)
+
+    continuation(opt)

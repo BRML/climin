@@ -24,6 +24,12 @@ class Asgd(Minimizer):
         self.mu_t = 1
         self.eta_t = eta0
 
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
     def __iter__(self):
         # do 'determineEta0' (see Bottou) here?
         # w is current estimated 'optimal' parameter

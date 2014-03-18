@@ -124,6 +124,12 @@ class ConjugateGradient(Minimizer):
         self.min_grad = min_grad
         self.precond = precond
 
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
     def solve(self, r):
         if self.precond is None:
             return r
@@ -250,6 +256,12 @@ class NonlinearConjugateGradient(Minimizer):
 
         self.line_search = WolfeLineSearch(wrt, self.f, self.fprime, c2=0.2)
         self.min_grad = min_grad
+
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
 
     def find_direction(self, grad_m1, grad, direction_m1):
         # Computation of beta as a compromise between Fletcher-Reeves

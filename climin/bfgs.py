@@ -121,6 +121,12 @@ class Bfgs(Minimizer):
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
     def find_direction(self, grad_m1, grad, step, inv_hessian):
         H = self.inv_hessian
         grad_diff = grad - grad_m1
@@ -184,6 +190,13 @@ class Sbfgs(Bfgs):
         # TODO document
         super(Sbfgs, self).__init__(
             wrt, f, fprime, line_search, args=args)
+
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
 
     def find_direction(self, grad_m1, grad, step, inv_hessian):
         # TODO document
@@ -283,6 +296,12 @@ class Lbfgs(Minimizer):
             self.line_search = line_search
         else:
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
+
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
 
     def find_direction(self, grad_diffs, steps, grad, hessian_diag, idxs):
         grad = grad.copy()  # We will change this.
