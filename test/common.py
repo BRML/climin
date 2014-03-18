@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import copy
 
 import numpy as np
 
@@ -10,7 +11,9 @@ def continuation(opt):
         if i > 3:
             break
 
-    inter_info = info
+    # opt might work on elements of info in place, which will screw up this
+    # test.
+    inter_info = copy.deepcopy(info)
     inter_wrt = opt.wrt.copy()
 
     # Run for further steps, save final position as means of verifying
