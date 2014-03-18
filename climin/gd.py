@@ -80,6 +80,8 @@ class GradientDescent(Minimizer):
         latter before.
     """
 
+    state_fields = 'step_rate momentum momentum_type step n_iter'.split()
+
     @property
     def momentum_type(self):
         return self._momentum_type
@@ -139,20 +141,13 @@ class GradientDescent(Minimizer):
         self._momentum_type = None
         self.momentum_type = momentum_type
 
-        self.step_m1 = 0
-
-    def set_from_info(self, info):
-        self.step_rate = info['step_rate']
-        self.momentum = info['momentum']
-        self.momentum_type = info['momentum_type']
-        self.step_m1 = info['step_m1']
-        self.n_iter = info['n_iter']
+        self.step = 0
 
     def __iter__(self):
         for args, kwargs in self.args:
             step_rate = self.step_rate
             momentum = self.momentum
-            step_m1 = self.step_m1
+            step_m1 = self.step
 
             if self.momentum_type == 'standard':
                 gradient = self.fprime(self.wrt, *args, **kwargs)
@@ -168,15 +163,6 @@ class GradientDescent(Minimizer):
 
                 step = big_jump + correction
 
-            self.step_m1 = step
+            self.step = step
             self.n_iter += 1
-            yield {
-                'n_iter': self.n_iter,
-                'step_rate': step_rate,
-                'momentum': momentum,
-                'momentum_type': self.momentum_type,
-                'step_m1': step,
-                'gradient': gradient,
-                'args': args,
-                'kwargs': kwargs
-            }
+            yield self.extended_info(gradient=gradient, args=args, kwargs=kwargs)

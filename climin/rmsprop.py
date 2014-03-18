@@ -92,6 +92,9 @@ class RmsProp(Minimizer):
         if self.step_adapt:
             self._step_rate *= ones_like(self.wrt)
 
+    state_fields = ('n_iter decay momentum step_adapt step_rate_min step_rate_max '
+                    'step_rate moving_mean_squared step').split()
+
     def __init__(self, wrt, fprime, step_rate, decay=0.9, momentum=0,
                  step_adapt=False, step_rate_min=0, step_rate_max=np.inf,
                  args=None):
@@ -147,24 +150,14 @@ class RmsProp(Minimizer):
         self.step_rate = step_rate
 
         self.moving_mean_squared = 1
-        self.step_m1 = 0
+        self.step = 0
 
-    def set_from_info(self, info):
-        self.n_iter = info['n_iter']
-        self.decay = info['decay']
-        self.momentum = info['momentum']
-        self.step_adapt = info['step_adapt']
-        self.step_rate_min = info['step_rate_min']
-        self.step_rate_max = info['step_rate_max']
-        self.step_rate = info['step_rate']
-        self.moving_mean_squared = info['moving_mean_squared']
-        self.step_m1 = info['step']
-
-    def __iter__(self):
+    def _iterate(self):
         for args, kwargs in self.args:
+            step_m1 = self.step
             # We use Nesterov momentum: first, we make a step according to the
             # momentum and then we calculate the gradient.
-            step1 = self.step_m1 * self.momentum
+            step1 = step_m1 * self.momentum
             self.wrt -= step1
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
@@ -183,29 +176,13 @@ class RmsProp(Minimizer):
                 # This code might look weird, but it makes it work with both
                 # numpy and gnumpy.
                 step_non_negative = step > 0
-                step_m1_non_negative = self.step_m1 > 0
+                step_m1_non_negative = step_m1 > 0
                 agree = (step_non_negative == step_m1_non_negative) * 1.
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 self.step_rate *= adapt
                 self.step_rate = clip(
                     self.step_rate, self.step_rate_min, self.step_rate_max)
 
-            self.step_m1 = step
+            self.step = step
             self.n_iter += 1
-            yield {
-                'n_iter': self.n_iter,
-                'decay': self.decay,
-                'momentum': self.momentum,
-                'step_adapt': self.step_adapt,
-                'step_rate_min': self.step_rate_min,
-                'step_rate_max': self.step_rate_max,
-                'step_rate': self.step_rate,
-                'moving_mean_squared': self.moving_mean_squared,
-                'step': self.step_m1,
-
-                'gradient': gradient,
-                'args': args,
-                'kwargs': kwargs,
-            }
-
-
+            yield dict(gradient=gradient, args=args, kwargs=kwargs)
