@@ -28,6 +28,12 @@ class Smd(Minimizer):
         self.mu = mu
         self.eta0 = eta0
 
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
     def __iter__(self):
         p = np.size(self.wrt)
         v = 0.0001 * np.random.randn(p)

@@ -27,7 +27,7 @@ def test_optimizer():
 
     for ident, klass in pairs:
         wrt = np.zeros(10)
-        opt = optimizer(ident, wrt, f=None, fprime=None, f_Hp=None, steprate=0.1)
+        opt = optimizer(ident, wrt, f=None, fprime=None, f_Hp=None, step_rate=0.1)
         assert isinstance(opt, klass), 'wrong class for %s: %s' % (ident, type(opt))
 
 
@@ -37,14 +37,14 @@ def test_optimizer_distribution():
         import sklearn
     except ImportError:
         raise SkipTest()
-    rv = OptimizerDistribution(gd={'steprate': [.1, .2],
+    rv = OptimizerDistribution(gd={'step_rate': [.1, .2],
                                    'momentum': [.9, .99]})
     opt = rv.rvs()
     assert opt[0] == 'gd'
-    assert opt[1]['steprate'] in [.1, .2]
+    assert opt[1]['step_rate'] in [.1, .2]
     assert opt[1]['momentum'] in [.9, .99]
 
-    rv = OptimizerDistribution(gd={'steprate': [.1, .2],
+    rv = OptimizerDistribution(gd={'step_rate': [.1, .2],
                                    'momentum': [.9, .99]},
                                lbfgs={'n_factors': [10, 25]})
     opt = rv.rvs()
@@ -53,5 +53,5 @@ def test_optimizer_distribution():
     if opt[0] == 'lbfgs':
         assert opt[1]['n_factors'] in [10, 25]
     else:
-        assert opt[1]['steprate'] in [.1, .2]
+        assert opt[1]['step_rate'] in [.1, .2]
         assert opt[1]['momentum'] in [.9, .99]

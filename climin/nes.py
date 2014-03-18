@@ -49,6 +49,12 @@ class Xnes(Minimizer):
         self.step_rate = 0.6 * (3 + log_dim) / dim / scipy.sqrt(dim)
         self.batch_size = 4 + int(scipy.floor(3 * log_dim))
 
+    def set_from_info(self, info):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
+    def extended_info(self, **kwargs):
+        raise NotImplemented('nobody has found the time to implement this yet')
+
     def f(self, x, *args, **kwargs):
         return -self._f(x, *args, **kwargs)
 
