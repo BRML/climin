@@ -9,7 +9,9 @@ from mathadapt import sqrt, ones_like, clip
 
 class Adadelta(Minimizer):
 
-    def __init__(self, wrt, fprime, steprate=1, decay=0.9, momentum=0, offset=1e-2,
+    state_fields = 'n_iter gms sms step step_rate decay offset momentum'.split()
+
+    def __init__(self, wrt, fprime, step_rate=1, decay=0.9, momentum=0, offset=1e-2,
                  args=None):
         """Create an Adadelta object.
 
@@ -20,7 +22,7 @@ class Adadelta(Minimizer):
             Array that represents the solution. Will be operated upon in
             place.  ``fprime`` should accept this array as a first argument.
 
-        steprate : scalar or array_like
+        step_rate : scalar or array_like
             Value to multiply steps with before they are applied to the
             parameter vector.
 
@@ -43,38 +45,38 @@ class Adadelta(Minimizer):
         super(Adadelta, self).__init__(wrt, args=args)
 
         self.fprime = fprime
-        self.steprate = steprate
+        self.step_rate = step_rate
         self.decay = decay
         self.offset = offset
         self.momentum = momentum
 
-    def __iter__(self):
-        gms = 0     # running average of the squared gradients
-        sms = 0     # running average of the squared updates
-        d = self.decay
-        o = self.offset
-        m = self.momentum
-        step_m1 = 0
+        self.gms = 0
+        self.sms = 0
+        self.step = 0
 
-        for i, (args, kwargs) in enumerate(self.args):
-            step1 = step_m1 * m * self.steprate
+    def _iterate(self):
+        for args, kwargs in self.args:
+            step_m1 = self.step
+            d = self.decay
+            o = self.offset
+            m = self.momentum
+            step1 = step_m1 * m * self.step_rate
             self.wrt -= step1
 
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
-            gms = (d * gms) + (1 - d) * gradient ** 2
-            step2 = sqrt(sms + o) / sqrt(gms + o) * gradient * self.steprate
+            self.gms = (d * self.gms) + (1 - d) * gradient ** 2
+            step2 = sqrt(self.sms + o) / sqrt(self.gms + o) * gradient * self.step_rate
             self.wrt -= step2
 
-            step_m1 = step1 + step2
-            sms = (d * sms) + (1 - d) * step_m1 ** 2
+            self.step = step1 + step2
+            self.sms = (d * self.sms) + (1 - d) * self.step ** 2
+
+            self.n_iter += 1
 
             yield {
-                'n_iter': i,
+                'n_iter': self.n_iter,
                 'gradient': gradient,
-                'gms': gms,
-                'sms': sms,
-                'step_m1': step_m1,
                 'args': args,
                 'kwargs': kwargs,
             }
