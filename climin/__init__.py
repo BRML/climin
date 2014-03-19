@@ -6,3 +6,4 @@ from rmsprop import RmsProp
 from rprop import Rprop
 from smd import Smd
 from asgd import Asgd
+from adadelta import Adadelta

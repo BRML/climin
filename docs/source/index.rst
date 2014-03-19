@@ -94,6 +94,7 @@ Optimizer overview
 .. toctree::
    gd
    rmsprop
+   adadelta
    rprop
    cg
    bfgs
