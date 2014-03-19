@@ -82,6 +82,7 @@ Basics
    tutorial
    parameters
    data
+   checkpoint
    :maxdepth: 2
 
 
