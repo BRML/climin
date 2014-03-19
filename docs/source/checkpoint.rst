@@ -18,7 +18,7 @@ on an open file descriptor and only a subset of Python functions can be
 serialized, which is those that are defined at the top level.
 
 Saving the state to disk (or somewhere else)
----
+--------------------------------------------
 
 The idea is that the ``info`` dictionary which is the result of each
 optimization step carries all the information necesseray to resume. Thus a
@@ -50,7 +50,7 @@ iterate to optimize. In each iteration, we pickle the info dictionary to disk.
 
 
 Loading the state from disk
----
+---------------------------
 
 We will now load the info dictionary from file, create an optimizer object an
 initialize it with values from the info dictionary.
