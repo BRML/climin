@@ -21,8 +21,8 @@ class RmsProp(Minimizer):
     :math:`\\gamma` we perform the following updates:
 
     .. math::
-        r_t &= (1 - \\gamma)~f'(\\theta_t)^2 + \\gamma r_{t-1}, \\\\
-        v_{t+1} &= {\\alpha \over r_t} f'(\\theta_t), \\\\
+        r_t &= (1 - \\gamma)~f'(\\theta_t)^2 + \\gamma r_{t-1} , \\\\
+        v_{t+1} &= {\\alpha \over \sqrt{r_t}} f'(\\theta_t), \\\\
         \\theta_{t+1} &= \\theta_t + v_{t+1}.
 
     In some cases, adding a momentum term :math:`\\beta` is beneficial. Here,
