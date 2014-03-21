@@ -4,6 +4,11 @@ import itertools
 import collections
 import numpy as np
 
+try:
+    import gnumpy
+except ImportError:
+    pass
+
 
 def repeat_or_iter(obj):
     try:
@@ -35,8 +40,12 @@ class Minimizer(object):
             ``.state_fields`` list. The field will be set according to the entry
             in the dictionary.
         """
+        using_gnumpy = hasattr(self.wrt, 'as_numpy_array')
         for f in self.state_fields:
-            self.__dict__[f] = info[f]
+            v = info[f]
+            if using_gnumpy:
+                v = gnumpy.garray(v)
+            self.__dict__[f] = v
 
     def extended_info(self, **kw):
         """Return a dictionary populated with the values of the state fields.
@@ -57,6 +66,16 @@ class Minimizer(object):
         """
         dct = dict((f, getattr(self, f)) for f in self.state_fields)
         dct.update(kw)
+        return dct
+
+    def clean_info(self, info):
+        """Given a dictionary, return one that only holds keys necessary for
+        pickling and converts all gnumpy arrays to numpy arrays."""
+        dct = dict((k, v) for k, v in info.items() if k in self.state_fields)
+        for key in dct:
+            if hasattr(dct[key], 'as_numpy_array'):
+                # gnumpy array, make numpy array.
+                dct[key] = v.as_numpy_array()
         return dct
 
     def minimize_until(self, criterions):
