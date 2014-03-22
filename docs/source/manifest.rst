@@ -36,7 +36,7 @@ We found several requirements for a good optimization library.
    Since numba is around the corner, we wanted to decide this in a later
    version.
  - Make development of new optimizers straight forward. The implementation 
-   of every optimizer has very little overhead, the most of it being assigning
+   of every optimizer has very little overhead, the most of it being assigning hyper parameters to class values.
 
 The main idea of climin is to treat optimizers as iterators. This allows
 to have the logic surrounding it right in the same scope and written code
