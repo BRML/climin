@@ -122,7 +122,7 @@ minimum. Climin offers convenience functions in its ``initialize`` module:
    climin.initialize.randomize_normal(wrt, 0, 1)
 
 This will populated the parameters with values drawn from
-:math:`\\mathcal{N}(0, 1)`.
+a standard normal dostribution.
 
 
 Using data
