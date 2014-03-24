@@ -6,3 +6,4 @@ from stops import not_better_than_after
 from stops import rising
 from stops import time_elapsed
 from stops import patience
+from stops import on_signal

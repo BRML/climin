@@ -27,6 +27,7 @@ realized by generator functions or objects with a ``__call__`` magic method.
 
 
 import itertools
+import signal
 import time
 
 
@@ -290,5 +291,38 @@ def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
             state['best_loss'] = loss
 
         return i >= state['patience']
+
+    return inner
+
+
+def on_signal(sig=signal.SIGINT):
+    """Return a stopping criterion that stops upon a signal.
+
+    Previous handler will be overwritten.
+
+
+    Parameters
+    ----------
+
+    sig : signal, optional [default: signal.SIGINT]
+        Signal upon which to stop.
+
+
+    Returns
+    -------
+
+    f : callable
+        Returns True if the signal has been given to the process in the
+        meantime.
+    """
+    stopped = [False]        # we are abusing an empty list as a flag.
+
+    def handler(signal, frame):
+        stopped[0] = True
+
+    def inner(info):
+        return stopped[0]
+
+    signal.signal(sig, handler)
 
     return inner
