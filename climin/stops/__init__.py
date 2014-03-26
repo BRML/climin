@@ -7,3 +7,4 @@ from stops import rising
 from stops import time_elapsed
 from stops import patience
 from stops import on_signal
+from stops import never, always

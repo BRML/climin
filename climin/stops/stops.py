@@ -31,40 +31,45 @@ import signal
 import time
 
 
-def after_n_iterations(n):
-    """Return a stop criterion that stops after `n` iterations.
+class AfterNIterations(object):
+    """AfterNIterations class.
+
+    Useful for monitoring thenumber of iterations.
 
     Internally, the ``n_iter`` field of the climin info dictionary is
     inspected; if the value in there exceeds ``n`` by one, the criterion
     returns ``True``.
 
-    Parameters
-    ----------
-
-    n : int
-      Number of iterations to perform.
-
-
-    Returns
-    -------
-
-    f : function
-      Stopping criterion function.
-
 
     Examples
     --------
 
-    >>> S.after_n_iterations(10)({'n_iter': 10})
+    >>> S.AfterNIterations(10)({'n_iter': 10})
     True
-    >>> S.after_n_iterations(10)({'n_iter': 5})
+    >>> S.AfterNIterations(10)({'n_iter': 5})
     False
-    >>> S.after_n_iterations(10)({'n_iter': 9})
+    >>> S.AfterNIterations(10)({'n_iter': 9})
     True
     """
-    def inner(info):
-        return info['n_iter'] >= n - 1
-    return inner
+
+    def __init__(self, max_iter):
+        """Create AfterNIterations object.
+
+
+         Parameters
+         ----------
+
+         max_iter : int
+           Number of iterations after which True is returned.
+        """
+        self.max_iter = max_iter
+
+    def __call__(self, info):
+        return info['n_iter'] >= self.n - 1
+
+
+# For backwards compatibility.
+after_n_iterations = AfterNIterations
 
 
 def modulo_n_iterations(n):
@@ -326,3 +331,11 @@ def on_signal(sig=signal.SIGINT):
     signal.signal(sig, handler)
 
     return inner
+
+
+def never(info):
+    return False
+
+
+def always(info):
+    return True
