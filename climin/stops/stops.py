@@ -65,46 +65,38 @@ class AfterNIterations(object):
         self.max_iter = max_iter
 
     def __call__(self, info):
-        return info['n_iter'] >= self.n - 1
+        return info['n_iter'] >= self.max_iter - 1
 
 
-# For backwards compatibility.
-after_n_iterations = AfterNIterations
-
-
-def modulo_n_iterations(n):
-    """Return a stop criterion that stops at each `n`-th iteration.
+class ModuloNIterations(object):
+    """Class representing a stop criterion that stops at each `n`-th iteration.
 
     This is useful if one wants a regular pause in optimization, e.g. to save
     data to disk or give feedback to the user.
 
-    Parameters
+    Attributes
     ----------
 
     n : int
       Number of iterations to perform between pauses.
 
 
-    Returns
-    -------
-
-    f : function
-      Stopping criterion function.
-
-
     Examples
     --------
 
-    >>> S.modulo_n_iterations(10)({'n_iter': 9})
+    >>> S.ModuleNIterations(10)({'n_iter': 9})
     False
-    >>> S.modulo_n_iterations(10)({'n_iter': 10})
+    >>> S.ModuleNIterations(10)({'n_iter': 10})
     True
-    >>> S.modulo_n_iterations(10)({'n_iter': 11})
+    >>> S.ModuleNIterations(10)({'n_iter': 11})
     False
     """
-    def inner(info):
-        return info['n_iter'] % n == 0
-    return inner
+
+    def __init__(self, n):
+        self.n = n
+
+    def __call__(self, info):
+        return info['n_iter'] % self.n == 0
 
 
 def time_elapsed(sec):
@@ -135,8 +127,10 @@ def time_elapsed(sec):
     True
     """
     start = time.time()
+
     def inner(info):
         return time.time() - start > sec
+
     return inner
 
 
@@ -153,6 +147,7 @@ def converged(func_or_key, n=10, epsilon=1e-5, patience=0):
     """
     ringbuffer = [None for i in xrange(n)]
     counter = itertools.count()
+
     def inner(info):
         if counter.next() <= patience:
             return False
@@ -168,6 +163,7 @@ def converged(func_or_key, n=10, epsilon=1e-5, patience=0):
             ret = False
 
         return ret
+
     return inner
 
 
@@ -185,6 +181,7 @@ def rising(func_or_key, n=1, epsilon=0, patience=0):
     # TODO explain patience
     results = []
     counter = itertools.count()
+
     def inner(info):
         if counter.next() <= patience:
             return False
@@ -199,36 +196,47 @@ def rising(func_or_key, n=1, epsilon=0, patience=0):
             return True
         else:
             return False
+
     return inner
 
 
-def all_(criterions):
-    """Return a stop criterion that given a list `criterions` of stop criterions
-    only returns True, if all of criterions return True.
+def All(criterions):
+    """Class representing a stop criterion that given a list `criterions` of
+    stop criterions only returns True, if all of criterions return True.
 
     This basically implements a logical AND for stop criterions.
     """
-    def inner(info):
-        return all(c(info) for c in criterions)
-    return inner
+    # TODO document
+
+    def __init__(self, criterions):
+        self.criterions = criterions
+
+    def __call__(self, info):
+        return all(c(info) for c in self.criterions)
 
 
-def any_(criterions):
-    """Return a stop criterion that given a list `criterions` of stop criterions
-    only returns True, if any of the criterions returns True.
+class Any(object):
+    """Class representing a stop criterion that given a list `criterions` of
+    stop criterions only returns True, if any of the criterions returns True.
 
     This basically implements a logical OR for stop criterions.
     """
-    def inner(info):
-        return any(c(info) for c in criterions)
-    return inner
+    # TODO document
+
+    def __init__(self, criterions):
+        self.criterions = criterions
+
+    def __call__(self, info):
+        return any(c(info) for c in self.criterions)
 
 
 def not_better_than_after(minimal, n_iter):
     """Return a stop criterion that returns True if the error is not less than
     `minimal` after `n_iter` iterations."""
+
     def inner(info):
         return info['n_iter'] > n_iter and info['loss'] >= minimal
+
     return inner
 
 
@@ -281,6 +289,7 @@ def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
         'best_loss': float('inf')
     }
     count = itertools.count()
+
     def inner(info):
         i = info['n_iter']
         if isinstance(func_or_key, (str, unicode)):
@@ -300,37 +309,41 @@ def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
     return inner
 
 
-def on_signal(sig=signal.SIGINT):
-    """Return a stopping criterion that stops upon a signal.
+class OnSignal(object):
+    """Stopping criterion that is sensitive to some signal."""
 
-    Previous handler will be overwritten.
+    def __init__(self, sig=signal.SIGINT):
+        """Return a stopping criterion that stops upon a signal.
 
-
-    Parameters
-    ----------
-
-    sig : signal, optional [default: signal.SIGINT]
-        Signal upon which to stop.
+        Previous handler will be overwritten.
 
 
-    Returns
-    -------
+        Parameters
+        ----------
 
-    f : callable
-        Returns True if the signal has been given to the process in the
-        meantime.
-    """
-    stopped = [False]        # we are abusing an empty list as a flag.
+        sig : signal, optional [default: signal.SIGINT]
+            Signal upon which to stop.
+        """
+        self.sig = sig
+        self.stopped = False
+        self._register()
 
-    def handler(signal, frame):
-        stopped[0] = True
+    def _register(self):
+        self.prev_handler = signal.signal(self.sig, self.handler)
 
-    def inner(info):
-        return stopped[0]
+    def handler(self, signal, frame):
+        self.stopped = True
 
-    signal.signal(sig, handler)
+    def __call__(self, info):
+        res, self.stopped = self.stopped, False
+        return res
 
-    return inner
+    def __del__(self):
+        signal.signal(self.sig, self.prev_handler)
+
+    def __setstate__(self, dct):
+        self.__dict__.update(dct)
+        self._register()
 
 
 def never(info):
@@ -339,3 +352,11 @@ def never(info):
 
 def always(info):
     return True
+
+
+# For backwards compatibility.
+after_n_iterations = AfterNIterations
+modulo_n_iterations = ModuloNIterations
+any_ = Any
+all_ = All
+
