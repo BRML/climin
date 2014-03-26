@@ -34,11 +34,18 @@ import time
 class AfterNIterations(object):
     """AfterNIterations class.
 
-    Useful for monitoring thenumber of iterations.
+    Useful for stopping after an amount of iterations performed.
 
     Internally, the ``n_iter`` field of the climin info dictionary is
     inspected; if the value in there exceeds ``n`` by one, the criterion
     returns ``True``.
+
+
+    Attributes
+    ----------
+
+    max_iter : int
+        Maximum amount of iterations after which we stop.
 
 
     Examples
@@ -60,7 +67,7 @@ class AfterNIterations(object):
          ----------
 
          max_iter : int
-           Number of iterations after which True is returned.
+            Maximum amount of iterations after which we stop.
         """
         self.max_iter = max_iter
 
@@ -93,111 +100,54 @@ class ModuloNIterations(object):
     """
 
     def __init__(self, n):
+        """Create a ModuloNIterations object.
+
+        Parameters
+        ----------
+
+        n : int
+            Number of iterations to perform between pauses.
+        """
         self.n = n
 
     def __call__(self, info):
         return info['n_iter'] % self.n == 0
 
 
-def time_elapsed(sec):
-    """Return a stop criterion that stops after `sec` seconds after
+class TimeElapsed(object):
+    """Stop criterion that stops after `sec` seconds after
     initializing.
 
-    Parameters
+    Attributes
     ----------
 
     sec : float
       Number of seconds until the criterion returns True.
 
-
-    Returns
-    -------
-
-    f : function
-      Stopping criterion function.
-
-
     Examples
     --------
 
-    >>> stop = S.time_elapsed(.5); stop({})
+    >>> stop = S.TimeElapsed(.5); stop({})
     False
     >>> time.sleep(0.5)
     >>> stop({})
     True
     """
-    start = time.time()
 
-    def inner(info):
-        return time.time() - start > sec
+    def __init__(self, sec):
+        """Create a TimeElapsed object.
 
-    return inner
+        Parameters
+        ----------
 
+        sec : float
+            Number of seconds until the criterion returns True.
+        """
+        self.sec = sec
+        self.start = time.time()
 
-def converged(func_or_key, n=10, epsilon=1e-5, patience=0):
-    """Return a stop criterion that remembers the last `n` values of
-    `func_or_key`() and stops if the difference of their maximum and their
-    minimum is smaller than `epsilon`.
-
-    `func_or_key` needs to be a callable that returns a scalar value or a
-    string which is a key referring to an entry in the info dict it is given.
-
-    If `patience` is non zero, the first `patience` iterations are not checked
-    against the criterion.
-    """
-    ringbuffer = [None for i in xrange(n)]
-    counter = itertools.count()
-
-    def inner(info):
-        if counter.next() <= patience:
-            return False
-        if isinstance(func_or_key, (str, unicode)):
-            val = info[func_or_key]
-        else:
-            val = func_or_key()
-        ringbuffer.append(val)
-        ringbuffer.pop(0)
-        if not None in ringbuffer:
-            ret = max(ringbuffer) - min(ringbuffer) < epsilon
-        else:
-            ret = False
-
-        return ret
-
-    return inner
-
-
-def rising(func_or_key, n=1, epsilon=0, patience=0):
-    """Return a stop criterion that remembers the last `n` values obtained via
-    `func_or_key` and returns True if the its return value rose at least by
-    `epsilon` in the meantime.
-
-    `func_or_key` needs to be either a callable that returns a scalar value or
-    a string which is a key referring to an entry in the info dict it is given.
-
-    If `patience` is non zero, the first `patience` iterations are not checked
-    against the criterion.
-    """
-    # TODO explain patience
-    results = []
-    counter = itertools.count()
-
-    def inner(info):
-        if counter.next() <= patience:
-            return False
-        if isinstance(func_or_key, (str, unicode)):
-            val = info[func_or_key]
-        else:
-            val = func_or_key()
-        results.append(val)
-        if len(results) < n + 1:
-            return False
-        if results[-n - 1] + epsilon <= results[-1]:
-            return True
-        else:
-            return False
-
-    return inner
+    def __call__(self, info):
+        return time.time() - self.start > self.sec
 
 
 def All(criterions):
@@ -230,25 +180,27 @@ class Any(object):
         return any(c(info) for c in self.criterions)
 
 
-def not_better_than_after(minimal, n_iter):
-    """Return a stop criterion that returns True if the error is not less than
+class NotBetterThanAfter(object):
+    """Stop criterion that returns True if the error is not less than
     `minimal` after `n_iter` iterations."""
 
-    def inner(info):
-        return info['n_iter'] > n_iter and info['loss'] >= minimal
+    def __init__(self, minimal, after, key='loss'):
+        self.minimal = minimal
+        self.after = after
+        self.key = key
 
-    return inner
+    def __call__(self, info):
+        return info['n_iter'] > self.after and info[self.key] >= self.minimal
 
 
-def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
-             threshold=1e-4):
-    """Return a stop criterion inspired by Bengio's patience method.
+class Patience(object):
+    """Stop criterion inspired by Bengio's patience method.
 
     The idea is to increase the number of iterations until stopping by
     a multiplicative and/or additive constant once a new best candidate is
     found.
 
-    Parameters
+    Attributes
     ----------
 
     func_or_key : function, hashable
@@ -273,40 +225,39 @@ def patience(func_or_key, initial, grow_factor=1., grow_offset=0.,
         A loss of a is assumed to be a better candidate than b, if a is larger
         than b by a margin of ``threshold``.
 
-    Returns
-    -------
-
-    func : callable
-        Function that expects a single info dictionary as its only argument.
     """
-    if grow_factor == 1 and grow_offset == 0:
-        raise ValueError('need to specify either grow_factor != 1'
-                         'or grow_offset != 0)')
-    # This is in a dict to compensate for Python's lookup of local variables.
-    state  = {
-        'patience': initial,
-        'best_iter': 0,
-        'best_loss': float('inf')
-    }
-    count = itertools.count()
 
-    def inner(info):
+    def __init__(self, func_or_key, initial, grow_factor=1., grow_offset=0.,
+                 threshold=1e-4):
+        if grow_factor == 1 and grow_offset == 0:
+            raise ValueError('need to specify either grow_factor != 1'
+                             'or grow_offset != 0)')
+
+        self.func_or_key = func_or_key
+        self.patience = initial
+        self.grow_factor = grow_factor
+        self.grow_offset = grow_offset
+        self.threshold = threshold
+
+        self.best_iter = 0
+        self.best_loss = float('inf')
+        self.count = itertools.count()
+
+    def __call__(self, info):
         i = info['n_iter']
-        if isinstance(func_or_key, (str, unicode)):
-            loss = info[func_or_key]
+        if isinstance(self.func_or_key, (str, unicode)):
+            loss = info[self.func_or_key]
         else:
-            loss = func_or_key()
+            loss = self.func_or_key()
 
-        if loss < state['best_loss']:
-            if (state['best_loss'] - loss) > threshold and i > 0:
-                state['patience'] = max(i * grow_factor + grow_offset,
-                                        state['patience'])
-            state['best_iter'] = i
-            state['best_loss'] = loss
+        if loss < self.best_loss:
+            if (self.best_loss - loss) > self.threshold and i > 0:
+                self.patience = max(i * self.grow_factor + self.grow_offset,
+                                    self.patience)
+            self.best_iter = i
+            self.best_loss = loss
 
-        return i >= state['patience']
-
-    return inner
+        return i >= self.patience
 
 
 class OnSignal(object):
@@ -352,11 +303,3 @@ def never(info):
 
 def always(info):
     return True
-
-
-# For backwards compatibility.
-after_n_iterations = AfterNIterations
-modulo_n_iterations = ModuloNIterations
-any_ = Any
-all_ = All
-
