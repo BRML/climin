@@ -91,6 +91,8 @@ def assert_numpy(x):
 
 
 def scalar(x):
+    if isinstance(x, float):
+        return x
     if not x.size == 1:
         raise ValueError('size is %i instead of 1' % x.size)
     return x.reshape((1,))[0]
