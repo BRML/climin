@@ -284,7 +284,10 @@ def minibatches(arr, batch_size, d=0):
     mini_batches : list
         Each item of the list is a view of ``arr``. Views are ordered.
     """
-    n_batches, rest = divmod(arr.shape[d], batch_size)
+    if d == 0:
+        n_batches, rest = divmod(len(arr), batch_size)
+    else:
+        n_batches, rest = divmod(arr.shape[d], batch_size)
     if rest != 0:
         n_batches += 1
 
