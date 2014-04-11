@@ -267,8 +267,9 @@ def minibatches(arr, batch_size, d=0):
     ----------
 
     arr : array_like
-        Array to obtain batches from. Practically, anything that accepts slicing
-        can be used.
+        Array to obtain batches from. Needs to be slicable. If ``d > 0``, needs
+        to have a ``.shape`` attribute from which the number of samples can
+        be obtained.
 
     batch_size : int
         Size of a batch. Last batch might be smaller if ``batch_size`` is not a
@@ -284,11 +285,12 @@ def minibatches(arr, batch_size, d=0):
     mini_batches : list
         Each item of the list is a view of ``arr``. Views are ordered.
     """
+    # This alternative is to make this work with lists in the case of d == 0.
     if d == 0:
         n_batches, rest = divmod(len(arr), batch_size)
     else:
         n_batches, rest = divmod(arr.shape[d], batch_size)
-    if rest != 0:
+    if rest:
         n_batches += 1
 
     slices = (slice(i * batch_size, (i + 1) * batch_size)
