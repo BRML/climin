@@ -305,7 +305,7 @@ def minibatches(arr, batch_size, d=0):
     return res
 
 
-def iter_minibatches(lst, batch_size, dims, n_cycles=False):
+def iter_minibatches(lst, batch_size, dims, n_cycles=False, random_state=None):
     """Return an iterator that successively yields tuples containing aligned
     minibatches of size `batch_size` from slicable objects given in `lst`, in
     random order without replacement.
@@ -333,6 +333,9 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=False):
         Number of cycles after which to stop the iterator. If ``False``, will
         yield forever.
 
+    random_state : a numpy.random.RandomState object, optional [default : None]
+        Random number generator that will act as a seed for the minibatch order
+
 
     Returns
     -------
@@ -346,6 +349,8 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=False):
         if any(len(i) != len(batches[0]) for i in batches[1:]):
             raise ValueError("containers to be batched have different lengths")
     counter = itertools.count()
+    if random_state is not None:
+        random.seed(random_state.normal())
     while True:
         indices = [i for i, _ in enumerate(batches[0])]
         while True:
