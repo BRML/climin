@@ -74,13 +74,16 @@ class Rprop(Minimizer):
 
     max_step : float
         Maximum step rate.
+
+    init_step : float
+        Initial step rate.
     """
 
     state_fields = ('n_iter step_shrink step_grow min_step max_step '
                     'changes gradient').split()
 
     def __init__(self, wrt, fprime, step_shrink=0.5, step_grow=1.2,
-                 min_step=1E-6, max_step=1, changes_max=0.1, args=None):
+                 min_step=1E-6, max_step=1, init_step=0.0125, args=None):
         """Create an Rprop object.
 
         Parameters
@@ -108,6 +111,9 @@ class Rprop(Minimizer):
         max_step : float
             Maximum step rate.
 
+        init_step : float
+            Initial step rate.
+
         args : iterable
             Iterator over arguments which ``fprime`` will be called with.
         """
@@ -118,10 +124,9 @@ class Rprop(Minimizer):
         self.step_grow = step_grow
         self.min_step = min_step
         self.max_step = max_step
-        self.changes_max = changes_max
 
         self.gradient = ma.zero_like(self.wrt)
-        self.changes = ma.zero_like(self.wrt)
+        self.changes = ma.zero_like(self.wrt) + init_step
 
     def _iterate(self):
         for args, kwargs in self.args:
