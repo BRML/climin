@@ -4,9 +4,9 @@
 
 
 
-import mathadapt as ma
+from . import mathadapt as ma
 
-from base import Minimizer
+from .base import Minimizer
 
 
 class Rprop(Minimizer):

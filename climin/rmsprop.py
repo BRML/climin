@@ -5,8 +5,8 @@
 
 import numpy as np
 
-from base import Minimizer
-from mathadapt import sqrt, ones_like, clip
+from .base import Minimizer
+from .mathadapt import sqrt, ones_like, clip
 
 
 class RmsProp(Minimizer):
