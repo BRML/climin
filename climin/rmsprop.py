@@ -22,7 +22,7 @@ class RmsProp(Minimizer):
 
     .. math::
         r_t &= (1 - \\gamma)~f'(\\theta_t)^2 + \\gamma r_{t-1} , \\\\
-        v_{t+1} &= {\\alpha \over \sqrt{r_t}} f'(\\theta_t), \\\\
+        v_{t+1} &= - {\\alpha \over \sqrt{r_t}} f'(\\theta_t), \\\\
         \\theta_{t+1} &= \\theta_t + v_{t+1}.
 
     In some cases, adding a momentum term :math:`\\beta` is beneficial. Here,
@@ -31,8 +31,8 @@ class RmsProp(Minimizer):
     .. math::
         \\theta_{t+{1 \over 2}} &= \\theta_t + \\beta v_t, \\\\
         r_t &= (1 - \\gamma)~f'(\\theta_{t + {1 \\over 2}})^2 + \\gamma r_{t-1}, \\\\
-        v_{t+1} &= {\\alpha \over r_t} f'(\\theta_{t + {1 \over 2}}), \\\\
-        \\theta_{t+1} &= \\theta_t + {\\alpha \\over r_t} f'(\\theta_{t + {1 \\over 2}}).
+        v_{t+1} &= - {\\alpha \over \sqrt{r_t}} f'(\\theta_{t + {1 \over 2}}), \\\\
+        \\theta_{t+1} &= \\theta_t + {\\alpha \\over \sqrt{r_t}} f'(\\theta_{t + {1 \\over 2}}).
 
     Additionally, this implementation has adaptable step rates. As soon as the
     components of the step and the momentum point into the same direction (thus
