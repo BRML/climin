@@ -32,14 +32,14 @@ class GradientDescent(Minimizer):
 
     .. math::
         v_{t+1} &= \\alpha f'(\\theta_t) \\\\
-        \\theta_{t+1} &= \\theta_t + v_{t+1}.
+        \\theta_{t+1} &= \\theta_t - v_{t+1}.
 
     If we also have a momentum :math:`\\beta` and are using standard momentum,
     we update the parameters according to:
 
     .. math::
         v_{t+1} &= \\alpha f'(\\theta_t) + \\beta v_{t} \\\\
-        \\theta_{t+1} &= \\theta_t + v_{t+1}
+        \\theta_{t+1} &= \\theta_t - v_{t+1}
 
     In some cases (e.g. learning the parameters of deep networks), using
     Nesterov momentum can be beneficial. In this case, we first make a momentum
@@ -47,9 +47,9 @@ class GradientDescent(Minimizer):
     there is an additional cost of an addition of the parameters.
 
     .. math::
-        \\theta_{t+{1 \\over 2}} &= \\theta_t + \\beta v_t \\\\
+        \\theta_{t+{1 \\over 2}} &= \\theta_t - \\beta v_t \\\\
         v_{t+1} &= \\alpha f'(\\theta_{t + {1 \\over 2}}) \\\\
-        \\theta_{t+1} &= \\theta_t + v_{t+1}
+        \\theta_{t+1} &= \\theta_t - v_{t+1}
 
     which can be specified additionally by the initialization argument
     ``momentum_type``.
