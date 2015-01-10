@@ -8,12 +8,12 @@ import warnings
 
 import numpy as np
 
-from gd import GradientDescent
-from bfgs import Lbfgs
-from cg import NonlinearConjugateGradient
-from rprop import Rprop
-from rmsprop import RmsProp
-from adadelta import Adadelta
+from .gd import GradientDescent
+from .bfgs import Lbfgs
+from .cg import NonlinearConjugateGradient
+from .rprop import Rprop
+from .rmsprop import RmsProp
+from .adadelta import Adadelta
 
 try:
     from sklearn.grid_search import ParameterSampler

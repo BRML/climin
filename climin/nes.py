@@ -32,7 +32,7 @@
 import scipy
 import scipy.linalg
 
-from base import Minimizer
+from .base import Minimizer
 
 
 class Xnes(Minimizer):

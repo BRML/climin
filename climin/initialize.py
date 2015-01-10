@@ -7,7 +7,7 @@ import random
 
 import numpy as np
 
-import climin.mathadapt as ma
+import .mathadapt as ma
 
 
 def sparsify_columns(arr, n_non_zero, keep_diagonal=False):
