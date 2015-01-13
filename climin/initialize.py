@@ -84,21 +84,11 @@ def bound_spectral_radius(arr, bound=1.2):
     array([[ -7.86816957e-17,   8.98979486e-02,   1.79795897e-01],
            [  2.69693846e-01,   3.59591794e-01,   4.49489743e-01],
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
-
-    >>> arr = np.arange(12).reshape((4, 3)).astype('float64')
-    >>> bound_spectral_radius(arr, 1.1)
-    >>> arr                                 # doctest: +SKIP
-    array([[ -7.86816957e-17,   8.98979486e-02,   1.79795897e-01],
-           [  2.69693846e-01,   3.59591794e-01,   4.49489743e-01],
-           [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01],
-           [  4.20518789e-01,   4.67243099e-01,   5.13967409e-01]])
     """
-    u, s, v = np.linalg.svd(ma.assert_numpy(arr), full_matrices=True)
-    s /= abs(s).max()
-    s *= np.sqrt(bound)
-    S = np.zeros_like(arr)
-    S[:arr.shape[1], :arr.shape[1]] = np.diag(s)
-    arr[...] = np.dot(u, np.dot(S, v))
+    vals, vecs = np.linalg.eig(ma.assert_numpy(arr))
+    vals /= abs(vals).max()
+    vals *= bound
+    arr[...] = np.dot(vecs, np.dot(np.diag(vals), np.linalg.inv(vecs)))
 
 
 def randomize_normal(arr, loc=0, scale=1):
