@@ -14,6 +14,7 @@ from cg import NonlinearConjugateGradient
 from rprop import Rprop
 from rmsprop import RmsProp
 from adadelta import Adadelta
+from adam import Adam
 
 try:
     from sklearn.grid_search import ParameterSampler
@@ -133,6 +134,7 @@ def optimizer(identifier, wrt, *args, **kwargs):
         'rprop': Rprop,
         'rmsprop': RmsProp,
         'adadelta': Adadelta,
+        'adam': Adam,
     }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]
