@@ -96,6 +96,7 @@ Optimizer overview
    gd
    rmsprop
    adadelta
+   adam
    rprop
    cg
    bfgs
