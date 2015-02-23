@@ -28,7 +28,7 @@ class Adadelta(Minimizer):
 
     .. math::
        \\Delta \\theta_t &=& \\alpha {\sqrt{s_{t-1} + \\epsilon} \over \sqrt{g_t + \\epsilon}}~f'(\\theta_t), \\\\
-       \\theta_{t+1} &=& \\theta_t + \\Delta \\theta_t.
+       \\theta_{t+1} &=& \\theta_t - \\Delta \\theta_t.
 
     Subsequently we adapt the moving average of the steps:
 
@@ -40,7 +40,7 @@ class Adadelta(Minimizer):
     formulas:
 
     .. math::
-        \\theta_{t + {1 \over 2}} &=& \\theta_t + \\beta \\Delta \\theta_{t-1}, \\\\
+        \\theta_{t + {1 \over 2}} &=& \\theta_t - \\beta \\Delta \\theta_{t-1}, \\\\
        g_t &=& (1 - \\gamma)~f'(\\theta_{t + {1 \over 2}})^2 + \\gamma g_{t-1}, \\\\
        \\Delta \\theta_t &=& \\alpha {\sqrt{s_{t-1} + \\epsilon} \over \sqrt{g_t + \\epsilon}}~f'(\\theta_{t + {1 \over 2}}).
 
