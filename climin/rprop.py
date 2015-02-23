@@ -128,9 +128,9 @@ class Rprop(Minimizer):
             gradient_m1 = self.gradient
             self.gradient = self.fprime(self.wrt, *args, **kwargs)
             gradprod = gradient_m1 * self.gradient
-            
-            self.changes[gradprod>0] *= self.step_grow
-            self.changes[gradprod<0] *= self.step_shrink
+
+            self.changes[gradprod > 0] *= self.step_grow
+            self.changes[gradprod < 0] *= self.step_shrink
             self.changes = ma.clip(self.changes, self.min_step, self.max_step)
 
             step = -self.changes * ma.sign(self.gradient)
