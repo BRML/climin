@@ -34,9 +34,10 @@ def test_optimizer():
 
 def test_optimizer_distribution():
     try:
-        import sklearn
+        from sklearn.grid_search import ParameterSampler
     except ImportError:
         raise SkipTest()
+
     rv = OptimizerDistribution(gd={'step_rate': [.1, .2],
                                    'momentum': [.9, .99]})
     opt = rv.rvs()
