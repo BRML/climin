@@ -7,3 +7,4 @@ from rprop import Rprop
 from smd import Smd
 from asgd import Asgd
 from adadelta import Adadelta
+from adam import Adam

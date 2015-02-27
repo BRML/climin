@@ -7,7 +7,10 @@ and (partially) gnumpy.
 
 The project was started in winter 2011 by Christian Osendorfer and Justin Bayer.
 Since then, Sarah Diot-Girard, Thomas Rueckstiess and Sebastian Urban have 
-contributed.
+contributed. If you use climin in your (academic) work, please cite as 
+(tech report is in preparation):
+
+> J.Bayer and C.Osendorfer and S. Diot-Girard and T. Rückstiess and Sebastian Urban. climin - A pythonic framework for gradient-based function optimization. TUM Tech Report. 2015. 
 
 
 Important links
