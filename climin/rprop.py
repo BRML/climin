@@ -142,6 +142,7 @@ class Rprop(Minimizer):
             step = -self.changes * ma.sign(self.gradient)
             self.wrt += step
 
+            self.n_iter += 1
             yield {
                 'args': args,
                 'kwargs': kwargs,
