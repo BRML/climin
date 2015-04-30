@@ -27,7 +27,7 @@ convenience function that will give you random (with or without replacement)
 slices from a container::
 
     batch_size = 100
-    args = climin.util.iter_minibatches([X, Z], batch_size, [0, 0])
+    args = ((i, {}) for i in climin.util.iter_minibatches([train_set_x, train_set_y], batch_size, [0, 0]))
 
 The last argument, ``[0, 0]`` gives the axes along which to slice ``[X, Z]``.
 In some cases, samples might be aligned along axis ``0`` for the input, but
