@@ -201,7 +201,7 @@ optimizer, a ``GradientDescent`` object:
 .. testcode:: [tutorial]
 
    import climin
-   opt = climin.GradientDescent(wrt, d_loss_wrt_pars, steprate=0.1, momentum=.95, args=args)
+   opt = climin.GradientDescent(wrt, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
 
 We created a new object called ``opt``. For initialization, we passed it
 several parameters:

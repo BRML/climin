@@ -68,10 +68,10 @@ class GradientDescent(Minimizer):
         First derivative of the objective function. Returns an array of the \
         same shape as ``.wrt``.
 
-    steprate : float or array_like
+    step_rate : float or array_like
         Step rate to multiply the gradients with.
 
-    momentums : float or array_like
+    momentum : float or array_like
         Momentum to multiply previous steps with.
 
     momentum_type : string (either "standard" or "nesterov")
