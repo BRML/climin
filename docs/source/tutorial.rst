@@ -211,7 +211,7 @@ several parameters:
  - The derivative ``d_loss_wrt_pars``; we do not need ``loss`` itself for
    gradient descent.
  - A scalar to multiply the negative gradient with for the next search step,
-   ``steprate``. This parameter is often referred to as learning rate in the
+   ``step_rate``. This parameter is often referred to as learning rate in the
    literature.
  - A momentum term ``momentum`` to speed up learning.
  - Our data stream ``args``.
