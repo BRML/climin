@@ -109,7 +109,7 @@ class GradientDescent(Minimizer):
             and **kwargs drawn from the iterations ``args`` returns a
             search direction, such as a gradient.
 
-        steprate : float or array_like, or iterable of that
+        step_rate : float or array_like, or iterable of that
             Step rate to use during optimization. Can be given as a single
             scalar value or as an array for a different step rate of each
             parameter of the problem.
