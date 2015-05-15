@@ -234,11 +234,11 @@ This will result in an infinite loop. Climin does not handle stopping from
 within optimizer objects; instead, you will have to do it manually, since you
 know it much better. Let's iterate for a fixed number of iterations, say 100::
 
-    print loss(parameters, VX, VZ)   # prints something like 2.49771627484
+    print loss(wrt, VX, VZ)   # prints something like 2.49771627484
     for info in opt:
         if info['n_iter'] >= 100:
             break
-    print loss(parameters, VX, VZ)   # prints something like 0.324243334583
+    print loss(wrt, VX, VZ)   # prints something like 0.324243334583
 
 When we iteratore over the optimizer, we iterate over dictionaries. Each
 of these contains various information about the current state of the
