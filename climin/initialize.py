@@ -90,10 +90,10 @@ def bound_spectral_radius(arr, bound=1.2):
            [  2.69693846e-01,   3.59591794e-01,   4.49489743e-01],
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
     """
-    vals, vecs = np.linalg.eig(ma.assert_numpy(arr))
+    vals, vecs = np.linalg.eigh(ma.assert_numpy(arr))
     vals /= abs(vals).max()
     vals *= bound
-    arr[...] = np.dot(vecs, np.dot(np.diag(vals), np.linalg.inv(vecs)))
+    arr[...] = np.dot(vecs, np.dot(np.diag(vals), vecs.T))
 
 
 def randomize_normal(arr, loc=0, scale=1, random_state=None):
