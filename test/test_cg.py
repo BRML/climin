@@ -1,10 +1,10 @@
+from __future__ import absolute_import
 
-import scipy
 import numpy as np
 
 from climin import ConjugateGradient
 
-from losses import Quadratic, BigQuadratic
+from .losses import Quadratic, BigQuadratic
 
 
 def test_cg_explicit_hessian():
@@ -29,7 +29,7 @@ def test_cg_implicit_hessian():
 
 def test_cg_preconditioning():
     obj = Quadratic()
-    precond = np.array([[1,0], [0, 1e-2]])
+    precond = np.array([[1, 0], [0, 1e-2]])
     opt = ConjugateGradient(obj.pars, obj.H, obj.b, precond=precond)
     for i, info in enumerate(opt):
         if i > 10:

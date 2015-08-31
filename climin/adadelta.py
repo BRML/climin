@@ -2,9 +2,10 @@
 
 """This module provides an implementation of adadelta."""
 
+from __future__ import absolute_import
 
-from base import Minimizer
-from mathadapt import sqrt, ones_like, clip
+from .base import Minimizer
+from .mathadapt import sqrt, ones_like, clip
 
 
 class Adadelta(Minimizer):

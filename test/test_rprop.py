@@ -1,11 +1,11 @@
-import itertools
+from __future__ import absolute_import
 
-import numpy as np
+import itertools
 
 from climin import Rprop
 
-from losses import Quadratic, LogisticRegression, Rosenbrock
-from common import continuation
+from .losses import Quadratic, LogisticRegression, Rosenbrock
+from .common import continuation
 
 
 def test_rprop_quadratic():

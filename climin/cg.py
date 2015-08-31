@@ -32,15 +32,17 @@ reset from time to time. Additionally, we need to perform a line search to solve
 for :math:`\\alpha_t`.
 """
 
+from __future__ import absolute_import
+
 import warnings
 
-import scipy
 import numpy as np
+import scipy
 import scipy.linalg
 import scipy.optimize
 
-from base import Minimizer, is_nonzerofinite
-from linesearch import WolfeLineSearch
+from .base import Minimizer, is_nonzerofinite
+from .linesearch import WolfeLineSearch
 
 
 class ConjugateGradient(Minimizer):
@@ -282,7 +284,7 @@ class NonlinearConjugateGradient(Minimizer):
         return direction, {}
 
     def __iter__(self):
-        args, kwargs = self.args.next()
+        args, kwargs = next(self.args)
         grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = np.zeros(grad.shape)
         loss = self.f(self.wrt, *args, **kwargs)

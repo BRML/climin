@@ -28,11 +28,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import
 
 import scipy
 import scipy.linalg
 
-from base import Minimizer
+from .base import Minimizer
 
 
 class Xnes(Minimizer):
