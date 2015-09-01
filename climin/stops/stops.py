@@ -30,6 +30,7 @@ import itertools
 import signal
 import time
 
+import numpy as np
 
 class AfterNIterations(object):
     """AfterNIterations class.
@@ -191,6 +192,16 @@ class NotBetterThanAfter(object):
 
     def __call__(self, info):
         return info['n_iter'] > self.after and info[self.key] >= self.minimal
+
+
+class IsNaN(object):
+    """Stop criterion that returns True if any value corresponding to user-specified keys is NaN."""
+
+    def __init__(self, keys=[]):
+        self.keys = keys
+
+    def __call__(self, info):
+        return any([np.isnan(info[key]) for key in self.keys])
 
 
 class Patience(object):
