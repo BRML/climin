@@ -201,7 +201,7 @@ class IsNaN(object):
         self.keys = keys
 
     def __call__(self, info):
-        return any([np.isnan(info[key]) for key in self.keys])
+        return any([np.isnan(info.get(key, 0)) for key in self.keys])
 
 
 class Patience(object):
