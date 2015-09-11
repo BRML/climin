@@ -147,7 +147,10 @@ class TimeElapsed(object):
         self.start = time.time()
 
     def __call__(self, info):
-        return info.get('time', time.time()) - self.start > self.sec
+        if 'runtime' in info:
+            return info['runtime'] > self.sec
+        else:
+            return time.time() - self.start > self.sec
 
 
 def All(criterions):
