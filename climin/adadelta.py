@@ -107,7 +107,7 @@ class Adadelta(Minimizer):
             d = self.decay
             o = self.offset
             m = self.momentum
-            step1 = step_m1 * m * self.step_rate
+            step1 = step_m1 * m
             self.wrt -= step1
 
             gradient = self.fprime(self.wrt, *args, **kwargs)
