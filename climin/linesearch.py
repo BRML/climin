@@ -9,12 +9,15 @@ one-dimensional optimization problem, which can then be solved by a line search.
 
 # TODO: this module needs lots of pep8 love.
 
+from __future__ import absolute_import
 
 import itertools
 
-import scipy.optimize
 import numpy as np
 import scipy as sp
+import scipy.optimize
+
+from .compat import range
 
 
 class LineSearch(object):
@@ -372,21 +375,21 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
     # Constraints based on available function values
     for i in range(points.shape[0]):
         if np.isreal(points[i, 1]):
-            A[i] = [points[i, 0] ** (order - j) for j in xrange(order + 1)]
+            A[i] = [points[i, 0] ** (order - j) for j in range(order + 1)]
             b[i] = points[i, 1]
             points[i, 0], points[i, 1]
     # Constraints based on available derivatives
     for i, p in enumerate(points[:, 2]):
         if np.isreal(p):
             A[nPoints + i] = [(order - j + 1) * points[i, 0] ** (order - j)
-                              for j in xrange(1, order + 1)] + [0]
+                              for j in range(1, order + 1)] + [0]
             b[nPoints + i] = points[i, 2]
     #
     # Find interpolating polynomial
     params = np.linalg.lstsq(A, b)[0].flatten()
 
     # Compute critical points
-    dParams = [(order - j) * params[j] for j in xrange(order)]
+    dParams = [(order - j) * params[j] for j in range(order)]
 
     cp = [xminBound, xmaxBound] + list(points[:, 0])
     if not np.any(np.isinf(dParams)):

@@ -3,7 +3,9 @@
 # TODO: document module
 # TODO: check if gnumpy compatible
 
-from base import Minimizer
+from __future__ import absolute_import
+
+from .base import Minimizer
 
 
 class Asgd(Minimizer):

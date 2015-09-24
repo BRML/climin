@@ -25,7 +25,7 @@ def decaying(start, decay):
 
     >>> from climin.schedule import decaying
     >>> s = decaying(10, .9)
-    >>> [s.next() for i in range(5)]
+    >>> [next(s) for i in range(5)]
     [10.0, 9.0, 8.100000000000001, 7.290000000000001, 6.561]
     """
     return (start * decay ** i for i in itertools.count(0))
@@ -42,7 +42,7 @@ def linear_annealing(start, stop, n_steps):
 
     >>> from climin.schedule import linear_annealing
     >>> s = linear_annealing(1, 0, 4)
-    >>> [s.next() for i in range(10)]
+    >>> [next(s) for i in range(10)]
     [1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     """
     start, stop = float(start), float(stop)
@@ -62,7 +62,7 @@ def repeater(iter, n):
 
     >>> from climin.schedule import repeater
     >>> s = repeater([1, 2, 3], 2)
-    >>> [s.next() for i in range(6)]
+    >>> [next(s) for i in range(6)]
     [1, 1, 2, 2, 3, 3]
     """
     for i in iter:
@@ -79,7 +79,7 @@ class SutskeverBlend(object):
 
     >>> from climin.schedule import SutskeverBlend
     >>> s = iter(SutskeverBlend(0.9, 2))
-    >>> [s.next() for i in range(10)]
+    >>> [next(s) for i in range(10)]
     [0.5, 0.75, 0.75, 0.8333333333333333, 0.8333333333333333, 0.875, 0.875, 0.9, 0.9, 0.9]
 
     .. [sutskever2013importance] On the importance of initialization and
