@@ -1,12 +1,13 @@
+from __future__ import absolute_import
+
 import itertools
 
 import nose
-import numpy as np
 
 from climin import GradientDescent
 
-from losses import Quadratic, LogisticRegression, Rosenbrock
-from common import continuation
+from .losses import Quadratic, LogisticRegression, Rosenbrock
+from .common import continuation
 
 
 def test_gd_quadratic():

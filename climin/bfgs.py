@@ -32,6 +32,8 @@ where :math:`\\alpha_t` is obtained with a line search.
 
 """
 
+from __future__ import absolute_import
+
 import warnings
 
 import scipy
@@ -39,8 +41,8 @@ import numpy as np
 import scipy.linalg
 import scipy.optimize
 
-from base import Minimizer, is_nonzerofinite
-from linesearch import WolfeLineSearch
+from .base import Minimizer, is_nonzerofinite
+from .linesearch import WolfeLineSearch
 
 
 class Bfgs(Minimizer):
@@ -139,7 +141,7 @@ class Bfgs(Minimizer):
         return direction, {'gradient_diff': grad_diff}
 
     def __iter__(self):
-        args, kwargs = self.args.next()
+        args, kwargs = next(self.args)
         grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = scipy.zeros(grad.shape)
 
@@ -332,7 +334,7 @@ class Lbfgs(Minimizer):
         return z, {}
 
     def __iter__(self):
-        args, kwargs = self.args.next()
+        args, kwargs = next(self.args)
         grad = self.fprime(self.wrt, *args, **kwargs)
         grad_m1 = scipy.zeros(grad.shape)
         factor_shape = self.n_factors, self.wrt.shape[0]

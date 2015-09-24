@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 
 import inspect
 import itertools
@@ -8,13 +9,13 @@ import warnings
 
 import numpy as np
 
-from gd import GradientDescent
-from bfgs import Lbfgs
-from cg import NonlinearConjugateGradient
-from rprop import Rprop
-from rmsprop import RmsProp
-from adadelta import Adadelta
-from adam import Adam
+from .gd import GradientDescent
+from .bfgs import Lbfgs
+from .cg import NonlinearConjugateGradient
+from .rprop import Rprop
+from .rmsprop import RmsProp
+from .adadelta import Adadelta
+from .adam import Adam
 
 try:
     from sklearn.grid_search import ParameterSampler
@@ -59,7 +60,7 @@ def coroutine(f):
     """Turn a generator function into a coroutine by calling .next() once."""
     def started(*args, **kwargs):
         cr = f(*args, **kwargs)
-        cr.next()
+        next(cr)
         return cr
     return started
 
@@ -359,7 +360,7 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=False, random_state=None):
             random.shuffle(indices)
             for i in indices:
                 yield tuple(b[i] for b in batches)
-            count = counter.next()
+            count = next(counter)
             if n_cycles and count >= n_cycles:
                 raise StopIteration()
 
@@ -389,7 +390,7 @@ class OptimizerDistribution(object):
         self.options = options
 
     def rvs(self):
-        opt = random.choice(self.options.keys())
+        opt = random.choice(list(self.options.keys()))
         grid = self.options[opt]
         sample = list(ParameterSampler(grid, n_iter=1))[0]
         return opt, sample

@@ -2,11 +2,13 @@
 
 # TODO document
 
+from __future__ import absolute_import
+
 import warnings
 
 import numpy as np
 
-from base import Minimizer, is_nonzerofinite
+from .base import Minimizer, is_nonzerofinite
 
 
 class Smd(Minimizer):
