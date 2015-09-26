@@ -132,6 +132,10 @@ class TimeElapsed(object):
     >>> time.sleep(0.5)
     >>> stop({})
     True
+    >>> stop2 = S.TimeElapsed(10); stop2({'runtime': 9})
+    False
+    >>> stop3 = S.TimeElapsed(10); stop2({'runtime': 11})
+    True
     """
 
     def __init__(self, sec):
