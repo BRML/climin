@@ -32,8 +32,9 @@ import signal
 import sys
 import time
 
-from ..compat import basestring
+from climin.mathadapt import isnan
 
+from ..compat import basestring
 
 class AfterNIterations(object):
     """AfterNIterations class.
@@ -202,6 +203,34 @@ class NotBetterThanAfter(object):
 
     def __call__(self, info):
         return info['n_iter'] > self.after and info[self.key] >= self.minimal
+
+
+class IsNaN(object):
+    """Stop criterion that returns True if any value corresponding to
+    user-specified keys is NaN.
+
+    Attributes
+    ----------
+
+    keys : list
+      List of keys to check whether nan or not
+
+    Examples
+    --------
+
+    >>> stop = S.IsNaN(['test']); stop({'test': 0})
+    False
+    >>> stop({'test': numpy.nan})
+    True
+    >>> stop({'test': gnumpy.as_garray(numpy.nan)})
+    True
+    """
+
+    def __init__(self, keys=[]):
+        self.keys = keys
+
+    def __call__(self, info):
+        return any([isnan(info.get(key, 0)) for key in self.keys])
 
 
 class Patience(object):

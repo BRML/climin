@@ -96,3 +96,11 @@ def scalar(x):
     if not x.size == 1:
         raise ValueError('size is %i instead of 1' % x.size)
     return x.reshape((1,))[0]
+
+
+def isnan(x):
+    """Delegate to gnumpy.isnan or numpy.isnan depending on the type of `x`."""
+    if not isinstance(x, np.ndarray):
+        return gp.isnan(x)
+    else:
+        return np.isnan(x)
