@@ -136,6 +136,10 @@ class TimeElapsed(object):
     >>> time.sleep(0.5)
     >>> stop({})
     True
+    >>> stop2 = S.TimeElapsed(10); stop2({'runtime': 9})
+    False
+    >>> stop3 = S.TimeElapsed(10); stop2({'runtime': 11})
+    True
     """
 
     def __init__(self, sec):
@@ -151,7 +155,10 @@ class TimeElapsed(object):
         self.start = time.time()
 
     def __call__(self, info):
-        return time.time() - self.start > self.sec
+        if 'runtime' in info:
+            return info['runtime'] > self.sec
+        else:
+            return time.time() - self.start > self.sec
 
 
 def All(criterions):
