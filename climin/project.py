@@ -2,10 +2,11 @@
 
 """Module that contains projection operators."""
 
+from __future__ import absolute_import
 
 import numpy as np
 
-from mathadapt import sqrt
+from .mathadapt import sqrt
 
 
 def max_length_columns(arr, max_length):

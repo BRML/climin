@@ -2,9 +2,10 @@
 
 """This module provides an implementation of adadelta."""
 
+from __future__ import absolute_import
 
-from base import Minimizer
-from mathadapt import sqrt, ones_like, clip
+from .base import Minimizer
+from .mathadapt import sqrt, ones_like, clip
 
 
 class Adadelta(Minimizer):
@@ -107,7 +108,7 @@ class Adadelta(Minimizer):
             d = self.decay
             o = self.offset
             m = self.momentum
-            step1 = step_m1 * m * self.step_rate
+            step1 = step_m1 * m
             self.wrt -= step1
 
             gradient = self.fprime(self.wrt, *args, **kwargs)

@@ -25,14 +25,16 @@ a common API with functions which are supposed to have a state, which can be
 realized by generator functions or objects with a ``__call__`` magic method.
 """
 
+from __future__ import absolute_import
 
 import itertools
 import signal
+import sys
 import time
 
-import numpy as np
-
 from climin.mathadapt import isnan
+
+from ..compat import basestring
 
 class AfterNIterations(object):
     """AfterNIterations class.
@@ -276,7 +278,7 @@ class Patience(object):
 
     def __call__(self, info):
         i = info['n_iter']
-        if isinstance(self.func_or_key, (str, unicode)):
+        if isinstance(self.func_or_key, basestring):
             loss = info[self.func_or_key]
         else:
             loss = self.func_or_key()
@@ -291,7 +293,7 @@ class Patience(object):
         return i >= self.patience
 
 
-class OnSignal(object):
+class OnUnixSignal(object):
     """Stopping criterion that is sensitive to some signal."""
 
     def __init__(self, sig=signal.SIGINT):
@@ -326,6 +328,49 @@ class OnSignal(object):
     def __setstate__(self, dct):
         self.__dict__.update(dct)
         self._register()
+
+
+class OnWindowsSignal(object):
+    """Stopping criterion that is sensitive to signals Ctrl-C or Ctrl-Break
+    on Windows."""
+
+    def __init__(self, sig=None):
+        """Return a stopping criterion that stops upon a signal.
+
+        Previous handlers will be overwritten.
+
+
+        Parameters
+        ----------
+
+        sig : signal, optional [default: [0,1]]
+            Signal upon which to stop.
+            Default encodes signal.SIGINT and signal.SIGBREAK.
+        """
+        self.sig = [0, 1] if sig is None else sig
+        self.stopped = False
+        self._register()
+
+    def _register(self):
+        import win32api
+        win32api.SetConsoleCtrlHandler(self.handler, 1)
+
+    def handler(self, ctrl_type):
+        if ctrl_type in self.sig:  # Ctrl-C and Ctrl-Break
+            self.stopped = True
+            return 1  # don't chain to the next handler
+        return 0  # chain to the next handler
+
+    def __call__(self, info):
+        res, self.stopped = self.stopped, False
+        return res
+
+    def __setstate__(self, dct):
+        self.__dict__.update(dct)
+        self._register()
+
+
+OnSignal = OnWindowsSignal if sys.platform == 'win32' else OnUnixSignal
 
 
 def never(info):

@@ -2,11 +2,12 @@
 
 """This module provides an implementation of rmsprop."""
 
+from __future__ import absolute_import
 
 import numpy as np
 
-from base import Minimizer
-from mathadapt import sqrt, ones_like, clip
+from .base import Minimizer
+from .mathadapt import sqrt, ones_like, clip
 
 
 class RmsProp(Minimizer):
