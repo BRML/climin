@@ -3,8 +3,9 @@
 
 """This module provides an implementation of gradient descent."""
 
+from __future__ import absolute_import
 
-from base import Minimizer
+from .base import Minimizer
 
 
 class GradientDescent(Minimizer):
