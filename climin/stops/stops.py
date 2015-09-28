@@ -32,6 +32,8 @@ import time
 
 import numpy as np
 
+from climin.mathadapt import isnan
+
 class AfterNIterations(object):
     """AfterNIterations class.
 
@@ -195,13 +197,31 @@ class NotBetterThanAfter(object):
 
 
 class IsNaN(object):
-    """Stop criterion that returns True if any value corresponding to user-specified keys is NaN."""
+    """Stop criterion that returns True if any value corresponding to
+    user-specified keys is NaN.
+
+    Attributes
+    ----------
+
+    keys : list
+      List of keys to check whether nan or not
+
+    Examples
+    --------
+
+    >>> stop = S.IsNaN(['test']); stop({'test': 0})
+    False
+    >>> stop({'test': numpy.nan})
+    True
+    >>> stop({'test': gnumpy.as_garray(numpy.nan)})
+    True
+    """
 
     def __init__(self, keys=[]):
         self.keys = keys
 
     def __call__(self, info):
-        return any([np.isnan(info.get(key, 0)) for key in self.keys])
+        return any([isnan(info.get(key, 0)) for key in self.keys])
 
 
 class Patience(object):
