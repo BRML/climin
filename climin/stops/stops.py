@@ -247,6 +247,10 @@ class Patience(object):
         i = info['n_iter']
         if isinstance(self.func_or_key, (str, unicode)):
             loss = info[self.func_or_key]
+        elif isinstance(self.func_or_key, (tuple, list)):
+            loss = info
+            for j in self.func_or_key:
+                loss = loss[j]
         else:
             loss = self.func_or_key()
 
