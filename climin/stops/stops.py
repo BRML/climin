@@ -25,11 +25,16 @@ a common API with functions which are supposed to have a state, which can be
 realized by generator functions or objects with a ``__call__`` magic method.
 """
 
+from __future__ import absolute_import
 
 import itertools
 import signal
+import sys
 import time
 
+from climin.mathadapt import isnan
+
+from ..compat import basestring
 
 class AfterNIterations(object):
     """AfterNIterations class.
@@ -132,6 +137,10 @@ class TimeElapsed(object):
     >>> time.sleep(0.5)
     >>> stop({})
     True
+    >>> stop2 = S.TimeElapsed(10); stop2({'runtime': 9})
+    False
+    >>> stop3 = S.TimeElapsed(10); stop2({'runtime': 11})
+    True
     """
 
     def __init__(self, sec):
@@ -147,7 +156,10 @@ class TimeElapsed(object):
         self.start = time.time()
 
     def __call__(self, info):
-        return time.time() - self.start > self.sec
+        if 'runtime' in info:
+            return info['runtime'] > self.sec
+        else:
+            return time.time() - self.start > self.sec
 
 
 def All(criterions):
@@ -191,6 +203,34 @@ class NotBetterThanAfter(object):
 
     def __call__(self, info):
         return info['n_iter'] > self.after and info[self.key] >= self.minimal
+
+
+class IsNaN(object):
+    """Stop criterion that returns True if any value corresponding to
+    user-specified keys is NaN.
+
+    Attributes
+    ----------
+
+    keys : list
+      List of keys to check whether nan or not
+
+    Examples
+    --------
+
+    >>> stop = S.IsNaN(['test']); stop({'test': 0})
+    False
+    >>> stop({'test': numpy.nan})
+    True
+    >>> stop({'test': gnumpy.as_garray(numpy.nan)})
+    True
+    """
+
+    def __init__(self, keys=[]):
+        self.keys = keys
+
+    def __call__(self, info):
+        return any([isnan(info.get(key, 0)) for key in self.keys])
 
 
 class Patience(object):
@@ -245,7 +285,7 @@ class Patience(object):
 
     def __call__(self, info):
         i = info['n_iter']
-        if isinstance(self.func_or_key, (str, unicode)):
+        if isinstance(self.func_or_key, basestring):
             loss = info[self.func_or_key]
         elif isinstance(self.func_or_key, (tuple, list)):
             loss = info
@@ -264,7 +304,7 @@ class Patience(object):
         return i >= self.patience
 
 
-class OnSignal(object):
+class OnUnixSignal(object):
     """Stopping criterion that is sensitive to some signal."""
 
     def __init__(self, sig=signal.SIGINT):
@@ -299,6 +339,49 @@ class OnSignal(object):
     def __setstate__(self, dct):
         self.__dict__.update(dct)
         self._register()
+
+
+class OnWindowsSignal(object):
+    """Stopping criterion that is sensitive to signals Ctrl-C or Ctrl-Break
+    on Windows."""
+
+    def __init__(self, sig=None):
+        """Return a stopping criterion that stops upon a signal.
+
+        Previous handlers will be overwritten.
+
+
+        Parameters
+        ----------
+
+        sig : signal, optional [default: [0,1]]
+            Signal upon which to stop.
+            Default encodes signal.SIGINT and signal.SIGBREAK.
+        """
+        self.sig = [0, 1] if sig is None else sig
+        self.stopped = False
+        self._register()
+
+    def _register(self):
+        import win32api
+        win32api.SetConsoleCtrlHandler(self.handler, 1)
+
+    def handler(self, ctrl_type):
+        if ctrl_type in self.sig:  # Ctrl-C and Ctrl-Break
+            self.stopped = True
+            return 1  # don't chain to the next handler
+        return 0  # chain to the next handler
+
+    def __call__(self, info):
+        res, self.stopped = self.stopped, False
+        return res
+
+    def __setstate__(self, dct):
+        self.__dict__.update(dct)
+        self._register()
+
+
+OnSignal = OnWindowsSignal if sys.platform == 'win32' else OnUnixSignal
 
 
 def never(info):

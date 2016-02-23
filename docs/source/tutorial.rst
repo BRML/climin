@@ -201,7 +201,7 @@ optimizer, a ``GradientDescent`` object:
 .. testcode:: [tutorial]
 
    import climin
-   opt = climin.GradientDescent(wrt, d_loss_wrt_pars, steprate=0.1, momentum=.95, args=args)
+   opt = climin.GradientDescent(wrt, d_loss_wrt_pars, step_rate=0.1, momentum=.95, args=args)
 
 We created a new object called ``opt``. For initialization, we passed it
 several parameters:
@@ -211,7 +211,7 @@ several parameters:
  - The derivative ``d_loss_wrt_pars``; we do not need ``loss`` itself for
    gradient descent.
  - A scalar to multiply the negative gradient with for the next search step,
-   ``steprate``. This parameter is often referred to as learning rate in the
+   ``step_rate``. This parameter is often referred to as learning rate in the
    literature.
  - A momentum term ``momentum`` to speed up learning.
  - Our data stream ``args``.
@@ -234,11 +234,11 @@ This will result in an infinite loop. Climin does not handle stopping from
 within optimizer objects; instead, you will have to do it manually, since you
 know it much better. Let's iterate for a fixed number of iterations, say 100::
 
-    print loss(parameters, VX, VZ)   # prints something like 2.49771627484
+    print loss(wrt, VX, VZ)   # prints something like 2.49771627484
     for info in opt:
         if info['n_iter'] >= 100:
             break
-    print loss(parameters, VX, VZ)   # prints something like 0.324243334583
+    print loss(wrt, VX, VZ)   # prints something like 0.324243334583
 
 When we iteratore over the optimizer, we iterate over dictionaries. Each
 of these contains various information about the current state of the

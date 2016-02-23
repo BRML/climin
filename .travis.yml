@@ -1,9 +1,23 @@
 language: python
+sudo: false
 python:
   - "2.7"
+  - "3.4"
+addons:
+  apt:
+    packages:
+    - libblas-dev
+    - liblapack-dev
+    - gfortran
+    - libatlas3gf-base
 before_install:
-  - sudo apt-get install -qq libatlas3gf-base libatlas-dev liblapack-dev gfortran
+  - pip install -U pip
 install:
-  - "pip install -q numpy==1.5 --use-mirrors"
-  - "pip install -r requirements.txt --use-mirrors"
-script: nosetests
+  - travis_wait travis_retry pip install -r requirements.txt
+  - travis_retry pip install -e . 
+script: nosetests test
+cache:
+  - apt
+  - directories:
+    - $HOME/.cache/pip
+    - $HOME/.theano

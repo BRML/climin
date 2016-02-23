@@ -3,11 +3,14 @@
 """Module that contains functionality to initialize parameters to starting
 values."""
 
+from __future__ import absolute_import
+
 import random
 
 import numpy as np
 
-import climin.mathadapt as ma
+from . import mathadapt as ma
+from .compat import range
 
 
 def sparsify_columns(arr, n_non_zero, keep_diagonal=False, random_state=None):
@@ -51,7 +54,7 @@ def sparsify_columns(arr, n_non_zero, keep_diagonal=False, random_state=None):
     arr_np = arr if isinstance(arr, np.ndarray) else arr.as_numpy_array()
     mask = np.ones_like(arr_np)
     for i in range(arr.shape[1]):
-        idxs = xrange(colsize)
+        idxs = range(colsize)
         if random_state is None:
             zeros = random.sample(idxs, colsize - n_non_zero)
         else:
@@ -90,10 +93,10 @@ def bound_spectral_radius(arr, bound=1.2):
            [  2.69693846e-01,   3.59591794e-01,   4.49489743e-01],
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
     """
-    vals, vecs = np.linalg.eig(ma.assert_numpy(arr))
+    vals, vecs = np.linalg.eigh(ma.assert_numpy(arr))
     vals /= abs(vals).max()
     vals *= bound
-    arr[...] = np.dot(vecs, np.dot(np.diag(vals), np.linalg.inv(vecs)))
+    arr[...] = np.dot(vecs, np.dot(np.diag(vals), vecs.T))
 
 
 def randomize_normal(arr, loc=0, scale=1, random_state=None):

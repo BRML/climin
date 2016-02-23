@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import itertools
-
-import nose
+from functools import partial
 
 from climin.stops import Patience
 
 
 def test_patience_constant():
-    func = iter([10, 10, 10, 10]).next
+    func = partial(next, iter([10, 10, 10, 10]))
     stopper = Patience(func, 3, 2)
 
     assert not stopper({'n_iter': 0})
@@ -18,7 +16,7 @@ def test_patience_constant():
 
 
 def test_patience_increase():
-    func = iter([10, 10, 10, 5, 10, 10, 10]).next
+    func = partial(next, iter([10, 10, 10, 5, 10, 10, 10]))
     stopper = Patience(func, 3, 2)
 
     assert not stopper({'n_iter': 0})

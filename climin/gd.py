@@ -3,8 +3,9 @@
 
 """This module provides an implementation of gradient descent."""
 
+from __future__ import absolute_import
 
-from base import Minimizer
+from .base import Minimizer
 
 
 class GradientDescent(Minimizer):
@@ -68,10 +69,10 @@ class GradientDescent(Minimizer):
         First derivative of the objective function. Returns an array of the \
         same shape as ``.wrt``.
 
-    steprate : float or array_like
+    step_rate : float or array_like
         Step rate to multiply the gradients with.
 
-    momentums : float or array_like
+    momentum : float or array_like
         Momentum to multiply previous steps with.
 
     momentum_type : string (either "standard" or "nesterov")
@@ -109,7 +110,7 @@ class GradientDescent(Minimizer):
             and **kwargs drawn from the iterations ``args`` returns a
             search direction, such as a gradient.
 
-        steprate : float or array_like, or iterable of that
+        step_rate : float or array_like, or iterable of that
             Step rate to use during optimization. Can be given as a single
             scalar value or as an array for a different step rate of each
             parameter of the problem.
