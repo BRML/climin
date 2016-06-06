@@ -99,6 +99,66 @@ def bound_spectral_radius(arr, bound=1.2):
     arr[...] = np.dot(vecs, np.dot(np.diag(vals), vecs.T))
 
 
+def orthogonal(arr, leading_dim=None):
+    """Initialize the matrix ''arr'' with a random orthogonal matrix
+
+    This is performed by QR decomposition of a random matrix and
+    setting ''arr'' = Q.
+
+    Q is an orthogonal matrix only iff ``arr`` is square. Otherwise either
+    rows or columns of Q are pairwise orthogonal, but not both.
+
+    Parameters
+    ----------
+
+    arr : array_like, two dimensional
+        Array to work upon in place.
+
+    leading_dim : int, optional, default: None
+        If len(arr.shape) != 2 or if it is not square, it is required to
+        specify the leading dimension of the matrix explicitly.
+
+     Examples
+    --------
+
+    >>> import numpy as np
+    >>> from climin.initialize import orthogonal
+    >>> arr = np.empty((3, 3))
+    >>> orthogonal(arr)
+    >>> arr                                 # doctest: +SKIP
+    array([[-0.44670617 -0.88694894  0.11736768]
+         [ 0.08723642 -0.17373873 -0.98092031]
+         [ 0.89041755 -0.42794442  0.15498441]])
+    >>> n = 3
+    >>> arr = np.empty((n, 2))
+    >>> randomize_normal(arr, n)
+    >>> arr                                 # doctest: +SKIP
+    array([[-0.06075248  0.55297153]
+         [-0.36202908 -0.78803796]
+         [ 0.93018497 -0.27058947]])
+    """
+
+    if leading_dim:
+        d1 = leading_dim
+        d2 = arr.size / d1
+        assert d1 * d2 == arr.size, "Incorrect leading dimension!"
+    elif len(arr.shape) == 2:
+        d1, d2 = arr.shape
+    else:
+        d1 = d2 = int(np.sqrt(arr.size))
+        assert d1 * d2 == arr.size, \
+            "If no leading_dim given the array must be square!"
+
+    sample = np.random.randn(d1, d2)
+    if d2 > d1:
+        q, _ = np.linalg.qr(sample.T)
+        q = q.T
+    else:
+        q, _ = np.linalg.qr(sample)
+
+    arr[...] = q.reshape(arr.shape)
+
+
 def randomize_normal(arr, loc=0, scale=1, random_state=None):
     """Populate an array with random numbers from a normal distribution with
     mean `loc` and standard deviation `scale`.
