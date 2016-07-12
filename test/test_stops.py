@@ -29,8 +29,8 @@ def test_patience_increase():
 
 
 def test_patience_deep():
-    vals = iter([{'foo': {'bar': 10}}] * 4).next
-    func = iter([10, 10, 10, 10]).next
+    vals = next(iter([{'foo': {'bar': 10}}] * 4))
+    func = next(iter([10, 10, 10, 10]))
     stopper = Patience(('foo', 'bar'), 3, 2)
 
     assert not stopper({'n_iter': 0, 'foo': {'bar': 10}})
