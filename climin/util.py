@@ -83,7 +83,7 @@ def mini_slices(n_samples, batch_size):
 
 def draw_mini_slices(n_samples, batch_size, with_replacement=False):
     slices = mini_slices(n_samples, batch_size)
-    idxs = range(len(slices))
+    idxs = list(range(len(slices)))
 
     if with_replacement:
         yield random.choice(slices)
@@ -96,7 +96,7 @@ def draw_mini_slices(n_samples, batch_size, with_replacement=False):
 
 def draw_mini_indices(n_samples, batch_size):
     assert n_samples > batch_size
-    idxs = range(n_samples)
+    idxs = list(range(n_samples))
     random.shuffle(idxs)
     pos = 0
 
