@@ -56,6 +56,7 @@ class AfterNIterations(object):
     Examples
     --------
 
+    >>> from climin import stops as S
     >>> S.AfterNIterations(10)({'n_iter': 10})
     True
     >>> S.AfterNIterations(10)({'n_iter': 5})
@@ -96,11 +97,12 @@ class ModuloNIterations(object):
     Examples
     --------
 
-    >>> S.ModuleNIterations(10)({'n_iter': 9})
+    >>> from climin import stops as S
+    >>> S.ModuloNIterations(10)({'n_iter': 9})
     False
-    >>> S.ModuleNIterations(10)({'n_iter': 10})
+    >>> S.ModuloNIterations(10)({'n_iter': 10})
     True
-    >>> S.ModuleNIterations(10)({'n_iter': 11})
+    >>> S.ModuloNIterations(10)({'n_iter': 11})
     False
     """
 
@@ -132,6 +134,7 @@ class TimeElapsed(object):
     Examples
     --------
 
+    >>> from climin import stops as S
     >>> stop = S.TimeElapsed(.5); stop({})
     False
     >>> time.sleep(0.5)
@@ -218,6 +221,9 @@ class IsNaN(object):
     Examples
     --------
 
+    >>> import numpy
+    >>> import gnumpy
+    >>> from climin import stops as S
     >>> stop = S.IsNaN(['test']); stop({'test': 0})
     False
     >>> stop({'test': numpy.nan})
