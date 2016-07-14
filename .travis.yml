@@ -15,7 +15,7 @@ before_install:
 install:
   - travis_wait travis_retry pip install -r requirements.txt
   - travis_retry pip install -e . 
-script: nosetests test --with-doctests
+script: nosetests test --with-doctest
 cache:
   - apt
   - directories:
