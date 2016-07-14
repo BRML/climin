@@ -99,24 +99,25 @@ def bound_spectral_radius(arr, bound=1.2):
     arr[...] = np.dot(vecs, np.dot(np.diag(vals), vecs.T))
 
 
-def orthogonal(arr, leading_dim=None):
-    """Initialize the matrix ''arr'' with a random orthogonal matrix
+def orthogonal(arr, shape=None):
+    """Initialize the tensor ''arr'' with random orthogonal matrices
 
-    This is performed by QR decomposition of a random matrix and
-    setting ''arr'' = Q.
+    This is performed by QR decomposition of random matrices and
+    setting parts of ''arr'' to Q.
 
-    Q is an orthogonal matrix only iff ``arr`` is square. Otherwise either
-    rows or columns of Q are pairwise orthogonal, but not both.
+    Q is an orthogonal matrix only iff parts of ``arr`` are square, i.e.,
+     arr[..., :, :] is square or ''shape'' is that of a square matrix.
+     Otherwise either rows or columns of Q are orthogonal, but not both.
 
     Parameters
     ----------
 
-    arr : array_like, two dimensional
-        Array to work upon in place.
+    arr : tensor_like, n-dimensional
+        Tensor to work upon in place.
 
-    leading_dim : int, optional, default: None
+    shape : 2-tuple optional, default: None
         If len(arr.shape) != 2 or if it is not square, it is required to
-        specify the leading dimension of the matrix explicitly.
+        specify the shape of matrices that comprise ''arr''.
 
      Examples
     --------
@@ -128,35 +129,43 @@ def orthogonal(arr, leading_dim=None):
     >>> arr                                 # doctest: +SKIP
     array([[-0.44670617 -0.88694894  0.11736768]
          [ 0.08723642 -0.17373873 -0.98092031]
-         [ 0.89041755 -0.42794442  0.15498441]])
-    >>> n = 3
-    >>> arr = np.empty((n, 2))
-    >>> randomize_normal(arr, n)
-    >>> arr                                 # doctest: +SKIP
-    array([[-0.06075248  0.55297153]
-         [-0.36202908 -0.78803796]
-         [ 0.93018497 -0.27058947]])
+         [ 0.89041755 -0.42794442  0.15498441]]
+    >>> arr = np.empty((3, 4, 1))
+    >>> orthogonal(arr, shape=(2, 2))
+    >>> arr.reshape((3, 2, 2))              # doctest: +SKIP
+    array([[[-0.81455859  0.58008129]
+          [ 0.58008129  0.81455859]]
+
+         [[-0.75214632 -0.65899614]
+          [-0.65899614  0.75214632]]
+
+         [[-0.97017102 -0.24242153]
+          [-0.24242153  0.97017102]]])
     """
 
-    if leading_dim:
-        d1 = leading_dim
-        d2 = arr.size / d1
-        assert d1 * d2 == arr.size, "Incorrect leading dimension!"
-    elif len(arr.shape) == 2:
-        d1, d2 = arr.shape
+    if shape is not None:
+        d1, d2 = shape
+    elif len(arr.shape) >= 2:
+        d1, d2 = arr.shape[-2:]
     else:
-        d1 = d2 = int(np.sqrt(arr.size))
-        assert d1 * d2 == arr.size, \
-            "If no leading_dim given the array must be square!"
+        raise ValueError('Cannot ortho-initialize vectors. Please specify shape')
 
-    sample = np.random.randn(d1, d2)
-    if d2 > d1:
-        q, _ = np.linalg.qr(sample.T)
-        q = q.T
-    else:
-        q, _ = np.linalg.qr(sample)
+    shape = (arr.size / d1 / d2, d1, d2)
 
-    arr[...] = q.reshape(arr.shape)
+    if shape[0] == 1 and d1 == 1 or d2 == 1:
+        raise ValueError('Cannot ortho-initialize vectors.')
+
+    if np.prod(shape) != arr.size:
+        raise ValueError('Invalid shape')
+
+    samples = np.random.randn(*shape)
+    for i, sample in enumerate(samples):
+        if d2 > d1:
+            samples[i, ...] = np.linalg.qr(sample.T)[0].T
+        else:
+            samples[i, ...] = np.linalg.qr(sample)[0]
+
+    arr[...] = samples.reshape(arr.shape)
 
 
 def randomize_normal(arr, loc=0, scale=1, random_state=None):
