@@ -1,20 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import unittest
 import numpy as np
 
 import climin
-from climin.util import optimizer, OptimizerDistribution, minibatches
+from climin.util import optimizer, OptimizerDistribution, MinibatchIterator
 
 from nose.plugins.skip import SkipTest
-
-
-def test_minibatches():
-    """Test if minibatches are correctly generated if given a size."""
-    D = np.random.random((13, 5))
-    batches = minibatches(D, batch_size=5)
-    assert batches[0].shape[0] == 5
-    assert batches[1].shape[0] == 5
-    assert batches[2].shape[0] == 3
 
 
 def test_optimizer():
@@ -29,7 +21,6 @@ def test_optimizer():
         wrt = np.zeros(10)
         opt = optimizer(ident, wrt, f=None, fprime=None, f_Hp=None, step_rate=0.1)
         assert isinstance(opt, klass), 'wrong class for %s: %s' % (ident, type(opt))
-
 
 
 def test_optimizer_distribution():
@@ -56,3 +47,17 @@ def test_optimizer_distribution():
     else:
         assert opt[1]['step_rate'] in [.1, .2]
         assert opt[1]['momentum'] in [.9, .99]
+
+
+class MinibatchTest(unittest.TestCase):
+
+    def setUp(self):
+        self.D = np.random.random((13, 5))
+
+    def test_minibatch_size(self):
+        """Test if minibatches are correctly generated if given a size."""
+        batches = MinibatchIterator(self.D, batch_size=5)
+        self.assertEqual(batches[0].shape[0], 5)
+        self.assertEqual(batches[1].shape[0], 5)
+        self.assertEqual(batches[2].shape[0], 3)
+        self.assertEqual(len(batches), 3)

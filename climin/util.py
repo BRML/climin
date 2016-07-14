@@ -261,6 +261,43 @@ def empty_with_views(shapes, empty_func=np.empty):
     return flat, views
 
 
+class MinibatchIterator(object):
+    """see @minibatches"""
+
+    def __init__(self, X, batch_size, axis=0):
+        self.X = X
+        self.batch_size = batch_size
+        self.axis = axis if axis >= 0 else X.ndim + axis
+
+        if self.axis > X.ndim:
+            raise ValueError('Invalid axis.')
+
+        samples = X.shape[axis]
+        self.n_batches = samples / self.batch_size + (1 if samples % self.batch_size != 0 else 0)
+
+    def _slice(self, num):
+        start = num * self.batch_size
+        s = [slice(None)] * self.axis + [slice(start, start + self.batch_size), Ellipsis]
+        return self.X[s]
+
+    def __iter__(self):
+        for batch_num in xrange(self.n_batches):
+            yield self._slice(batch_num)
+
+    def __getitem__(self, batch_num):
+        if type(batch_num) != int:
+            raise ValueError('Batch number must be an integer')
+
+        if batch_num > self.n_batches:
+            raise ValueError('Batch number ({}) exceeds number of batches ({}).'
+                             .format(batch_num, self.n_batches))
+
+        return self._slice(batch_num)
+
+    def __len__(self):
+        return self.n_batches
+
+
 def minibatches(arr, batch_size, d=0):
     """Return a list of views of the given arr.
 
@@ -288,24 +325,7 @@ def minibatches(arr, batch_size, d=0):
     mini_batches : list
         Each item of the list is a view of ``arr``. Views are ordered.
     """
-    # This alternative is to make this work with lists in the case of d == 0.
-    if d == 0:
-        n_batches, rest = divmod(len(arr), batch_size)
-    else:
-        n_batches, rest = divmod(arr.shape[d], batch_size)
-    if rest:
-        n_batches += 1
-
-    slices = (slice(i * batch_size, (i + 1) * batch_size)
-              for i in range(n_batches))
-    if d == 0:
-        res = [arr[i] for i in slices]
-    elif d == 1:
-        res = [arr[:, i] for i in slices]
-    elif d == 2:
-        res = [arr[:, :, i] for i in slices]
-
-    return res
+    return MinibatchIterator(arr, batch_size, d)
 
 
 def iter_minibatches(lst, batch_size, dims, n_cycles=False, random_state=None):
@@ -355,7 +375,7 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=False, random_state=None):
     if random_state is not None:
         random.seed(random_state.normal())
     while True:
-        indices = [i for i, _ in enumerate(batches[0])]
+        indices = range(len(batches[0]))
         while True:
             random.shuffle(indices)
             for i in indices:
