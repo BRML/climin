@@ -10,7 +10,7 @@ Since then, Sarah Diot-Girard, Thomas Rueckstiess and Sebastian Urban have
 contributed. If you use climin in your (academic) work, please cite as 
 (tech report is in preparation):
 
-> J.Bayer and C.Osendorfer and S. Diot-Girard and T. Rückstiess and Sebastian Urban. climin - A pythonic framework for gradient-based function optimization. TUM Tech Report. 2015. 
+> J. Bayer and C. Osendorfer and S. Diot-Girard and T. Rückstiess and Sebastian Urban. climin - A pythonic framework for gradient-based function optimization. TUM Tech Report. 2016. http://github.com/BRML/climin
 
 
 Important links
@@ -24,7 +24,7 @@ Important links
 Dependencies
 ------------
 
-The software is tested under Python 2.7 with numpy 1.8, scipy 0.13. The tests
+The software is tested under Python 2.7 with numpy 1.10.4, scipy 0.17. The tests
 are run with nosetests.
 
 
