@@ -357,11 +357,11 @@ def minibatches(arr, batch_size, d=0):
     return res
 
 
-def iter_minibatches(lst, batch_size, dims, n_cycles=False, random_state=None):
+def iter_minibatches(lst, batch_size, dims, n_cycles=None, random_state=None,
+                     discard_illsized_batch=False):
     """Return an iterator that successively yields tuples containing aligned
     minibatches of size `batch_size` from slicable objects given in `lst`, in
     random order without replacement.
-
     Because different containers might require slicing over different
     dimensions, the dimension of each container has to be givens as a list
     `dims`.
@@ -381,65 +381,64 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=False, random_state=None):
         Aligned with ``lst``, gives the dimension along which the data samples
         are separated.
 
-    n_cycles : int or False, optional [default: False]
-        Number of cycles after which to stop the iterator. If ``False``, will
+    n_cycles : int, optional [default: None]
+        Number of cycles after which to stop the iterator. If ``None``, will
         yield forever.
 
     random_state : a numpy.random.RandomState object, optional [default : None]
-        Random number generator that will act as a seed for the minibatch order
+        Random number generator that will act as a seed for the minibatch order.
+
+    discard_illsized_batch : bool, optional [default : False]
+        If ``True`` and the length of the sliced dimension is not divisible by
+        ``batch_size``, the leftover samples are discarded.
 
 
     Returns
     -------
-
     batches : iterator
-        Infinite iterator of mini batches in random order (without
-        replacement).
+        Infinite iterator of mini batches in random order (without replacement).
     """
 
-    if any([d > 2 for d in dims]):
-        raise ValueError("cannot slice along a dimension larger than 2")
+    try:
+        # case distinction for handling lists
+        dm_result = [divmod(len(arr), batch_size)
+                     if d == 0 else divmod(arr.shape[d], batch_size)
+                     for (arr, d) in zip(lst, dims)]
+    except AttributeError:
+        raise AttributeError("'list' object has no attribute 'shape'. "
+                             "Trying to slice a list in a non-zero axis.")
+    except IndexError:
+        raise IndexError("tuple index out of range. "
+                         "Trying to slice along a non-existing dimension.")
 
-    if any([len(arr.shape) <= d for (arr, d) in zip(lst, dims)]):
-        raise ValueError("cannot slice along that dimension (shape, dim): {}"
-                         .format([(a.shape, d) for (a, d) in zip(lst, dims)]))
-
-    if any([arr.shape[d] != lst[0].shape[dims[0]]
-            for (arr, d) in zip(lst, dims)]):
-        raise ValueError("containers to be batched have different lengths: {}"
-                         .format([a.shape[d] for (a, d) in zip(lst, dims)]))
-
-    # This alternative is to make this work with lists in the case of d == 0.
-    if dims[0] == 0:
-        n_batches, rest = divmod(len(lst[0]), batch_size)
+    # check if all to-be-sliced dimensions have the same length
+    if dm_result.count(dm_result[0]) == len(dm_result):
+        n_batches, rest = dm_result[0]
+        if rest and not discard_illsized_batch:
+            n_batches += 1
     else:
-        n_batches, rest = divmod(lst[0].shape[dims[0]], batch_size)
-    if rest:
-        n_batches += 1
+        raise ValueError("The axes along which to slice have unequal lengths.")
 
-    counter = itertools.count()
     if random_state is not None:
         random.seed(random_state.normal())
+
+    counter = itertools.count()
+    count = next(counter)
+
     while True:
         indices = range(n_batches)
         while True:
+            if n_cycles is not None and count >= n_cycles:
+                raise StopIteration()
+            count = next(counter)
+
             random.shuffle(indices)
             for i in indices:
                 start = i * batch_size
-                end = (i + 1) * batch_size
-                batch = []
-                for (arr, d) in zip(lst, dims):
-                    if d == 0:
-                        batch.append(arr[start:end])
-                    elif d == 1:
-                        batch.append(arr[:, start:end])
-                    elif d == 2:
-                        batch.append(arr[:, :, start:end])
+                stop = (i + 1) * batch_size
+                batch = [arbitrary_slice(arr, start, stop, axis) for (arr, axis)
+                         in zip(lst, dims)]
                 yield tuple(batch)
-
-            count = next(counter)
-            if n_cycles and count >= n_cycles:
-                raise StopIteration()
 
 
 class OptimizerDistribution(object):
