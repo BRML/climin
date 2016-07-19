@@ -261,6 +261,55 @@ def empty_with_views(shapes, empty_func=np.empty):
     return flat, views
 
 
+def arbitrary_slice(arr, start, stop=None, axis=0):
+    """Return a slice from `start` to `stop` in dimension `axis` of array `arr`.
+
+
+    Parameters
+    ----------
+
+    arr : array_like
+        Can be numpy ndarray, hdf5 dataset, or list.
+        If ``arr`` is a list, ``axis`` must be 0.
+
+    start : int
+        Index at which to start slicing.
+
+    stop : int, optional [default: None]
+        Index at which to stop slicing.
+        If not specified, the axis is sliced until its end.
+
+    axis : int, optional [default: 0]
+        Axis along which should be sliced
+
+
+    Returns
+    -------
+
+    slice : array_like
+        The respective slice of ``arr``
+    """
+
+    if type(arr) is list:
+        if axis == 0:
+            return arr[start:stop]
+        else:
+            raise ValueError("Cannot slice a list in non-zero axis {}"
+                             .format(axis))
+
+    n_axes = len(arr.shape)
+
+    if axis >= n_axes:
+        raise IndexError('Argument `axis` with value {} out of range. '
+                         'Must be smaller than rank {} of `arr`.'
+                         .format(axis, n_axes))
+
+    this_slice = [slice(None) for _ in range(n_axes)]
+    this_slice[axis] = slice(start, stop)
+
+    return arr[tuple(this_slice)]
+
+
 def minibatches(arr, batch_size, d=0):
     """Return a list of views of the given arr.
 
