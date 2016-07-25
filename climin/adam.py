@@ -86,6 +86,7 @@ class Adam(Minimizer):
     state_fields = 'n_iter step_rate decay_mom1 decay_mom2 step offset est_mom1_b est_mom2_b'.split()
 
     def __init__(self, wrt, fprime, step_rate=.0002,
+                 decay=None,
                  decay_mom1=0.1,
                  decay_mom2=0.001,
                  momentum=0,
@@ -135,6 +136,9 @@ class Adam(Minimizer):
             warnings.warn("constraint from convergence analysis for adam not "
                           "satisfied; check original paper to see if you "
                           "really want to do this.")
+        if decay is not None:
+            warnings.warn('decay parameter was used in a previous verion of '
+                          'Adam and no longer has any effect.')
 
         super(Adam, self).__init__(wrt, args=args)
 
