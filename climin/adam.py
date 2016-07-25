@@ -47,6 +47,13 @@ class Adam(Minimizer):
         \\hat{v}_t  &\\leftarrow {v_t \\over (1 - (1 - \\beta_2)^t)} \\\\
         \\theta_t   &\\leftarrow \\theta_{t-1} - \\alpha {\\hat{m}_t \\over (\\sqrt{\\hat{v}_t} + \\epsilon)}
 
+    As suggested in the original paper, the last three steps are optimized for
+    efficieny by using:
+
+    .. math::
+        \\alpha_t  &\\leftarrow \\alpha {\\sqrt{(1 - (1 - \\beta_2)^t)} \\over (1 - (1 - \\beta_1)^t)} \\\\
+        \\theta_t   &\\leftarrow \\theta_{t-1} - \\alpha_t {m_t \\over (\\sqrt{v_t} + \\epsilon)}
+
     The quantities in the algorithm and their corresponding attributes in the
     optimizer object are as follows.
 
@@ -73,7 +80,7 @@ class Adam(Minimizer):
        The use of decay parameters :math:`\\beta_1` and :math:`\\beta_2` differs
        from the definition in the original paper [adam2014]_:
        With :math:`\\beta^{\\ast}_i` referring to the parameters as defined in
-       the paper, we use with :math:`\\beta_i = 1 - \\beta^{\\ast}_i`
+       the paper, we use :math:`\\beta_i` with :math:`\\beta_i = 1 - \\beta^{\\ast}_i`
 
     .. [adam2014] Kingma, Diederik, and Jimmy Ba.
        "Adam: A Method for Stochastic Optimization."
@@ -148,8 +155,6 @@ class Adam(Minimizer):
         self.decay_mom2 = decay_mom2
         self.offset = offset
         self.momentum = momentum
-        self.est_mom1 = 0
-        self.est_mom2 = 0
         self.est_mom1_b = 0
         self.est_mom2_b = 0
         self.step = 0
@@ -173,10 +178,9 @@ class Adam(Minimizer):
             self.est_mom1_b = dm1 * gradient + (1 - dm1) * est_mom1_b_m1
             self.est_mom2_b = dm2 * gradient ** 2 + (1 - dm2) * est_mom2_b_m1
 
-            self.est_mom1 = self.est_mom1_b / (1 - (1 - dm1) ** t + o)
-            self.est_mom2 = self.est_mom2_b / (1 - (1 - dm2) ** t + o)
-
-            step2 = self.step_rate * self.est_mom1 / (self.est_mom2 ** 0.5 + o)
+            step_t = self.step_rate * (1 - (1 - dm2) ** t) ** 0.5 / \
+                     (1 - (1 - dm1) ** t)
+            step2 = step_t * self.est_mom1_b / (self.est_mom2_b ** 0.5 + o)
 
             self.wrt -= step2
             self.step = step1 + step2
