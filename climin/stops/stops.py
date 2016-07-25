@@ -137,7 +137,7 @@ class TimeElapsed(object):
     >>> from climin import stops as S
     >>> stop = S.TimeElapsed(.5); stop({})
     False
-    >>> time.sleep(0.5)
+    >>> time.sleep(0.6)
     >>> stop({})
     True
     >>> stop2 = S.TimeElapsed(10); stop2({'runtime': 9})
