@@ -99,6 +99,75 @@ def bound_spectral_radius(arr, bound=1.2):
     arr[...] = np.dot(vecs, np.dot(np.diag(vals), vecs.T))
 
 
+def orthogonal(arr, shape=None):
+    """Initialize the tensor ''arr'' with random orthogonal matrices
+
+    This is performed by QR decomposition of random matrices and
+    setting parts of ''arr'' to Q.
+
+    Q is an orthogonal matrix only iff parts of ``arr`` are square, i.e.,
+     arr[..., :, :] is square or ''shape'' is that of a square matrix.
+     Otherwise either rows or columns of Q are orthogonal, but not both.
+
+    Parameters
+    ----------
+
+    arr : tensor_like, n-dimensional
+        Tensor to work upon in place.
+
+    shape : 2-tuple optional, default: None
+        If len(arr.shape) != 2 or if it is not square, it is required to
+        specify the shape of matrices that comprise ''arr''.
+
+     Examples
+    --------
+
+    >>> import numpy as np
+    >>> from climin.initialize import orthogonal
+    >>> arr = np.empty((3, 3))
+    >>> orthogonal(arr)
+    >>> arr                                 # doctest: +SKIP
+    array([[-0.44670617 -0.88694894  0.11736768]
+         [ 0.08723642 -0.17373873 -0.98092031]
+         [ 0.89041755 -0.42794442  0.15498441]]
+    >>> arr = np.empty((3, 4, 1))
+    >>> orthogonal(arr, shape=(2, 2))
+    >>> arr.reshape((3, 2, 2))              # doctest: +SKIP
+    array([[[-0.81455859  0.58008129]
+          [ 0.58008129  0.81455859]]
+
+         [[-0.75214632 -0.65899614]
+          [-0.65899614  0.75214632]]
+
+         [[-0.97017102 -0.24242153]
+          [-0.24242153  0.97017102]]])
+    """
+
+    if shape is not None:
+        d1, d2 = shape
+    elif len(arr.shape) >= 2:
+        d1, d2 = arr.shape[-2:]
+    else:
+        raise ValueError('Cannot ortho-initialize vectors. Please specify shape')
+
+    shape = (arr.size / d1 / d2, d1, d2)
+
+    if shape[0] == 1 and d1 == 1 or d2 == 1:
+        raise ValueError('Cannot ortho-initialize vectors.')
+
+    if np.prod(shape) != arr.size:
+        raise ValueError('Invalid shape')
+
+    samples = np.random.randn(*shape)
+    for i, sample in enumerate(samples):
+        if d2 > d1:
+            samples[i, ...] = np.linalg.qr(sample.T)[0].T
+        else:
+            samples[i, ...] = np.linalg.qr(sample)[0]
+
+    arr[...] = samples.reshape(arr.shape)
+
+
 def randomize_normal(arr, loc=0, scale=1, random_state=None):
     """Populate an array with random numbers from a normal distribution with
     mean `loc` and standard deviation `scale`.
