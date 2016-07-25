@@ -69,9 +69,7 @@ def sparsify_columns(arr, n_non_zero, keep_diagonal=False, random_state=None):
 def bound_spectral_radius(arr, bound=1.2):
     """Set the spectral radius of the square matrix ``arr`` to ``bound``.
 
-    This is performed by making an Eigendecomposition of ``arr``, rescale all
-    Eigenvalues such that the absolute value of the greatest matches ``bound``
-    and recompose it again.
+    This is performed by scaling eigenvalues of ``arr``.
 
     Parameters
     ----------
@@ -93,10 +91,8 @@ def bound_spectral_radius(arr, bound=1.2):
            [  2.69693846e-01,   3.59591794e-01,   4.49489743e-01],
            [  5.39387691e-01,   6.29285640e-01,   7.19183588e-01]])
     """
-    vals, vecs = np.linalg.eigh(ma.assert_numpy(arr))
-    vals /= abs(vals).max()
-    vals *= bound
-    arr[...] = np.dot(vecs, np.dot(np.diag(vals), vecs.T))
+    spectral_radius = abs(np.linalg.eigvals(ma.assert_numpy(arr))).max()
+    arr[...] *= bound / spectral_radius
 
 
 def orthogonal(arr, shape=None):
