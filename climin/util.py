@@ -401,9 +401,9 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=None, random_state=None,
 
     # This if clause is for backward compatibility.
     if type(n_cycles) == bool and not n_cycles:
-	n_cycles = None
+        n_cycles = None
         warnings.warn("n_cycles=False kwarg to iter_minibatches deprecated. "
-                      "Using n_cycles=None instead.")
+                        "Using n_cycles=None instead.")
 
     try:
         # case distinction for handling lists
