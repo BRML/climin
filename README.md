@@ -1,7 +1,7 @@
 climin
 ------
 
-climin is a Python package for optimization, heavily biased to machine learning
+CLIMIN is a Python package for optimization, heavily biased to machine learning
 scenarios distributed under the BSD 3-clause license. It works on top of numpy
 and (partially) gnumpy.
 
