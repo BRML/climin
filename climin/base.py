@@ -70,7 +70,7 @@ class Minimizer(object):
             raise ValueError('need to supply at least one criterion')
 
         # if criterions is a single criterion, wrap it in iterable list
-        if not isinstance(criterions, collections.Iterable):
+        if not isinstance(criterions, collections.abc.Iterable):
             criterions = [criterions]
 
         info = {}
