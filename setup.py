@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="climin",
-    version="pre-0.1",
+    version="0.1.0",
     description="optimization for machine learning",
     license="BSD",
     keywords="Machine Learning Optimization",
