@@ -44,9 +44,6 @@ class RmsProp(Minimizer):
     has pseudo curvature information. Additionally, it can deal with stochastic
     objectives very nicely, making it applicable to mini batch learning.
 
-    .. note::
-       Works with gnumpy.
-
     .. [tieleman2012rmsprop]  Tieleman, T. and Hinton, G. (2012),
        Lecture 6.5 - rmsprop, COURSERA: Neural Networks for Machine Learning
 
@@ -183,8 +180,6 @@ class RmsProp(Minimizer):
             # Step rate adaption. If the current step and the momentum agree,
             # we slightly increase the step rate for that dimension.
             if self.step_adapt:
-                # This code might look weird, but it makes it work with both
-                # numpy and gnumpy.
                 step_non_negative = step > 0
                 step_m1_non_negative = step_m1 > 0
                 agree = (step_non_negative == step_m1_non_negative) * 1.0

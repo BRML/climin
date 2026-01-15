@@ -53,10 +53,6 @@ class GradientDescent(Minimizer):
     which can be specified additionally by the initialization argument
     ``momentum_type``.
 
-    .. note::
-       Works with gnumpy.
-
-
     Attributes
     ----------
     wrt : array_like

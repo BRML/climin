@@ -44,9 +44,9 @@ which we assume given. We then create a ``GradientDescent`` object over which we
 iterate to optimize. In each iteration, we pickle the info dictionary to disk.
 
 .. note:: Pickling an info dictionary directly to disk might be a bad idea in
-          many cases. E.g. it will contain the current data element or a gnumpy
-          array, which is not picklable. It is the users's responsibility to
-          take care of that.
+          many cases. E.g. it will contain the current data element which may
+          not be picklable. It is the users's responsibility to take care of
+          that.
 
 
 Loading the state from disk

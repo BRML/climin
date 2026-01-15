@@ -31,13 +31,6 @@ def max_length_columns(arr, max_length):
     divisor = too_big_by
     non_violated = lengths < max_length
 
-    if isinstance(arr, np.ndarray):
-        divisor[np.where(non_violated)] = 1.0
-    else:
-        # Gnumpy implementation.
-        # TODO: can this be done more efficiently?
-        for i, nv in enumerate(non_violated):
-            if nv:
-                divisor[i] = 1.0
+    divisor[np.where(non_violated)] = 1.0
 
     arr /= divisor[np.newaxis]

@@ -46,10 +46,7 @@ def sparsify_columns(arr, n_non_zero, keep_diagonal=False, random_state=None):
     """
     colsize = arr.shape[0]
 
-    # In case it's gnumpy, copy to numpy array first. The sparsifying loop will
-    # run in numpy.
-    arr_np = arr if isinstance(arr, np.ndarray) else arr.as_numpy_array()
-    mask = np.ones_like(arr_np)
+    mask = np.ones_like(arr)
     for i in range(arr.shape[1]):
         idxs = range(colsize)
         if random_state is None:
@@ -198,8 +195,4 @@ def randomize_normal(arr, loc=0, scale=1, random_state=None):
     """
     rng = np.random if random_state is None else random_state
     sample = rng.normal(loc, scale, arr.shape)
-    if isinstance(arr, np.ndarray):
-        arr[...] = sample.astype(arr.dtype)
-    else:
-        # Assume gnumpy.
-        arr[:] = sample.astype("float32")
+    arr[...] = sample.astype(arr.dtype)

@@ -25,8 +25,7 @@ We found several requirements for a good optimization library.
    force any framework on you on and come up with things that try to solve
    everything.
  - Most of the optimizers, i.e. those that do not rely on too much linear
-   algebra such as matrix inversions, should not only work on the CPU via
-   numpy but also on the GPU via gnumpy.
+   algebra such as matrix inversions, work on the CPU via numpy.
  - Optimizers should be easily switchable; if we have a model and a loss
    we wanted to be able to quickly experiment with different methods.
  - Optimizers should be reasonably fast. Most of the computational work

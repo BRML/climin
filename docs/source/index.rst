@@ -42,8 +42,7 @@ through the error landscape... in a classic for loop::
 
    print network.loss(test_data)
 
-Climin works on the CPU (via numpy and scipy) and in parts on the GPU (via
-gnumpy).
+Climin works on the CPU (via numpy and scipy).
 
 
 Starting points

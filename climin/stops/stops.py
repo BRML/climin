@@ -220,13 +220,10 @@ class IsNaN(object):
     --------
 
     >>> import numpy
-    >>> import gnumpy
     >>> from climin import stops as S
     >>> stop = S.IsNaN(['test']); stop({'test': 0})
     False
     >>> stop({'test': numpy.nan})
-    True
-    >>> stop({'test': gnumpy.as_garray(numpy.nan)})
     True
     """
 

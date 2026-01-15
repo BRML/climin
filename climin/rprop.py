@@ -40,9 +40,6 @@ class Rprop(Minimizer):
     more sensitive towards stochastic objectives, since that stochasticity might
     lead to bad estimates of the sign of the gradient.
 
-    .. note::
-       Works with gnumpy.
-
     .. [riedmiller1992rprop] M. Riedmiller und Heinrich Braun: Rprop - A Fast
        Adaptive Learning Algorithm. Proceedings of the International Symposium
        on Computer and Information Science VII, 1992

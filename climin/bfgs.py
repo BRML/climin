@@ -26,10 +26,6 @@ is then applied to yield a direction :math:`d_t`. The update done is then of the
 
 where :math:`\\alpha_t` is obtained with a line search.
 
-.. note::
-    The classes presented here are not working with gnumpy.
-
-
 """
 
 import warnings

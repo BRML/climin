@@ -21,19 +21,15 @@ except ImportError:
     pass
 
 
-def is_garray(cand):
-    return hasattr(cand, "as_numpy_array")
-
-
 def is_array(cand):
-    return is_garray(cand) or isinstance(cand, np.ndarray)
+    return isinstance(cand, np.ndarray)
 
 
 def clear_info(info):
     """Clean up contents of info dictionary for better use.
 
-    Keys to be removed are ``args``, ``kwargs`` and any non-scalar numpy or
-    gnumpy arrays. Numpy scalars are converted to floats.
+    Keys to be removed are ``args``, ``kwargs`` and any non-scalar numpy
+    arrays. Numpy scalars are converted to floats.
 
     Examples
     --------
@@ -219,7 +215,7 @@ def empty_with_views(shapes, empty_func=np.empty):
     empty_func : callable
         function that returns a memory region given an integer of the desired
         size. (Examples include ``numpy.empty``, which is the default,
-        ``gnumpy.empty`` and ``theano.tensor.empty``.
+        and ``theano.tensor.empty``.
 
 
     Returns

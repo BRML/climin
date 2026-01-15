@@ -2,8 +2,7 @@ climin
 ------
 
 climin is a Python package for optimization, heavily biased to machine learning
-scenarios distributed under the BSD 3-clause license. It works on top of numpy
-and (partially) gnumpy.
+scenarios distributed under the BSD 3-clause license. It works on top of numpy.
 
 The project was started in winter 2011 by Christian Osendorfer and Justin Bayer.
 Since then, Sarah Diot-Girard, Thomas Rueckstiess and Sebastian Urban have 

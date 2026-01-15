@@ -43,17 +43,14 @@ structure which reads data from disk as soon as it is needed and disposes of it
 as soon as it is not any more.
 
 HDF5 and its python package `h5py <http://www.h5py.org/>`_ are a perfect match
-for this. We have managed to use 6+ GB sized image data sets on GPUs with less
-than 2 GB of RAM with this simple recipe::
+for this. Here is a simple recipe for working with large datasets::
 
     import climin.util
-    import gnumpy
     import h5py
 
     f = h5py.File('data.h5')
     ds = f['inpts']
     args = climin.util.iter_minibatches([ds], 100, [0])
-    args = (gnumpy.garray(i) for i in args)
 
     # ...
 

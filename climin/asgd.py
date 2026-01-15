@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # TODO: document module
-# TODO: check if gnumpy compatible
 
 from .base import Minimizer
 

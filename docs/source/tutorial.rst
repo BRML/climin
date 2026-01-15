@@ -5,10 +5,7 @@ In the following we will explain the basic features of climin with a simple
 example. For that we will first use a multinomial logistic regression, which
 suffices to show much of climin's functionality.
 
-Although we will use numpy in this example, we have spent quite some effort to
-make most optimizers work with gnumpy as well. This makes the use of GPUs
-possible. Check the reference documentation for specific optimizers whether
-the usage of GPU is supported.
+We will use numpy in this example.
 
 
 Defining a Loss Function
