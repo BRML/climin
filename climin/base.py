@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import itertools
-import collections
+import collections.abc
 
 import numpy as np
 
@@ -70,7 +70,7 @@ class Minimizer(object):
             raise ValueError('need to supply at least one criterion')
 
         # if criterions is a single criterion, wrap it in iterable list
-        if not isinstance(criterions, collections.Iterable):
+        if not isinstance(criterions, collections.abc.Iterable):
             criterions = [criterions]
 
         info = {}

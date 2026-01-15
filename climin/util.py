@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-
 import inspect
 import itertools
 import random
@@ -47,7 +45,7 @@ def clear_info(info):
     >>> cleared == {'bar': 1.0, 'loss': 1.0}
     True
     """
-    items = info.iteritems()
+    items = info.items()
     items = ((k, float(v.reshape((1,))[0]) if is_array(v) and v.size == 1 else v)
              for k, v in items)
     items = ((k, v) for k, v in items if not is_array(v))
@@ -139,8 +137,8 @@ def optimizer(identifier, wrt, *args, **kwargs):
     }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]
-    argspec = inspect.getargspec(klass.__init__)
-    if argspec.keywords is None:
+    argspec = inspect.getfullargspec(klass.__init__)
+    if argspec.varkw is None:
         # Issue a warning for each of the arguments that have been passed
         # to this optimizer but were not used.
         expected_keys = set(argspec.args)
@@ -290,7 +288,7 @@ def arbitrary_slice(arr, start, stop=None, axis=0):
         The respective slice of ``arr``
     """
 
-    if type(arr) is list:
+    if isinstance(arr, list):
         if axis == 0:
             return arr[start:stop]
         else:
@@ -397,10 +395,10 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=None, random_state=None,
     -------
     batches : iterator
         Infinite iterator of mini batches in random order (without replacement).
-    """	
+    """
 
     # This if clause is for backward compatibility.
-    if type(n_cycles) == bool and not n_cycles:
+    if isinstance(n_cycles, bool) and not n_cycles:
         n_cycles = None
         warnings.warn("n_cycles=False kwarg to iter_minibatches deprecated. "
                         "Using n_cycles=None instead.")

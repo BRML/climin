@@ -2,14 +2,12 @@
 
 """This module provides an implementation of adadelta."""
 
-from __future__ import absolute_import
-
 from .base import Minimizer
 from .mathadapt import sqrt, ones_like, clip
 
 
 class Adadelta(Minimizer):
-    """Adadelta optimizer.
+    r"""Adadelta optimizer.
 
     Adadelta [zeiler2013adadelta]_ is a method that uses the magnitude of recent
     gradients and steps to obtain an adaptive step rate. An exponential moving

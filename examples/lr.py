@@ -1,6 +1,6 @@
 """Train logistic regression on the mnist data set."""
 
-import cPickle
+import pickle
 import gzip
 import itertools
 import sys
@@ -46,7 +46,7 @@ def main():
     datafile = 'mnist.pkl.gz'
     # Load data.
     with gzip.open(datafile, 'rb') as f:
-        train_set, val_set, test_set = cPickle.load(f)
+        train_set, val_set, test_set = pickle.load(f, encoding='latin1')
 
     X, Z = train_set
     VX, VZ = val_set
@@ -54,7 +54,7 @@ def main():
 
     def one_hot(arr):
         result = np.zeros((arr.shape[0], 10))
-        result[xrange(arr.shape[0]), arr] = 1.
+        result[range(arr.shape[0]), arr] = 1.
         return result
 
     Z = one_hot(Z)
@@ -83,13 +83,13 @@ def main():
     elif optimizer == 'rprop':
         opt = climin.Rprop(flat, d_loss_wrt_pars, args=args)
     else:
-        print 'unknown optimizer'
+        print('unknown optimizer')
         return 1
 
     for info in opt:
         if info['n_iter'] % batches_per_pass == 0:
-            print '%i/%i test loss: %g' % (
-                info['n_iter'], batches_per_pass * 10, loss(flat, VX, VZ))
+            print('%i/%i test loss: %g' % (
+                info['n_iter'], batches_per_pass * 10, loss(flat, VX, VZ)))
         if info['n_iter'] >= 10 * batches_per_pass:
             break
 

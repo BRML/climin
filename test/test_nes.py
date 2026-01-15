@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-
-import nose
+import pytest
 import itertools
 
 from climin import Xnes
@@ -8,7 +6,7 @@ from climin import Xnes
 from .losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-@nose.tools.nottest
+@pytest.mark.skip
 def test_xnes_quadratic():
     obj = Quadratic()
     opt = Xnes(obj.pars, obj.f)
@@ -27,7 +25,7 @@ def test_xnes_rosen():
     assert obj.solved(0.3), 'did not find solution'
 
 
-@nose.tools.nottest
+@pytest.mark.skip
 def test_xnes_lr():
     obj = LogisticRegression(seed=10101)
     args = itertools.repeat(((obj.X, obj.Z), {}))

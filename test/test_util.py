@@ -2,10 +2,10 @@
 
 import numpy as np
 
+import pytest
+
 import climin
 from climin.util import optimizer, OptimizerDistribution, minibatches
-
-from nose.plugins.skip import SkipTest
 
 
 def test_minibatches():
@@ -36,7 +36,7 @@ def test_optimizer_distribution():
     try:
         from sklearn.grid_search import ParameterSampler
     except ImportError:
-        raise SkipTest()
+        pytest.skip("sklearn not available")
 
     rv = OptimizerDistribution(gd={'step_rate': [.1, .2],
                                    'momentum': [.9, .99]})

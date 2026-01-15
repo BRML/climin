@@ -2,8 +2,6 @@
 
 # TODO document
 
-from __future__ import absolute_import
-
 import warnings
 
 import numpy as np
@@ -31,10 +29,10 @@ class Smd(Minimizer):
         self.eta0 = eta0
 
     def set_from_info(self, info):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def extended_info(self, **kwargs):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def __iter__(self):
         p = np.size(self.wrt)

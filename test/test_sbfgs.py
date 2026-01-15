@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-
-import nose
+import pytest
 import itertools
 
 from climin import Sbfgs
@@ -8,7 +6,7 @@ from climin import Sbfgs
 from .losses import Quadratic, LogisticRegression, Rosenbrock
 
 
-@nose.tools.nottest
+@pytest.mark.skip
 def test_sbfgs_quadratic():
     obj = Quadratic()
     opt = Sbfgs(obj.pars, obj.f, obj.fprime)
@@ -27,7 +25,7 @@ def test_sbfgs_rosen():
     assert obj.solved(), 'did not find solution'
 
 
-@nose.tools.nottest
+@pytest.mark.skip
 def test_sbfgs_lr():
     obj = LogisticRegression()
     args = itertools.repeat(((obj.X, obj.Z), {}))

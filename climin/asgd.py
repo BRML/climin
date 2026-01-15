@@ -3,8 +3,6 @@
 # TODO: document module
 # TODO: check if gnumpy compatible
 
-from __future__ import absolute_import
-
 from .base import Minimizer
 
 
@@ -27,10 +25,10 @@ class Asgd(Minimizer):
         self.eta_t = eta0
 
     def set_from_info(self, info):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def extended_info(self, **kwargs):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def __iter__(self):
         # do 'determineEta0' (see Bottou) here?

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Module containing functionality for conjugate gradients.
+r"""Module containing functionality for conjugate gradients.
 
 Conjugate gradients is motivated from a first order Taylor expansion of the
 objective:
@@ -32,21 +32,17 @@ reset from time to time. Additionally, we need to perform a line search to solve
 for :math:`\\alpha_t`.
 """
 
-from __future__ import absolute_import
-
 import warnings
 
 import numpy as np
-import scipy
 import scipy.linalg
-import scipy.optimize
 
 from .base import Minimizer, is_nonzerofinite
 from .linesearch import WolfeLineSearch
 
 
 class ConjugateGradient(Minimizer):
-    """ConjugateGradient class.
+    r"""ConjugateGradient class.
 
     Minimize a quadratic objective of the form
 
@@ -127,10 +123,10 @@ class ConjugateGradient(Minimizer):
         self.precond = precond
 
     def set_from_info(self, info):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def extended_info(self, **kwargs):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def solve(self, r):
         if self.precond is None:
@@ -260,10 +256,10 @@ class NonlinearConjugateGradient(Minimizer):
         self.min_grad = min_grad
 
     def set_from_info(self, info):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def extended_info(self, **kwargs):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def find_direction(self, grad_m1, grad, direction_m1):
         # Computation of beta as a compromise between Fletcher-Reeves

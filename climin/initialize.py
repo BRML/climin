@@ -3,14 +3,11 @@
 """Module that contains functionality to initialize parameters to starting
 values."""
 
-from __future__ import absolute_import
-
 import random
 
 import numpy as np
 
 from . import mathadapt as ma
-from .compat import range
 
 
 def sparsify_columns(arr, n_non_zero, keep_diagonal=False, random_state=None):
@@ -146,7 +143,7 @@ def orthogonal(arr, shape=None):
     else:
         raise ValueError('Cannot ortho-initialize vectors. Please specify shape')
 
-    shape = (arr.size / d1 / d2, d1, d2)
+    shape = (arr.size // d1 // d2, d1, d2)
 
     if shape[0] == 1 and d1 == 1 or d2 == 1:
         raise ValueError('Cannot ortho-initialize vectors.')

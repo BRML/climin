@@ -2,8 +2,6 @@
 
 """This module provides an implementation of rmsprop."""
 
-from __future__ import absolute_import
-
 import numpy as np
 
 from .base import Minimizer
@@ -11,7 +9,7 @@ from .mathadapt import sqrt, ones_like, clip
 
 
 class RmsProp(Minimizer):
-    """RmsProp optimizer.
+    r"""RmsProp optimizer.
 
     RmsProp [tieleman2012rmsprop]_ is an optimizer that utilizes the magnitude
     of recent gradients to normalize the gradients. We always keep a moving

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 # Control breaking does not work on Windows after e.g. scipy.stats is
 # imported because certain Fortran libraries register their own signal handler
 # See:
@@ -7,7 +5,6 @@ from __future__ import absolute_import
 # and https://github.com/numpy/numpy/issues/6923
 import sys
 import os
-import imp
 import ctypes
 
 if sys.platform == 'win32':
@@ -21,7 +18,8 @@ if sys.platform == 'win32':
     # In setups with an older version, ensuring that the respective dlls are
     # loaded from the numpy core and not somewhere else (e.g. the Windows System
     # folder) helps
-    basepath = imp.find_module('numpy')[1]
+    import numpy
+    basepath = os.path.dirname(numpy.__file__)
     # dll loading fails when Intel Fortran compiler version >= 16.0, therefore
     # use try/catch
     try:

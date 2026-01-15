@@ -2,8 +2,6 @@
 
 """Module that contains projection operators."""
 
-from __future__ import absolute_import
-
 import numpy as np
 
 from .mathadapt import sqrt

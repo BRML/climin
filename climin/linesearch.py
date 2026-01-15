@@ -9,15 +9,10 @@ one-dimensional optimization problem, which can then be solved by a line search.
 
 # TODO: this module needs lots of pep8 love.
 
-from __future__ import absolute_import
-
 import itertools
 
 import numpy as np
-import scipy as sp
 import scipy.optimize
-
-from .compat import range
 
 
 class LineSearch(object):
@@ -26,7 +21,7 @@ class LineSearch(object):
         self.wrt = wrt
 
     def search(self, direction, initialization, args=None, kwargs=None):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class BackTrack(LineSearch):
@@ -229,10 +224,11 @@ class StrongWolfeBackTrack(BackTrack):
             loss0 = self.f(self.wrt, *args, **kwargs)
 
         self.grad = grad0 = self.fprime(self.wrt, *args, **kwargs)
-        dir_dot_grad0 = scipy.inner(direction, grad0)
+        dir_dot_grad0 = np.inner(direction, grad0)
         # Try out every point in the schedule until one satisfying strong Wolfe
         # conditions has been found.
-        for s in self.schedule:
+        schedule = (self.decay ** i for i in itertools.count())
+        for s in schedule:
             step = s * direction
             if abs(step.max()) < self.tolerance:
                 # If the step is too short, stop trying.
@@ -242,7 +238,7 @@ class StrongWolfeBackTrack(BackTrack):
             # Wolfe 1
             if loss <= loss0 + self.c1 * s * dir_dot_grad0:
                 grad = self.fprime(candidate, *args, **kwargs)
-                dir_dot_grad = scipy.inner(direction, grad)
+                dir_dot_grad = np.inner(direction, grad)
                 # Wolfe 2
                 if abs(dir_dot_grad) <= self.c2 * abs(dir_dot_grad0):
                     self.grad = grad
@@ -289,7 +285,7 @@ class WolfeLineSearch(LineSearch):
         kwargs = kwargs if kwargs is not None else {}
         loss0 = self.f(self.wrt, *args, **kwargs) if loss0 is None else loss0
         grad0 = self.fprime(self.wrt, *args, **kwargs)
-        direct_deriv0 = scipy.inner(grad0, direction)
+        direct_deriv0 = np.inner(grad0, direction)
         f = lambda x: (self.f(x, *args, **kwargs),
                        self.fprime(x, *args, **kwargs))
 
@@ -343,7 +339,7 @@ def polyinterp(points, xminBound=None, xmaxBound=None):
         f2 = points[notMinPos, 1]
 
         d1 = g1 + g2 - 3 * (f1 - f2) / (x1 - x2)
-        d2 = sp.sqrt(d1 ** 2 - g1 * g2)
+        d2 = np.sqrt(d1 ** 2 - g1 * g2)
         if np.isreal(d2):
             t = points[notMinPos, 0] -\
                     (points[notMinPos, 0] - points[minPos, 0]) * \
@@ -769,7 +765,7 @@ def wolfe_line_search(x, t, d, f, g, gtd,
 
             # Evaluate new point
             # no Hessian!
-            t = scipy.real(t)
+            t = np.real(t)
             f_new, g_new = funObj(x + t * d)
             funEvals += 1
             gtd_new = np.dot(g_new, d)

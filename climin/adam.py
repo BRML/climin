@@ -2,15 +2,13 @@
 
 """This module provides an implementation of Adam."""
 
-from __future__ import absolute_import
-
 import warnings
 
 from .base import Minimizer
 
 
 class Adam(Minimizer):
-    """Adaptive moment estimation optimizer. (Adam).
+    r"""Adaptive moment estimation optimizer. (Adam).
 
     Adam is a method for the optimization of stochastic objective functions.
 

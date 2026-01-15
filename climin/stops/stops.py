@@ -25,16 +25,12 @@ a common API with functions which are supposed to have a state, which can be
 realized by generator functions or objects with a ``__call__`` magic method.
 """
 
-from __future__ import absolute_import
-
 import itertools
 import signal
 import sys
 import time
 
 from climin.mathadapt import isnan
-
-from ..compat import basestring
 
 class AfterNIterations(object):
     """AfterNIterations class.
@@ -291,7 +287,7 @@ class Patience(object):
 
     def __call__(self, info):
         i = info['n_iter']
-        if isinstance(self.func_or_key, basestring):
+        if isinstance(self.func_or_key, str):
             loss = info[self.func_or_key]
         elif isinstance(self.func_or_key, (tuple, list)):
             loss = info

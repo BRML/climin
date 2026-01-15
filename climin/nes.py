@@ -28,9 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import absolute_import
-
-import scipy
+import numpy as np
 import scipy.linalg
 
 from .base import Minimizer
@@ -46,25 +44,25 @@ class Xnes(Minimizer):
         self._f = f
         # Set some default values.
         dim = self.wrt.shape[0]
-        log_dim = scipy.log(dim)
-        self.step_rate = 0.6 * (3 + log_dim) / dim / scipy.sqrt(dim)
-        self.batch_size = 4 + int(scipy.floor(3 * log_dim))
+        log_dim = np.log(dim)
+        self.step_rate = 0.6 * (3 + log_dim) / dim / np.sqrt(dim)
+        self.batch_size = 4 + int(np.floor(3 * log_dim))
 
     def set_from_info(self, info):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def extended_info(self, **kwargs):
-        raise NotImplemented('nobody has found the time to implement this yet')
+        raise NotImplementedError('nobody has found the time to implement this yet')
 
     def f(self, x, *args, **kwargs):
         return -self._f(x, *args, **kwargs)
 
     def __iter__(self):
         dim = self.wrt.shape[0]
-        I = scipy.eye(dim)
+        I = np.eye(dim)
 
         # Square root of covariance matrix.
-        A = scipy.eye(dim)
+        A = np.eye(dim)
         center = self.wrt.copy()
         n_evals = 0
         best_wrt = None
@@ -72,11 +70,11 @@ class Xnes(Minimizer):
         for i, (args, kwargs) in enumerate(self.args):
             # Draw samples, evaluate and update best solution if a better one
             # was found.
-            samples = scipy.random.standard_normal((self.batch_size, dim))
-            samples = scipy.dot(samples, A) + center
+            samples = np.random.standard_normal((self.batch_size, dim))
+            samples = np.dot(samples, A) + center
             fitnesses = [self.f(samples[j], *args, **kwargs)
                          for j in range(samples.shape[0])]
-            fitnesses = scipy.array(fitnesses).flatten()
+            fitnesses = np.array(fitnesses).flatten()
 
             if fitnesses.max() > best_x:
                 best_loss = fitnesses.max()
@@ -84,28 +82,28 @@ class Xnes(Minimizer):
 
             # Update center and variances.
             utilities = self.compute_utilities(fitnesses)
-            center += scipy.dot(scipy.dot(utilities, samples), A)
+            center += np.dot(np.dot(utilities, samples), A)
             # TODO: vectorize this
-            cov_gradient = sum([u * (scipy.outer(s, s) - I)
+            cov_gradient = sum([u * (np.outer(s, s) - I)
                                 for (s, u) in zip(samples, utilities)])
-            update = scipy.linalg.expm2(A * cov_gradient * self.step_rate * 0.5)
-            A[:] = scipy.dot(A, update)
+            update = scipy.linalg.expm(A * cov_gradient * self.step_rate * 0.5)
+            A[:] = np.dot(A, update)
 
             yield dict(loss=-best_x, n_iter=i)
 
     def compute_utilities(self, fitnesses):
         n_fitnesses = fitnesses.shape[0]
-        ranks = scipy.zeros_like(fitnesses)
+        ranks = np.zeros_like(fitnesses)
         l = sorted(enumerate(fitnesses), key=lambda x: x[1])
         for i, (j, _) in enumerate(l):
             ranks[j] = i
         # smooth reshaping
 
-        # If we do not cast to float64 here explicitly, scipy will at random
+        # If we do not cast to float64 here explicitly, numpy will at random
         # points crash with a weird AttributeError.
-        utilities = -scipy.log((n_fitnesses - ranks).astype('float64'))
-        utilities += scipy.log(n_fitnesses / 2. + 1.0)
-        utilities = scipy.clip(utilities, 0, float('inf'))
+        utilities = -np.log((n_fitnesses - ranks).astype('float64'))
+        utilities += np.log(n_fitnesses / 2. + 1.0)
+        utilities = np.clip(utilities, 0, float('inf'))
         utilities /= utilities.sum()       # make the utilities sum to 1
         utilities -= 1. / n_fitnesses  # baseline
         return utilities

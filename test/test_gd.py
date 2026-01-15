@@ -1,8 +1,6 @@
-from __future__ import absolute_import
-
 import itertools
 
-import nose
+import pytest
 
 from climin import GradientDescent
 
@@ -20,7 +18,7 @@ def test_gd_quadratic():
     assert obj.solved(), 'did not find solution'
 
 
-@nose.tools.nottest
+@pytest.mark.skip
 def test_gd_rosen():
     obj = Rosenbrock()
     opt = GradientDescent(
@@ -53,7 +51,7 @@ def test_gd_quadratic_nesterov():
     assert obj.solved(), 'did not find solution'
 
 
-@nose.tools.nottest
+@pytest.mark.skip
 def test_gd_rosen_nesterov():
     obj = Rosenbrock()
     opt = GradientDescent(
