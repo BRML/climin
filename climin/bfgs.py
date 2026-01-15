@@ -82,8 +82,7 @@ class Bfgs(Minimizer):
 
     """
 
-    def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
-                 line_search=None, args=None):
+    def __init__(self, wrt, f, fprime, initial_inv_hessian=None, line_search=None, args=None):
         """Create a BFGS object.
 
         Parameters
@@ -121,10 +120,10 @@ class Bfgs(Minimizer):
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def find_direction(self, grad_m1, grad, step, inv_hessian):
         H = self.inv_hessian
@@ -132,10 +131,10 @@ class Bfgs(Minimizer):
         ys = np.inner(grad_diff, step)
         Hy = np.dot(H, grad_diff)
         yHy = np.inner(grad_diff, Hy)
-        H += (ys + yHy) * np.outer(step, step) / ys ** 2
+        H += (ys + yHy) * np.outer(step, step) / ys**2
         H -= (np.outer(Hy, step) + np.outer(step, Hy)) / ys
         direction = -np.dot(H, grad)
-        return direction, {'gradient_diff': grad_diff}
+        return direction, {"gradient_diff": grad_diff}
 
     def __iter__(self):
         args, kwargs = next(self.args)
@@ -149,22 +148,19 @@ class Bfgs(Minimizer):
             if i == 0:
                 direction, info = -grad, {}
             else:
-                direction, info = self.find_direction(
-                    grad_m1, grad, step, self.inv_hessian)
+                direction, info = self.find_direction(grad_m1, grad, step, self.inv_hessian)
 
             if not is_nonzerofinite(direction):
                 # TODO: inform the user here.
                 break
 
-            step_length = self.line_search.search(
-                direction, None, args, kwargs)
+            step_length = self.line_search.search(direction, None, args, kwargs)
 
             if step_length != 0:
                 step = step_length * direction
                 self.wrt += step
             else:
-                self.logfunc(
-                    {'message': 'step length is 0--need to bail out.'})
+                self.logfunc({"message": "step length is 0--need to bail out."})
                 break
 
             # Prepare everything for the next loop.
@@ -172,30 +168,29 @@ class Bfgs(Minimizer):
             # TODO: not all line searches have .grad!
             grad_m1[:], grad[:] = grad, self.line_search.grad
 
-            info.update({
-                'step_length': step_length,
-                'n_iter': i,
-                'args': args,
-                'kwargs': kwargs,
-            })
+            info.update(
+                {
+                    "step_length": step_length,
+                    "n_iter": i,
+                    "args": args,
+                    "kwargs": kwargs,
+                }
+            )
             yield info
 
 
 class Sbfgs(Bfgs):
     # TODO document
 
-    def __init__(self, wrt, f, fprime, initial_inv_hessian=None,
-                 line_search=None, args=None):
+    def __init__(self, wrt, f, fprime, initial_inv_hessian=None, line_search=None, args=None):
         # TODO document
-        super(Sbfgs, self).__init__(
-            wrt, f, fprime, line_search, args=args)
+        super(Sbfgs, self).__init__(wrt, f, fprime, line_search, args=args)
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
-
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def find_direction(self, grad_m1, grad, step, inv_hessian):
         # TODO document
@@ -252,9 +247,9 @@ class Lbfgs(Minimizer):
 
     """
 
-    def __init__(self, wrt, f, fprime, initial_hessian_diag=1,
-                 n_factors=10, line_search=None,
-                 args=None):
+    def __init__(
+        self, wrt, f, fprime, initial_hessian_diag=1, n_factors=10, line_search=None, args=None
+    ):
         """
         Create an Lbfgs object.
 
@@ -297,10 +292,10 @@ class Lbfgs(Minimizer):
             self.line_search = WolfeLineSearch(wrt, self.f, self.fprime)
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def find_direction(self, grad_diffs, steps, grad, hessian_diag, idxs):
         grad = grad.copy()  # We will change this.
@@ -364,7 +359,7 @@ class Lbfgs(Minimizer):
                 info = {}
             else:
                 sTgd = np.inner(step, grad_diff)
-                if sTgd > 1E-10:
+                if sTgd > 1e-10:
                     # Don't do an update if this value is too small.
                     # Determine index for the current update.
                     if not idxs:
@@ -382,21 +377,19 @@ class Lbfgs(Minimizer):
                     steps[this_idx] = step
                     hessian_diag = sTgd / np.inner(grad_diff, grad_diff)
 
-                direction, info = self.find_direction(
-                    grad_diffs, steps, -grad, hessian_diag, idxs)
+                direction, info = self.find_direction(grad_diffs, steps, -grad, hessian_diag, idxs)
 
             if not is_nonzerofinite(direction):
-                warnings.warn('search direction is either 0, nan or inf')
+                warnings.warn("search direction is either 0, nan or inf")
                 break
 
-            step_length = self.line_search.search(
-                direction, None, args, kwargs)
+            step_length = self.line_search.search(direction, None, args, kwargs)
 
             step[:] = step_length * direction
             if step_length != 0:
                 self.wrt += step
             else:
-                warnings.warn('step length is 0')
+                warnings.warn("step length is 0")
                 pass
 
             # Prepare everything for the next loop.
@@ -405,13 +398,15 @@ class Lbfgs(Minimizer):
             grad_m1[:], grad[:] = grad, self.line_search.grad
             grad_diff = grad - grad_m1
 
-            info.update({
-                'step_length': step_length,
-                'n_iter': i,
-                'args': args,
-                'kwargs': kwargs,
-                'loss': self.line_search.val,
-                'gradient': grad,
-                'gradient_m1': grad_m1,
-            })
+            info.update(
+                {
+                    "step_length": step_length,
+                    "n_iter": i,
+                    "args": args,
+                    "kwargs": kwargs,
+                    "loss": self.line_search.val,
+                    "gradient": grad,
+                    "gradient_m1": grad_m1,
+                }
+            )
             yield info

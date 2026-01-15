@@ -91,12 +91,23 @@ class RmsProp(Minimizer):
         if self.step_adapt:
             self._step_rate *= ones_like(self.wrt)
 
-    state_fields = ('n_iter decay momentum step_adapt step_rate_min step_rate_max '
-                    'step_rate moving_mean_squared step').split()
+    state_fields = (
+        "n_iter decay momentum step_adapt step_rate_min step_rate_max "
+        "step_rate moving_mean_squared step"
+    ).split()
 
-    def __init__(self, wrt, fprime, step_rate, decay=0.9, momentum=0,
-                 step_adapt=False, step_rate_min=0, step_rate_max=np.inf,
-                 args=None):
+    def __init__(
+        self,
+        wrt,
+        fprime,
+        step_rate,
+        decay=0.9,
+        momentum=0,
+        step_adapt=False,
+        step_rate_min=0,
+        step_rate_max=np.inf,
+        args=None,
+    ):
         """Create an RmsProp object.
 
         Parameters
@@ -161,8 +172,8 @@ class RmsProp(Minimizer):
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
             self.moving_mean_squared = (
-                self.decay * self.moving_mean_squared
-                + (1 - self.decay) * gradient ** 2)
+                self.decay * self.moving_mean_squared + (1 - self.decay) * gradient**2
+            )
             step2 = self.step_rate * gradient
             step2 /= sqrt(self.moving_mean_squared + 1e-8)
             self.wrt -= step2
@@ -176,11 +187,10 @@ class RmsProp(Minimizer):
                 # numpy and gnumpy.
                 step_non_negative = step > 0
                 step_m1_non_negative = step_m1 > 0
-                agree = (step_non_negative == step_m1_non_negative) * 1.
+                agree = (step_non_negative == step_m1_non_negative) * 1.0
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 self.step_rate *= adapt
-                self.step_rate = clip(
-                    self.step_rate, self.step_rate_min, self.step_rate_max)
+                self.step_rate = clip(self.step_rate, self.step_rate_min, self.step_rate_max)
 
             self.step = step
             self.n_iter += 1

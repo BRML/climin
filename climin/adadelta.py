@@ -51,10 +51,9 @@ class Adadelta(Minimizer):
        arXiv preprint arXiv:1212.5701 (2012).
     """
 
-    state_fields = 'n_iter gms sms step step_rate decay offset momentum'.split()
+    state_fields = "n_iter gms sms step step_rate decay offset momentum".split()
 
-    def __init__(self, wrt, fprime, step_rate=1, decay=0.9, momentum=0,
-                 offset=1e-4, args=None):
+    def __init__(self, wrt, fprime, step_rate=1, decay=0.9, momentum=0, offset=1e-4, args=None):
         """Create an Adadelta object.
 
         Parameters
@@ -111,18 +110,18 @@ class Adadelta(Minimizer):
 
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
-            self.gms = (d * self.gms) + (1 - d) * gradient ** 2
+            self.gms = (d * self.gms) + (1 - d) * gradient**2
             step2 = sqrt(self.sms + o) / sqrt(self.gms + o) * gradient * self.step_rate
             self.wrt -= step2
 
             self.step = step1 + step2
-            self.sms = (d * self.sms) + (1 - d) * self.step ** 2
+            self.sms = (d * self.sms) + (1 - d) * self.step**2
 
             self.n_iter += 1
 
             yield {
-                'n_iter': self.n_iter,
-                'gradient': gradient,
-                'args': args,
-                'kwargs': kwargs,
+                "n_iter": self.n_iter,
+                "gradient": gradient,
+                "args": args,
+                "kwargs": kwargs,
             }

@@ -35,7 +35,6 @@ from .base import Minimizer
 
 
 class Xnes(Minimizer):
-
     # TODO: document class
 
     def __init__(self, wrt, f, args=None):
@@ -49,10 +48,10 @@ class Xnes(Minimizer):
         self.batch_size = 4 + int(np.floor(3 * log_dim))
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def f(self, x, *args, **kwargs):
         return -self._f(x, *args, **kwargs)
@@ -66,14 +65,13 @@ class Xnes(Minimizer):
         center = self.wrt.copy()
         n_evals = 0
         best_wrt = None
-        best_x = float('-inf')
+        best_x = float("-inf")
         for i, (args, kwargs) in enumerate(self.args):
             # Draw samples, evaluate and update best solution if a better one
             # was found.
             samples = np.random.standard_normal((self.batch_size, dim))
             samples = np.dot(samples, A) + center
-            fitnesses = [self.f(samples[j], *args, **kwargs)
-                         for j in range(samples.shape[0])]
+            fitnesses = [self.f(samples[j], *args, **kwargs) for j in range(samples.shape[0])]
             fitnesses = np.array(fitnesses).flatten()
 
             if fitnesses.max() > best_x:
@@ -84,8 +82,7 @@ class Xnes(Minimizer):
             utilities = self.compute_utilities(fitnesses)
             center += np.dot(np.dot(utilities, samples), A)
             # TODO: vectorize this
-            cov_gradient = sum([u * (np.outer(s, s) - I)
-                                for (s, u) in zip(samples, utilities)])
+            cov_gradient = sum([u * (np.outer(s, s) - I) for (s, u) in zip(samples, utilities)])
             update = scipy.linalg.expm(A * cov_gradient * self.step_rate * 0.5)
             A[:] = np.dot(A, update)
 
@@ -101,9 +98,9 @@ class Xnes(Minimizer):
 
         # If we do not cast to float64 here explicitly, numpy will at random
         # points crash with a weird AttributeError.
-        utilities = -np.log((n_fitnesses - ranks).astype('float64'))
-        utilities += np.log(n_fitnesses / 2. + 1.0)
-        utilities = np.clip(utilities, 0, float('inf'))
-        utilities /= utilities.sum()       # make the utilities sum to 1
-        utilities -= 1. / n_fitnesses  # baseline
+        utilities = -np.log((n_fitnesses - ranks).astype("float64"))
+        utilities += np.log(n_fitnesses / 2.0 + 1.0)
+        utilities = np.clip(utilities, 0, float("inf"))
+        utilities /= utilities.sum()  # make the utilities sum to 1
+        utilities -= 1.0 / n_fitnesses  # baseline
         return utilities

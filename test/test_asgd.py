@@ -11,7 +11,7 @@ def test_asgd_quadratic():
     for i, info in enumerate(opt):
         if i > 10000:
             break
-    assert obj.solved(0.1), 'did not find solution'
+    assert obj.solved(0.1), "did not find solution"
 
 
 def test_asgd_rosen():
@@ -20,7 +20,7 @@ def test_asgd_rosen():
     for i, info in enumerate(opt):
         if i > 100000:
             break
-    assert ((1 - obj.pars) < 0.01).all(), 'did not find solution'
+    assert ((1 - obj.pars) < 0.01).all(), "did not find solution"
 
 
 def test_asgd_lr():
@@ -30,4 +30,4 @@ def test_asgd_lr():
     for i, info in enumerate(opt):
         if i > 3000:
             break
-    assert obj.solved(0.15), 'did not find solution'
+    assert obj.solved(0.15), "did not find solution"

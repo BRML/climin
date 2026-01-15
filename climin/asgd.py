@@ -9,8 +9,7 @@ from .base import Minimizer
 class Asgd(Minimizer):
     # TODO: document class
 
-    def __init__(self, wrt, fprime, eta0=1e-5, lmbd=1e-4, alpha=0.75, t0=1e8,
-                 args=None):
+    def __init__(self, wrt, fprime, eta0=1e-5, lmbd=1e-4, alpha=0.75, t0=1e8, args=None):
         # TODO document method
         # TODO rename parameters to sth sensible, not greek letters
         # TODO give reference
@@ -25,10 +24,10 @@ class Asgd(Minimizer):
         self.eta_t = eta0
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def __iter__(self):
         # do 'determineEta0' (see Bottou) here?
@@ -41,7 +40,7 @@ class Asgd(Minimizer):
             gradient = self.fprime(self.w, *args, **kwargs)
 
             # decay w
-            self.w *= (1 - self.lmbd * self.eta_t)
+            self.w *= 1 - self.lmbd * self.eta_t
             # and update (descent direction)
             self.w -= self.eta_t * gradient
 
@@ -53,15 +52,15 @@ class Asgd(Minimizer):
                 self.wrt *= 0
                 self.wrt += self.w
 
-            self.mu_t = 1. / max(1, (i + 1) - self.t0)
+            self.mu_t = 1.0 / max(1, (i + 1) - self.t0)
             self.eta_t = self.eta0 / ((1 + self.lmbd * self.eta0 * (i + 1)) ** self.alpha)
 
             yield {
-                'n_iter': i,
-                'gradient': gradient,
-                'mu_t': self.mu_t,
-                'eta_t': self.eta_t,
-                'step': step,
-                'args': args,
-                'kwargs': kwargs
+                "n_iter": i,
+                "gradient": gradient,
+                "mu_t": self.mu_t,
+                "eta_t": self.eta_t,
+                "step": step,
+                "args": args,
+                "kwargs": kwargs,
             }

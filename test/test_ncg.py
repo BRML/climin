@@ -11,7 +11,7 @@ def test_ncg_quadratic():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 def test_ncg_rosen():
@@ -20,7 +20,7 @@ def test_ncg_rosen():
     for i, info in enumerate(opt):
         if i > 14:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 def test_ncg_lr():
@@ -30,4 +30,4 @@ def test_ncg_lr():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"

@@ -15,8 +15,7 @@ class Smd(Minimizer):
     # eta steprate
     # gain
 
-    def __init__(self, wrt, f, fprime, f_Hp, lmbd=0.99, mu=2e-2, eta0=5e-5,
-                 args=None):
+    def __init__(self, wrt, f, fprime, f_Hp, lmbd=0.99, mu=2e-2, eta0=5e-5, args=None):
         # TODO fin better variable names
         # TODO document
         super(Smd, self).__init__(wrt, args=args)
@@ -29,10 +28,10 @@ class Smd(Minimizer):
         self.eta0 = eta0
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def __iter__(self):
         p = np.size(self.wrt)
@@ -43,7 +42,7 @@ class Smd(Minimizer):
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
             if not is_nonzerofinite(gradient):
-                warnings.warn('gradient is either zero, nan or inf')
+                warnings.warn("gradient is either zero, nan or inf")
                 break
 
             Hp = self.f_Hp(self.wrt, v, *args, **kwargs)
@@ -55,10 +54,10 @@ class Smd(Minimizer):
             self.wrt -= eta * gradient
 
             yield {
-                'n_iter': i,
-                'args': args,
-                'kwargs': kwargs,
-
-                'gradient': gradient,
-                'v': v, 'eta': eta
+                "n_iter": i,
+                "args": args,
+                "kwargs": kwargs,
+                "gradient": gradient,
+                "v": v,
+                "eta": eta,
             }

@@ -16,8 +16,10 @@ def test_cg_explicit_hessian():
 
 def test_cg_implicit_hessian():
     obj = Quadratic()
+
     def f_Hp(p):
         return obj.f_Hp(obj.pars, p)
+
     opt = ConjugateGradient(obj.pars, f_Hp=f_Hp, b=obj.b)
     for i, info in enumerate(opt):
         if i > 10:

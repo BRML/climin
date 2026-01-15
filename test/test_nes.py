@@ -13,7 +13,7 @@ def test_xnes_quadratic():
     for i, info in enumerate(opt):
         if i > 5000:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 def test_xnes_rosen():
@@ -22,7 +22,7 @@ def test_xnes_rosen():
     for i, info in enumerate(opt):
         if i > 10000:
             break
-    assert obj.solved(0.3), 'did not find solution'
+    assert obj.solved(0.3), "did not find solution"
 
 
 @pytest.mark.skip
@@ -33,4 +33,4 @@ def test_xnes_lr():
     for i, info in enumerate(opt):
         if i > 100:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"

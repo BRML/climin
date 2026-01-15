@@ -79,7 +79,7 @@ class GradientDescent(Minimizer):
         latter before.
     """
 
-    state_fields = 'step_rate momentum momentum_type step n_iter'.split()
+    state_fields = "step_rate momentum momentum_type step n_iter".split()
 
     @property
     def momentum_type(self):
@@ -87,13 +87,13 @@ class GradientDescent(Minimizer):
 
     @momentum_type.setter
     def momentum_type(self, value):
-        if value not in ('nesterov', 'standard'):
-            raise ValueError('unknown momentum type')
+        if value not in ("nesterov", "standard"):
+            raise ValueError("unknown momentum type")
         self._momentum_type = value
 
-    def __init__(self, wrt, fprime, step_rate=0.1, momentum=0.0,
-                 momentum_type='standard',
-                 args=None):
+    def __init__(
+        self, wrt, fprime, step_rate=0.1, momentum=0.0, momentum_type="standard", args=None
+    ):
         """Create a GradientDescent object.
 
         Parameters
@@ -148,11 +148,11 @@ class GradientDescent(Minimizer):
             momentum = self.momentum
             step_m1 = self.step
 
-            if self.momentum_type == 'standard':
+            if self.momentum_type == "standard":
                 gradient = self.fprime(self.wrt, *args, **kwargs)
                 step = gradient * step_rate + momentum * step_m1
                 self.wrt -= step
-            elif self.momentum_type == 'nesterov':
+            elif self.momentum_type == "nesterov":
                 big_jump = momentum * step_m1
                 self.wrt -= big_jump
 

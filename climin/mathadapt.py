@@ -15,17 +15,17 @@ except ImportError:
 def sqrt(x):
     """Return an array of the same shape containing the element square
     root of `x`."""
-    return x ** 0.5
+    return x**0.5
 
 
 def zero_like(x):
     """Return an array of the same shape as `x` containing only zeros."""
-    return x * 0.
+    return x * 0.0
 
 
 def ones_like(x):
     """Return an array of the same shape as `x` containing only ones."""
-    return x * 0. + 1.
+    return x * 0.0 + 1.0
 
 
 def clip(a, a_min, a_max):
@@ -35,13 +35,11 @@ def clip(a, a_min, a_max):
     edges. For example, if an interval of [0, 1] is specified, values smaller
     than 0 become 0, and values larger than 1 become 1."""
     if not isinstance(a, np.ndarray):
-        max_mask = (a > a_max)
+        max_mask = a > a_max
         max_tar = gp.ones(a.shape) * a_max
-        min_mask = (a < a_min)
+        min_mask = a < a_min
         min_tar = gp.ones(a.shape) * a_min
-        a_clipped = (
-            a * (1 - max_mask - min_mask)
-            + max_tar * max_mask + min_tar * min_mask)
+        a_clipped = a * (1 - max_mask - min_mask) + max_tar * max_mask + min_tar * min_mask
         return a_clipped
     else:
         return np.clip(a, a_min, a_max)
@@ -94,7 +92,7 @@ def scalar(x):
     if isinstance(x, float):
         return x
     if not x.size == 1:
-        raise ValueError('size is %i instead of 1' % x.size)
+        raise ValueError("size is %i instead of 1" % x.size)
     return x.reshape((1,))[0]
 
 

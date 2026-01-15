@@ -73,11 +73,19 @@ class Rprop(Minimizer):
         Maximum step rate.
     """
 
-    state_fields = ('n_iter step_shrink step_grow min_step max_step '
-                    'changes gradient').split()
+    state_fields = ("n_iter step_shrink step_grow min_step max_step changes gradient").split()
 
-    def __init__(self, wrt, fprime, step_shrink=0.5, step_grow=1.2,
-                 min_step=1E-6, max_step=1, changes_max=0.1, args=None):
+    def __init__(
+        self,
+        wrt,
+        fprime,
+        step_shrink=0.5,
+        step_grow=1.2,
+        min_step=1e-6,
+        max_step=1,
+        changes_max=0.1,
+        args=None,
+    ):
         """Create an Rprop object.
 
         Parameters
@@ -135,7 +143,7 @@ class Rprop(Minimizer):
 
             self.n_iter += 1
             yield {
-                'args': args,
-                'kwargs': kwargs,
-                'step': step,
+                "args": args,
+                "kwargs": kwargs,
+                "step": step,
             }

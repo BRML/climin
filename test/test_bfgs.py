@@ -13,7 +13,7 @@ def test_bfgs_quadratic():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 def test_bfgs_rosen():
@@ -22,7 +22,7 @@ def test_bfgs_rosen():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 @pytest.mark.skip
@@ -33,4 +33,4 @@ def test_bfgs_lr():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"

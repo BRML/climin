@@ -32,6 +32,7 @@ import time
 
 from climin.mathadapt import isnan
 
+
 class AfterNIterations(object):
     """AfterNIterations class.
 
@@ -65,16 +66,16 @@ class AfterNIterations(object):
         """Create AfterNIterations object.
 
 
-         Parameters
-         ----------
+        Parameters
+        ----------
 
-         max_iter : int
-            Maximum amount of iterations after which we stop.
+        max_iter : int
+           Maximum amount of iterations after which we stop.
         """
         self.max_iter = max_iter
 
     def __call__(self, info):
-        return info['n_iter'] >= self.max_iter - 1
+        return info["n_iter"] >= self.max_iter - 1
 
 
 class ModuloNIterations(object):
@@ -114,7 +115,7 @@ class ModuloNIterations(object):
         self.n = n
 
     def __call__(self, info):
-        return info['n_iter'] % self.n == 0
+        return info["n_iter"] % self.n == 0
 
 
 class TimeElapsed(object):
@@ -155,8 +156,8 @@ class TimeElapsed(object):
         self.start = time.time()
 
     def __call__(self, info):
-        if 'runtime' in info:
-            return info['runtime'] > self.sec
+        if "runtime" in info:
+            return info["runtime"] > self.sec
         else:
             return time.time() - self.start > self.sec
 
@@ -182,6 +183,7 @@ class Any(object):
 
     This basically implements a logical OR for stop criterions.
     """
+
     # TODO document
 
     def __init__(self, criterions):
@@ -195,13 +197,13 @@ class NotBetterThanAfter(object):
     """Stop criterion that returns True if the error is not less than
     `minimal` after `n_iter` iterations."""
 
-    def __init__(self, minimal, after, key='loss'):
+    def __init__(self, minimal, after, key="loss"):
         self.minimal = minimal
         self.after = after
         self.key = key
 
     def __call__(self, info):
-        return info['n_iter'] > self.after and info[self.key] >= self.minimal
+        return info["n_iter"] > self.after and info[self.key] >= self.minimal
 
 
 class IsNaN(object):
@@ -269,11 +271,9 @@ class Patience(object):
 
     """
 
-    def __init__(self, func_or_key, initial, grow_factor=1., grow_offset=0.,
-                 threshold=1e-4):
+    def __init__(self, func_or_key, initial, grow_factor=1.0, grow_offset=0.0, threshold=1e-4):
         if grow_factor == 1 and grow_offset == 0:
-            raise ValueError('need to specify either grow_factor != 1'
-                             'or grow_offset != 0)')
+            raise ValueError("need to specify either grow_factor != 1or grow_offset != 0)")
 
         self.func_or_key = func_or_key
         self.patience = initial
@@ -282,11 +282,11 @@ class Patience(object):
         self.threshold = threshold
 
         self.best_iter = 0
-        self.best_loss = float('inf')
+        self.best_loss = float("inf")
         self.count = itertools.count()
 
     def __call__(self, info):
-        i = info['n_iter']
+        i = info["n_iter"]
         if isinstance(self.func_or_key, str):
             loss = info[self.func_or_key]
         elif isinstance(self.func_or_key, (tuple, list)):
@@ -298,8 +298,7 @@ class Patience(object):
 
         if loss < self.best_loss:
             if (self.best_loss - loss) > self.threshold and i > 0:
-                self.patience = max(i * self.grow_factor + self.grow_offset,
-                                    self.patience)
+                self.patience = max(i * self.grow_factor + self.grow_offset, self.patience)
             self.best_iter = i
             self.best_loss = loss
 
@@ -366,6 +365,7 @@ class OnWindowsSignal(object):
 
     def _register(self):
         import win32api
+
         win32api.SetConsoleCtrlHandler(self.handler, 1)
 
     def handler(self, ctrl_type):
@@ -383,7 +383,7 @@ class OnWindowsSignal(object):
         self._register()
 
 
-OnSignal = OnWindowsSignal if sys.platform == 'win32' else OnUnixSignal
+OnSignal = OnWindowsSignal if sys.platform == "win32" else OnUnixSignal
 
 
 def never(info):

@@ -7,24 +7,25 @@ import sys
 import os
 import ctypes
 
-if sys.platform == 'win32':
+if sys.platform == "win32":
     # For setups where Intel Fortran compiler version >= 16.0 (This is the case
     # for Anaconda version 4.1.5 which comes with numpy version 1.10.4) is used,
     # the following flag allows to disable the additionally introduced signal
     # handler, older versios make no use of this environment variable
-    env = 'FOR_DISABLE_CONSOLE_CTRL_HANDLER'
+    env = "FOR_DISABLE_CONSOLE_CTRL_HANDLER"
     if env not in os.environ:
-        os.environ[env] = '1'
+        os.environ[env] = "1"
     # In setups with an older version, ensuring that the respective dlls are
     # loaded from the numpy core and not somewhere else (e.g. the Windows System
     # folder) helps
     import numpy
+
     basepath = os.path.dirname(numpy.__file__)
     # dll loading fails when Intel Fortran compiler version >= 16.0, therefore
     # use try/catch
     try:
-        ctypes.CDLL(os.path.join(basepath, 'core', 'libmmd.dll'))
-        ctypes.CDLL(os.path.join(basepath, 'core', 'libifcoremd.dll'))
+        ctypes.CDLL(os.path.join(basepath, "core", "libmmd.dll"))
+        ctypes.CDLL(os.path.join(basepath, "core", "libifcoremd.dll"))
     except Exception:
         pass
 

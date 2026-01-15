@@ -55,8 +55,7 @@ def sparsify_columns(arr, n_non_zero, keep_diagonal=False, random_state=None):
         if random_state is None:
             zeros = random.sample(idxs, colsize - n_non_zero)
         else:
-            zeros = random_state.choice(idxs, colsize - n_non_zero,
-                                        replace=False)
+            zeros = random_state.choice(idxs, colsize - n_non_zero, replace=False)
         mask[zeros, i] *= 0
     if keep_diagonal and arr.shape[0] == arr.shape[1]:
         mask += np.eye(arr.shape[0])
@@ -141,15 +140,15 @@ def orthogonal(arr, shape=None):
     elif len(arr.shape) >= 2:
         d1, d2 = arr.shape[-2:]
     else:
-        raise ValueError('Cannot ortho-initialize vectors. Please specify shape')
+        raise ValueError("Cannot ortho-initialize vectors. Please specify shape")
 
     shape = (arr.size // d1 // d2, d1, d2)
 
     if shape[0] == 1 and d1 == 1 or d2 == 1:
-        raise ValueError('Cannot ortho-initialize vectors.')
+        raise ValueError("Cannot ortho-initialize vectors.")
 
     if np.prod(shape) != arr.size:
-        raise ValueError('Invalid shape')
+        raise ValueError("Invalid shape")
 
     samples = np.random.randn(*shape)
     for i, sample in enumerate(samples):
@@ -203,4 +202,4 @@ def randomize_normal(arr, loc=0, scale=1, random_state=None):
         arr[...] = sample.astype(arr.dtype)
     else:
         # Assume gnumpy.
-        arr[:] = sample.astype('float32')
+        arr[:] = sample.astype("float32")

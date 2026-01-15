@@ -14,7 +14,7 @@ def test_adadelta_lr():
         print(obj.f(opt.wrt, obj.X, obj.Z))
         if i > 3000:
             break
-    assert obj.solved(0.15), 'did not find solution'
+    assert obj.solved(0.15), "did not find solution"
 
 
 def test_adadelta_continue():

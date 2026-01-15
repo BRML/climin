@@ -86,8 +86,7 @@ class ConjugateGradient(Minimizer):
 
     """
 
-    def __init__(self, wrt, H=None, b=None, f_Hp=None, min_grad=1e-14,
-                 precond=None):
+    def __init__(self, wrt, H=None, b=None, f_Hp=None, min_grad=1e-14, precond=None):
         """Create a ConjugateGradient object.
 
         Parameters
@@ -115,25 +114,24 @@ class ConjugateGradient(Minimizer):
             represent a diagonal matrix.
         """
 
-        super(ConjugateGradient, self).__init__(
-            wrt, args=None)
+        super(ConjugateGradient, self).__init__(wrt, args=None)
         self.f_Hp = f_Hp if f_Hp is not None else lambda p: np.dot(H, p)
         self.b = b
         self.min_grad = min_grad
         self.precond = precond
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def solve(self, r):
         if self.precond is None:
             return r
         elif self.precond.ndim == 1:
-        #if the preconditioning matrix is diagonal,
-        #then it is supposedly given as a vector
+            # if the preconditioning matrix is diagonal,
+            # then it is supposedly given as a vector
             return r / self.precond
         else:
             return scipy.linalg.solve(self.precond, r)
@@ -147,7 +145,7 @@ class ConjugateGradient(Minimizer):
         # updates will lead to NaN errors because the direction will
         # be zero.
         if (grad == 0).all():
-            warnings.warn('gradient is 0')
+            warnings.warn("gradient is 0")
             return
 
         for i in range(self.wrt.size):
@@ -167,20 +165,20 @@ class ConjugateGradient(Minimizer):
             y = self.solve(grad)
             beta = np.dot(grad, y) / ry
 
-            direction = - y + beta * direction
+            direction = -y + beta * direction
 
             # If we don't bail out here, we will enter regions of numerical
             # instability.
             if (abs(grad) < self.min_grad).all():
-                warnings.warn('gradient is below threshold')
+                warnings.warn("gradient is below threshold")
                 break
 
             yield {
-                'ry': ry,
-                'Hp': Hp,
-                'pHp': pHp,
-                'step_length': step_length,
-                'n_iter': i,
+                "ry": ry,
+                "Hp": Hp,
+                "pHp": pHp,
+                "step_length": step_length,
+                "n_iter": i,
             }
 
 
@@ -256,10 +254,10 @@ class NonlinearConjugateGradient(Minimizer):
         self.min_grad = min_grad
 
     def set_from_info(self, info):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def extended_info(self, **kwargs):
-        raise NotImplementedError('nobody has found the time to implement this yet')
+        raise NotImplementedError("nobody has found the time to implement this yet")
 
     def find_direction(self, grad_m1, grad, direction_m1):
         # Computation of beta as a compromise between Fletcher-Reeves
@@ -293,20 +291,19 @@ class NonlinearConjugateGradient(Minimizer):
                 direction, info = self.find_direction(grad_m1, grad, direction)
 
             if not is_nonzerofinite(direction):
-                warnings.warn('gradient is either zero, nan or inf')
+                warnings.warn("gradient is either zero, nan or inf")
                 break
 
             # Line search minimization.
             initialization = 2 * (loss - loss_m1) / np.dot(grad, direction)
             initialization = min(1, initialization)
-            step_length = self.line_search.search(
-                direction, initialization,  args, kwargs)
+            step_length = self.line_search.search(direction, initialization, args, kwargs)
             self.wrt += step_length * direction
 
             # If we don't bail out here, we will enter regions of numerical
             # instability.
             if (abs(grad) < self.min_grad).all():
-                warnings.warn('gradient is too small')
+                warnings.warn("gradient is too small")
                 break
 
             # Prepare everything for the next loop.
@@ -314,14 +311,15 @@ class NonlinearConjugateGradient(Minimizer):
             grad_m1[:], grad[:] = grad, self.line_search.grad
             loss_m1, loss = loss, self.line_search.val
 
-            info.update({
-                'n_iter': i,
-                'args': args,
-                'kwargs': kwargs,
-
-                'loss': loss,
-                'gradient': grad,
-                'gradient_m1': grad_m1,
-                'step_length': step_length,
-            })
+            info.update(
+                {
+                    "n_iter": i,
+                    "args": args,
+                    "kwargs": kwargs,
+                    "loss": loss,
+                    "gradient": grad,
+                    "gradient_m1": grad_m1,
+                    "step_length": step_length,
+                }
+            )
             yield info

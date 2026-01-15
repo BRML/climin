@@ -11,7 +11,7 @@ def test_lbfgs_quadratic():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 def test_lbfgs_rosen():
@@ -20,7 +20,7 @@ def test_lbfgs_rosen():
     for i, info in enumerate(opt):
         if i > 50:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"
 
 
 def test_lbfgs_lr():
@@ -30,4 +30,4 @@ def test_lbfgs_lr():
     for i, info in enumerate(opt):
         if i > 100:
             break
-    assert obj.solved(), 'did not find solution'
+    assert obj.solved(), "did not find solution"

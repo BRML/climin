@@ -28,7 +28,7 @@ def decaying(start, decay):
     >>> [next(s) for i in range(5)]
     [10.0, 9.0, 8.100000000000001, 7.290000000000001, 6.561]
     """
-    return (start * decay ** i for i in itertools.count(0))
+    return (start * decay**i for i in itertools.count(0))
 
 
 def linear_annealing(start, stop, n_steps):
