@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "climin"
+version = "0.1.0"
+description = "Optimization for machine learning"
+readme = "README.md"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "Justin Bayer", email = "bayer.justin@googlemail.com"},
+    {name = "Christian Osendorfer"},
+]
+keywords = ["machine learning", "optimization", "gradient descent"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+docs = ["numpydoc>=1.5"]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4",
+    "pre-commit>=3.0",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["examples", "docs", "test"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = ["examples", "docs"]  # Examples have Python 2 syntax
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "E731",   # lambda assignment
+    "E741",   # ambiguous variable names (existing code pattern)
+    "F401",   # unused imports (many are intentional re-exports)
+    "F811",   # redefinition (existing code pattern in __init__)
+    "F821",   # undefined names (existing code bugs, tests pass)
+    "F841",   # unused local variables (existing code pattern)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F811"]  # Allow re-exports
+"test/*" = ["F401", "F841"]  # Tests have various patterns

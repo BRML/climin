@@ -2,8 +2,6 @@
 
 """Module that contains projection operators."""
 
-from __future__ import absolute_import
-
 import numpy as np
 
 from .mathadapt import sqrt
@@ -24,22 +22,15 @@ def max_length_columns(arr, max_length):
         Maximum length of a column.
     """
     if arr.ndim != 2:
-        raise ValueError('only 2d arrays allowed')
+        raise ValueError("only 2d arrays allowed")
 
     max_length = float(max_length)
 
-    lengths = sqrt((arr ** 2).sum(axis=0))
+    lengths = sqrt((arr**2).sum(axis=0))
     too_big_by = lengths / max_length
     divisor = too_big_by
     non_violated = lengths < max_length
 
-    if isinstance(arr, np.ndarray):
-        divisor[np.where(non_violated)] = 1.
-    else:
-        # Gnumpy implementation.
-        # TODO: can this be done more efficiently?
-        for i, nv in enumerate(non_violated):
-            if nv:
-                divisor[i] = 1.
+    divisor[np.where(non_violated)] = 1.0
 
     arr /= divisor[np.newaxis]

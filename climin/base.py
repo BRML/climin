@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import itertools
-import collections
+import collections.abc
 
 import numpy as np
 
@@ -14,7 +14,6 @@ def repeat_or_iter(obj):
 
 
 class Minimizer(object):
-
     def __init__(self, wrt, args=None):
         self.wrt = wrt
         if args is None:
@@ -67,10 +66,10 @@ class Minimizer(object):
         an optimizer, returns a boolean indicating whether to stop. False means
         to continue, True means to stop."""
         if not criterions:
-            raise ValueError('need to supply at least one criterion')
+            raise ValueError("need to supply at least one criterion")
 
         # if criterions is a single criterion, wrap it in iterable list
-        if not isinstance(criterions, collections.Iterable):
+        if not isinstance(criterions, collections.abc.Iterable):
             criterions = [criterions]
 
         info = {}

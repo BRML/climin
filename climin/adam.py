@@ -2,15 +2,13 @@
 
 """This module provides an implementation of Adam."""
 
-from __future__ import absolute_import
-
 import warnings
 
 from .base import Minimizer
 
 
 class Adam(Minimizer):
-    """Adaptive moment estimation optimizer. (Adam).
+    r"""Adaptive moment estimation optimizer. (Adam).
 
     Adam is a method for the optimization of stochastic objective functions.
 
@@ -90,14 +88,22 @@ class Adam(Minimizer):
        Stanford University, Tech. Rep (2015).
     """
 
-    state_fields = 'n_iter step_rate decay_mom1 decay_mom2 step offset est_mom1_b est_mom2_b'.split()
+    state_fields = (
+        "n_iter step_rate decay_mom1 decay_mom2 step offset est_mom1_b est_mom2_b".split()
+    )
 
-    def __init__(self, wrt, fprime, step_rate=.0002,
-                 decay=None,
-                 decay_mom1=0.1,
-                 decay_mom2=0.001,
-                 momentum=0,
-                 offset=1e-8, args=None):
+    def __init__(
+        self,
+        wrt,
+        fprime,
+        step_rate=0.0002,
+        decay=None,
+        decay_mom1=0.1,
+        decay_mom2=0.001,
+        momentum=0,
+        offset=1e-8,
+        args=None,
+    ):
         """Create an Adam object.
 
         Parameters
@@ -136,16 +142,20 @@ class Adam(Minimizer):
             Iterator over arguments which ``fprime`` will be called with.
         """
         if not 0 < decay_mom1 <= 1:
-            raise ValueError('decay_mom1 has to lie in (0, 1]')
+            raise ValueError("decay_mom1 has to lie in (0, 1]")
         if not 0 < decay_mom2 <= 1:
-            raise ValueError('decay_mom2 has to lie in (0, 1]')
+            raise ValueError("decay_mom2 has to lie in (0, 1]")
         if not (1 - decay_mom1 * 2) / (1 - decay_mom2) ** 0.5 < 1:
-            warnings.warn("constraint from convergence analysis for adam not "
-                          "satisfied; check original paper to see if you "
-                          "really want to do this.")
+            warnings.warn(
+                "constraint from convergence analysis for adam not "
+                "satisfied; check original paper to see if you "
+                "really want to do this."
+            )
         if decay is not None:
-            warnings.warn('decay parameter was used in a previous verion of '
-                          'Adam and no longer has any effect.')
+            warnings.warn(
+                "decay parameter was used in a previous verion of "
+                "Adam and no longer has any effect."
+            )
 
         super(Adam, self).__init__(wrt, args=args)
 
@@ -176,11 +186,10 @@ class Adam(Minimizer):
 
             gradient = self.fprime(self.wrt, *args, **kwargs)
             self.est_mom1_b = dm1 * gradient + (1 - dm1) * est_mom1_b_m1
-            self.est_mom2_b = dm2 * gradient ** 2 + (1 - dm2) * est_mom2_b_m1
+            self.est_mom2_b = dm2 * gradient**2 + (1 - dm2) * est_mom2_b_m1
 
-            step_t = self.step_rate * (1 - (1 - dm2) ** t) ** 0.5 / \
-                     (1 - (1 - dm1) ** t)
-            step2 = step_t * self.est_mom1_b / (self.est_mom2_b ** 0.5 + o)
+            step_t = self.step_rate * (1 - (1 - dm2) ** t) ** 0.5 / (1 - (1 - dm1) ** t)
+            step2 = step_t * self.est_mom1_b / (self.est_mom2_b**0.5 + o)
 
             self.wrt -= step2
             self.step = step1 + step2
@@ -188,8 +197,8 @@ class Adam(Minimizer):
             self.n_iter += 1
 
             yield {
-                'n_iter': self.n_iter,
-                'gradient': gradient,
-                'args': args,
-                'kwargs': kwargs,
+                "n_iter": self.n_iter,
+                "gradient": gradient,
+                "args": args,
+                "kwargs": kwargs,
             }

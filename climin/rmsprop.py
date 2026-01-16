@@ -2,8 +2,6 @@
 
 """This module provides an implementation of rmsprop."""
 
-from __future__ import absolute_import
-
 import numpy as np
 
 from .base import Minimizer
@@ -11,7 +9,7 @@ from .mathadapt import sqrt, ones_like, clip
 
 
 class RmsProp(Minimizer):
-    """RmsProp optimizer.
+    r"""RmsProp optimizer.
 
     RmsProp [tieleman2012rmsprop]_ is an optimizer that utilizes the magnitude
     of recent gradients to normalize the gradients. We always keep a moving
@@ -45,9 +43,6 @@ class RmsProp(Minimizer):
     RmsProp has several advantages; for one, it is a very robust optimizer which
     has pseudo curvature information. Additionally, it can deal with stochastic
     objectives very nicely, making it applicable to mini batch learning.
-
-    .. note::
-       Works with gnumpy.
 
     .. [tieleman2012rmsprop]  Tieleman, T. and Hinton, G. (2012),
        Lecture 6.5 - rmsprop, COURSERA: Neural Networks for Machine Learning
@@ -93,12 +88,23 @@ class RmsProp(Minimizer):
         if self.step_adapt:
             self._step_rate *= ones_like(self.wrt)
 
-    state_fields = ('n_iter decay momentum step_adapt step_rate_min step_rate_max '
-                    'step_rate moving_mean_squared step').split()
+    state_fields = (
+        "n_iter decay momentum step_adapt step_rate_min step_rate_max "
+        "step_rate moving_mean_squared step"
+    ).split()
 
-    def __init__(self, wrt, fprime, step_rate, decay=0.9, momentum=0,
-                 step_adapt=False, step_rate_min=0, step_rate_max=np.inf,
-                 args=None):
+    def __init__(
+        self,
+        wrt,
+        fprime,
+        step_rate,
+        decay=0.9,
+        momentum=0,
+        step_adapt=False,
+        step_rate_min=0,
+        step_rate_max=np.inf,
+        args=None,
+    ):
         """Create an RmsProp object.
 
         Parameters
@@ -163,8 +169,8 @@ class RmsProp(Minimizer):
             gradient = self.fprime(self.wrt, *args, **kwargs)
 
             self.moving_mean_squared = (
-                self.decay * self.moving_mean_squared
-                + (1 - self.decay) * gradient ** 2)
+                self.decay * self.moving_mean_squared + (1 - self.decay) * gradient**2
+            )
             step2 = self.step_rate * gradient
             step2 /= sqrt(self.moving_mean_squared + 1e-8)
             self.wrt -= step2
@@ -174,15 +180,12 @@ class RmsProp(Minimizer):
             # Step rate adaption. If the current step and the momentum agree,
             # we slightly increase the step rate for that dimension.
             if self.step_adapt:
-                # This code might look weird, but it makes it work with both
-                # numpy and gnumpy.
                 step_non_negative = step > 0
                 step_m1_non_negative = step_m1 > 0
-                agree = (step_non_negative == step_m1_non_negative) * 1.
+                agree = (step_non_negative == step_m1_non_negative) * 1.0
                 adapt = 1 + agree * self.step_adapt * 2 - self.step_adapt
                 self.step_rate *= adapt
-                self.step_rate = clip(
-                    self.step_rate, self.step_rate_min, self.step_rate_max)
+                self.step_rate = clip(self.step_rate, self.step_rate_min, self.step_rate_max)
 
             self.step = step
             self.n_iter += 1

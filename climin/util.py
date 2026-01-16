@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-
 import inspect
 import itertools
 import random
@@ -23,19 +21,15 @@ except ImportError:
     pass
 
 
-def is_garray(cand):
-    return hasattr(cand, 'as_numpy_array')
-
-
 def is_array(cand):
-    return is_garray(cand) or isinstance(cand, np.ndarray)
+    return isinstance(cand, np.ndarray)
 
 
 def clear_info(info):
     """Clean up contents of info dictionary for better use.
 
-    Keys to be removed are ``args``, ``kwargs`` and any non-scalar numpy or
-    gnumpy arrays. Numpy scalars are converted to floats.
+    Keys to be removed are ``args``, ``kwargs`` and any non-scalar numpy
+    arrays. Numpy scalars are converted to floats.
 
     Examples
     --------
@@ -47,21 +41,22 @@ def clear_info(info):
     >>> cleared == {'bar': 1.0, 'loss': 1.0}
     True
     """
-    items = info.iteritems()
-    items = ((k, float(v.reshape((1,))[0]) if is_array(v) and v.size == 1 else v)
-             for k, v in items)
+    items = info.items()
+    items = ((k, float(v.reshape((1,))[0]) if is_array(v) and v.size == 1 else v) for k, v in items)
     items = ((k, v) for k, v in items if not is_array(v))
-    items = ((k, v) for k, v in items if k not in ('args', 'kwargs'))
+    items = ((k, v) for k, v in items if k not in ("args", "kwargs"))
 
     return dict(items)
 
 
 def coroutine(f):
     """Turn a generator function into a coroutine by calling .next() once."""
+
     def started(*args, **kwargs):
         cr = f(*args, **kwargs)
         next(cr)
         return cr
+
     return started
 
 
@@ -102,8 +97,8 @@ def draw_mini_indices(n_samples, batch_size):
 
     while True:
         while pos + batch_size <= n_samples:
-             yield idxs[pos:pos + batch_size]
-             pos += batch_size
+            yield idxs[pos : pos + batch_size]
+            pos += batch_size
 
         batch = idxs[pos:]
         needed = batch_size - len(batch)
@@ -129,26 +124,25 @@ def optimizer(identifier, wrt, *args, **kwargs):
     :param wrt: Numpy array pointing to the data to optimize.
     """
     klass_map = {
-        'gd': GradientDescent,
-        'lbfgs': Lbfgs,
-        'ncg': NonlinearConjugateGradient,
-        'rprop': Rprop,
-        'rmsprop': RmsProp,
-        'adadelta': Adadelta,
-        'adam': Adam,
+        "gd": GradientDescent,
+        "lbfgs": Lbfgs,
+        "ncg": NonlinearConjugateGradient,
+        "rprop": Rprop,
+        "rmsprop": RmsProp,
+        "adadelta": Adadelta,
+        "adam": Adam,
     }
     # Find out which arguments to pass on.
     klass = klass_map[identifier]
-    argspec = inspect.getargspec(klass.__init__)
-    if argspec.keywords is None:
+    argspec = inspect.getfullargspec(klass.__init__)
+    if argspec.varkw is None:
         # Issue a warning for each of the arguments that have been passed
         # to this optimizer but were not used.
         expected_keys = set(argspec.args)
         given_keys = set(kwargs.keys())
         unused_keys = given_keys - expected_keys
         for i in unused_keys:
-            warnings.warn('Argument named %s is not expected by %s'
-                          % (i, klass))
+            warnings.warn("Argument named %s is not expected by %s" % (i, klass))
 
         # We need to filter stuff out.
         used_keys = expected_keys & given_keys
@@ -156,7 +150,7 @@ def optimizer(identifier, wrt, *args, **kwargs):
     try:
         opt = klass(wrt, *args, **kwargs)
     except TypeError:
-        raise TypeError('required arguments for %s: %s' % (klass, argspec.args))
+        raise TypeError("required arguments for %s: %s" % (klass, argspec.args))
 
     return opt
 
@@ -191,7 +185,7 @@ def shaped_from_flat(flat, shapes):
     n_used = 0
     views = []
     for size, shape in zip(sizes, shapes):
-        this = flat[n_used:n_used + size]
+        this = flat[n_used : n_used + size]
         n_used += size
         this.shape = shape
         views.append(this)
@@ -221,7 +215,7 @@ def empty_with_views(shapes, empty_func=np.empty):
     empty_func : callable
         function that returns a memory region given an integer of the desired
         size. (Examples include ``numpy.empty``, which is the default,
-        ``gnumpy.empty`` and ``theano.tensor.empty``.
+        and ``theano.tensor.empty``.
 
 
     Returns
@@ -290,19 +284,19 @@ def arbitrary_slice(arr, start, stop=None, axis=0):
         The respective slice of ``arr``
     """
 
-    if type(arr) is list:
+    if isinstance(arr, list):
         if axis == 0:
             return arr[start:stop]
         else:
-            raise ValueError("Cannot slice a list in non-zero axis {}"
-                             .format(axis))
+            raise ValueError("Cannot slice a list in non-zero axis {}".format(axis))
 
     n_axes = len(arr.shape)
 
     if axis >= n_axes:
-        raise IndexError('Argument `axis` with value {} out of range. '
-                         'Must be smaller than rank {} of `arr`.'
-                         .format(axis, n_axes))
+        raise IndexError(
+            "Argument `axis` with value {} out of range. "
+            "Must be smaller than rank {} of `arr`.".format(axis, n_axes)
+        )
 
     this_slice = [slice(None) for _ in range(n_axes)]
     this_slice[axis] = slice(start, stop)
@@ -345,8 +339,7 @@ def minibatches(arr, batch_size, d=0):
     if rest:
         n_batches += 1
 
-    slices = (slice(i * batch_size, (i + 1) * batch_size)
-              for i in range(n_batches))
+    slices = (slice(i * batch_size, (i + 1) * batch_size) for i in range(n_batches))
     if d == 0:
         res = [arr[i] for i in slices]
     elif d == 1:
@@ -357,8 +350,9 @@ def minibatches(arr, batch_size, d=0):
     return res
 
 
-def iter_minibatches(lst, batch_size, dims, n_cycles=None, random_state=None,
-                     discard_illsized_batch=False):
+def iter_minibatches(
+    lst, batch_size, dims, n_cycles=None, random_state=None, discard_illsized_batch=False
+):
     """Return an iterator that successively yields tuples containing aligned
     minibatches of size `batch_size` from slicable objects given in `lst`, in
     random order without replacement.
@@ -397,25 +391,29 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=None, random_state=None,
     -------
     batches : iterator
         Infinite iterator of mini batches in random order (without replacement).
-    """	
+    """
 
     # This if clause is for backward compatibility.
-    if type(n_cycles) == bool and not n_cycles:
+    if isinstance(n_cycles, bool) and not n_cycles:
         n_cycles = None
-        warnings.warn("n_cycles=False kwarg to iter_minibatches deprecated. "
-                        "Using n_cycles=None instead.")
+        warnings.warn(
+            "n_cycles=False kwarg to iter_minibatches deprecated. Using n_cycles=None instead."
+        )
 
     try:
         # case distinction for handling lists
-        dm_result = [divmod(len(arr), batch_size)
-                     if d == 0 else divmod(arr.shape[d], batch_size)
-                     for (arr, d) in zip(lst, dims)]
+        dm_result = [
+            divmod(len(arr), batch_size) if d == 0 else divmod(arr.shape[d], batch_size)
+            for (arr, d) in zip(lst, dims)
+        ]
     except AttributeError:
-        raise AttributeError("'list' object has no attribute 'shape'. "
-                             "Trying to slice a list in a non-zero axis.")
+        raise AttributeError(
+            "'list' object has no attribute 'shape'. Trying to slice a list in a non-zero axis."
+        )
     except IndexError:
-        raise IndexError("tuple index out of range. "
-                         "Trying to slice along a non-existing dimension.")
+        raise IndexError(
+            "tuple index out of range. Trying to slice along a non-existing dimension."
+        )
 
     # check if all to-be-sliced dimensions have the same length
     if dm_result.count(dm_result[0]) == len(dm_result):
@@ -442,8 +440,7 @@ def iter_minibatches(lst, batch_size, dims, n_cycles=None, random_state=None,
             for i in indices:
                 start = i * batch_size
                 stop = (i + 1) * batch_size
-                batch = [arbitrary_slice(arr, start, stop, axis) for (arr, axis)
-                         in zip(lst, dims)]
+                batch = [arbitrary_slice(arr, start, stop, axis) for (arr, axis) in zip(lst, dims)]
                 yield tuple(batch)
 
 

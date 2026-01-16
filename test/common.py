@@ -33,4 +33,4 @@ def continuation(opt):
         if i > 3:
             break
 
-    assert np.allclose(opt.wrt, final1), 'continuation did not lead to same result'
+    assert np.allclose(opt.wrt, final1), "continuation did not lead to same result"

@@ -11,7 +11,6 @@ def sigmoid(x):
 
 
 class LogisticRegression(object):
-
     def __init__(self, n_inpt=5, n_classes=3, n_samples=10, seed=12345):
         self.n_inpt = n_inpt
         self.n_classes = n_classes
@@ -58,7 +57,7 @@ class LogisticRegression(object):
         return d_f_d_all / prediction.shape[0]
 
     def f_Hp(self, pars, p, inpt, target):
-        eps = 1E-6
+        eps = 1e-6
         deriv = self.fprime(pars, inpt, target)
         offseted = self.fprime(pars + p * eps, inpt, target)
         return (offseted - deriv) / eps
@@ -71,8 +70,7 @@ class LogisticRegression(object):
 
 
 class Quadratic(object):
-
-    H = np.array([[1, 0],[0, 100]])
+    H = np.array([[1, 0], [0, 100]])
     b = np.zeros(2)
 
     def __init__(self):
@@ -92,8 +90,6 @@ class Quadratic(object):
 
 
 class BigQuadratic(object):
-
-
     def __init__(self, dim, seed=101010):
         np.random.seed(seed)
         self.pars = np.random.standard_normal(dim) + 5
@@ -116,7 +112,6 @@ class BigQuadratic(object):
 
 
 class Rosenbrock(object):
-
     def __init__(self):
         self.pars = np.zeros(2)
 
@@ -127,7 +122,7 @@ class Rosenbrock(object):
         return rosen_der(x)
 
     def f_Hp(self, pars, p):
-        eps = 1E-6
+        eps = 1e-6
         return (self.fprime(pars + p * eps) - self.fprime(pars)) / eps
 
     def solved(self, tolerance=0.1):

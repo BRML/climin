@@ -10,11 +10,10 @@ from climin.initialize import sparsify_columns, orthogonal
 def test_sparsify_columns():
     pars = np.ones((8, 10))
     sparsify_columns(pars, 3)
-    assert (pars.sum(axis=0) == [3] * 10).all(), 'sparsify_columns did not work'
+    assert (pars.sum(axis=0) == [3] * 10).all(), "sparsify_columns did not work"
 
 
 class OrthoInitTest(unittest.TestCase):
-
     @classmethod
     def isOrthogonal(cls, arr):
         """Product of orthonormal matrices is an identity"""
@@ -36,7 +35,15 @@ class OrthoInitTest(unittest.TestCase):
 
     def test_tensor(self):
         true_shape = (3, 3)
-        for shape in ((3, 9,), (2, 9, 1), (4, 1, 9), (1, 2, 3, 3)):
+        for shape in (
+            (
+                3,
+                9,
+            ),
+            (2, 9, 1),
+            (4, 1, 9),
+            (1, 2, 3, 3),
+        ):
             arr = np.empty(shape)
             orthogonal(arr, shape=true_shape)
             arr = arr.reshape([-1] + list(true_shape))
